@@ -16,10 +16,10 @@ def scm_checkout() {
                 skip_job = 1
                 currentBuild.result = 'SUCCESS'
                 println("\nBuild skipped due to commit message directive.\n")
-                // System.exit(0) // FATAL to Jenkins
-                //return skip_job
+                // System.exit(0) // WARNING: FATAL to Jenkins
+                return skip_job
                 //throw new hudson.AbortException('Guess what!')
-                throw new java.io.IOException('Guess what!')
+                //throw new java.io.IOException('Guess what!')
             }
             stash includes: '**/*', name: 'source_tree'
         }
