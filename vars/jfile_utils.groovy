@@ -1,5 +1,10 @@
 // Jenkinsfile utilities
 
+// Clone the source repository and examine the most recent commit message.
+// If a '[ci skip]' or '[skip ci]' directive is present, immediately abort the build
+// terminate the job with a success code.
+// If no skip directive is found, stash all the source files for efficient retrieval
+// by subsequent nodes.
 def scm_checkout() {
     skip_job = 0
     node("on-master") {
@@ -11,19 +16,14 @@ def scm_checkout() {
                 skip_job = 1
                 currentBuild.result = 'SUCCESS'
                 println("\nBuild skipped due to commit message directive.\n")
-                return skip_job
+                System.exit(0)
+                //return skip_job
             }
             stash includes: '**/*', name: 'source_tree'
         }
     }
-    return skip_job
+    //return skip_job
 }
-
-//if (skip_job == 1) {
-//    currentBuild.result = 'SUCCESS'
-//    println("\nBuild skipped due to commit message directive.\n")
-//    return
-//}
 
 
 def concurrent2(mylist) {
