@@ -21,11 +21,16 @@ def scm_checkout() {
                 //throw new hudson.AbortException('Guess what!')
                 //throw new java.io.IOException('Guess what!')
             }
+            sh(script: "ls -al")
             stash includes: '**/*', name: 'source_tree'
         }
     }
     return skip_job
 }
+
+//if (scm_checkout()) {
+//    return
+//}
 
 
 def concurrent2(mylist) {
