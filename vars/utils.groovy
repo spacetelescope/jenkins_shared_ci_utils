@@ -33,5 +33,16 @@ def concurrent2(configs) {
     def tasks = [:]
     for (config in configs) {
         println("concurrent2: build.nodetype = ${config.nodetype}")
-    }
-}
+        tasks["${config.nodetype}/${config.build_mode}"] = {
+            node(config.nodetype) {
+                withEnv(config.env_vars) {
+                    def prefix = pwd() + "/_install"
+                    stage("Build (${config.build_mode})") {
+                        unstash "source_tree"
+                        sh "ls -al"
+                    } //end stage
+                } //end withEnv
+            } // end node
+        }
+    } //end for
+} //end concurrent2
