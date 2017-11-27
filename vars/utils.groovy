@@ -45,4 +45,7 @@ def concurrent2(configs) {
             } // end node
         }
     } //end for
+    stage("Matrix") {
+        parallel(tasks)
+    }
 } //end concurrent2
