@@ -1,7 +1,7 @@
 // Jenkinsfile utilities
 
 // Clone the source repository and examine the most recent commit message.
-// If a '[ci skip]' or '[skip ci]' directive is present, immediately abort the build
+// If a '[ci skip]' or '[skip ci]' directive is present, immediately
 // terminate the job with a success code.
 // If no skip directive is found, stash all the source files for efficient retrieval
 // by subsequent nodes.
@@ -28,13 +28,10 @@ def scm_checkout() {
     return skip_job
 }
 
-//if (scm_checkout()) {
-//    return
-//}
 
-
-def concurrent2(mylist) {
-    for (build in mylist) {
-        println("concurrent2: build.nodetype = ${build.nodetype}")
+def concurrent2(configs) {
+    def tasks = [:]
+    for (config in configs) {
+        println("concurrent2: build.nodetype = ${config.nodetype}")
     }
 }
