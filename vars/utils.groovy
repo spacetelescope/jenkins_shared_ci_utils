@@ -31,6 +31,7 @@ def scm_checkout() {
 
 def concurrent2(configs) {
     def tasks = [:]
+    println("Size of configs = ${configs.size()}")
     for (config in configs) {
         println("concurrent2: build.nodetype = ${config.nodetype}")
         tasks["${config.nodetype}/${config.build_mode}"] = {
