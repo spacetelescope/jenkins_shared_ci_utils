@@ -41,11 +41,17 @@ def concurrent2(configs) {
         tasks["${config.nodetype}/${config.build_mode}"] = {
             node(config.nodetype) {
                 //withEnv(config.env_vars) {
+                    println("Run tests = ${config.run_tests}")
                     def prefix = pwd() + "/_install"
                     stage("Build (${config.build_mode})") {
                         unstash "source_tree"
                         sh(script: "ls -al")
                     } //end stage
+                    stage("Test (${config.build_mode})") {
+                        if (config.run_tests) {
+                            println("RUNNING TESTS")
+                        }
+                    }
                 //} //end withEnv
             } // end node
         }
@@ -54,3 +60,8 @@ def concurrent2(configs) {
         parallel(tasks)
     }
 } //end concurrent2
+
+// Allow deep copying of a config object to another instance.
+def copy(config) {
+    return config.createNewInstance()
+}
