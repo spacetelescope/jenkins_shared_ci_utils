@@ -56,8 +56,9 @@ def concurrent(configs) {
                     if (myconfig.run_tests) {
                         try {
                             stage("Test (${myconfig.build_mode})") {
-                                    // Test command(s) here
-                                    println("RUNNING TESTS")
+                                    for (cmd in myconfig.test_cmds) {
+                                        sh(script: cmd)
+                                    }
                             }
                         }
                         finally {
