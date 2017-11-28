@@ -41,6 +41,10 @@ def concurrent2(configs) {
         tasks["${config.nodetype}/${config.build_mode}"] = {
             node(config.nodetype) {
                 //withEnv(config.env_vars) {
+                    println("concurrent2: build.nodetype = ${config.nodetype}")
+                    println("concurrent2: build.build_mode= ${config.build_mode}")
+                    println("concurrent2: build.build_args= ${config.build_args}")
+                    println("concurrent2: build.env_vars= ${config.env_vars}")
                     println("Run tests = ${config.run_tests}")
                     def prefix = pwd() + "/_install"
                     stage("Build (${config.build_mode})") {
