@@ -1,5 +1,5 @@
-// src/bconfig.groovy
-package bconfig; 
+// src/BuildConfig.groovy
+package BuildConfig; 
 
 class BuildConfig implements Serializable {
     def nodetype = ""
@@ -32,7 +32,7 @@ class BuildConfig implements Serializable {
     }
 }
 
-class bconfig implements Serializable {
-    def name = "My name"
-}
+//class bconfig implements Serializable {
+//    def name = "My name"
+//}
 

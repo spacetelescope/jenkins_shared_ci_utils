@@ -1,5 +1,5 @@
 // Jenkinsfile utilities
-import bconfig.bconfig
+import BuildConfig.BuildConfig
 
 // Clone the source repository and examine the most recent commit message.
 // If a '[ci skip]' or '[skip ci]' directive is present, immediately
@@ -37,8 +37,6 @@ class TClass implements Serializable {
 def concurrent2(configs) {
     def tasks = [:]
     println("Size of configs = ${configs.size()}")
-    def myconf = new bconfig()
-    println("myconf.name = ${myconf.name}")
     for (config in configs) {
         t = new TClass()
         println("concurrent2: build.nodetype = ${config.nodetype}")
@@ -46,7 +44,6 @@ def concurrent2(configs) {
         println("concurrent2: build.build_args= ${config.build_args}")
         println("concurrent2: build.env_vars= ${config.env_vars}")
         def run_tests = config.run_tests
-        def tmp_config = new bconfig()
         tasks["${config.nodetype}/${config.build_mode}"] = {
             node(config.nodetype) {
                 //withEnv(config.env_vars) {
