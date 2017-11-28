@@ -41,13 +41,16 @@ def concurrent(configs) {
                 withEnv(myconfig.env_vars) {
                     println("task: myconfig.nodetype = ${myconfig.nodetype}")
                     println("task: myconfig.build_mode = ${myconfig.build_mode}")
-                    println("task: myconfig.build_args = ${myconfig.build_args}")
                     println("task: myconfig.env_vars = ${myconfig.env_vars}")
+                    println("task: myconfig.build_args = ${myconfig.build_args}")
+                    println("task: myconfig.build_cmds = ${myconfig.build_cmds}")
                     println("task: myconfig.run_tests = ${myconfig.run_tests}")
                     def prefix = pwd() + "/_install"
                     stage("Build (${myconfig.build_mode})") {
                         unstash "source_tree"
-                        sh(script: "ls -al")
+                        for (cmd in myconfig.build_cmds) {
+                            sh(script: cmd)
+                        }
                     } //end stage
                     if (myconfig.run_tests) {
                         try {
