@@ -44,6 +44,8 @@ def concurrent2(configs) {
         println("concurrent2: build.build_args= ${config.build_args}")
         println("concurrent2: build.env_vars= ${config.env_vars}")
         def run_tests = config.run_tests
+        def myconfig = new BuildConfig()
+        myconfig = config.copy()
         tasks["${config.nodetype}/${config.build_mode}"] = {
             node(config.nodetype) {
                 //withEnv(config.env_vars) {
