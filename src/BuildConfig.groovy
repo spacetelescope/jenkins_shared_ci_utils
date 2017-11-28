@@ -16,10 +16,12 @@ class BuildConfig implements Serializable {
     BuildConfig() {
         nodetype = ""
     }
+
     BuildConfig(nodetype) {
         this.nodetype = nodetype
     }
-    // createNewInstance method requires Jenkins script approval for the
+
+    // copy method requires Jenkins script approval for the
     // following signatures:
     // method groovy.lang.MetaBeanProperty getSetter
     // method groovy.lang.MetaObjectProtocol getProperties
