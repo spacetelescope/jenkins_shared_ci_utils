@@ -38,6 +38,7 @@ def concurrent(configs) {
         myconfig = config.copy()
         tasks["${config.nodetype}/${config.build_mode}"] = {
             node(config.nodetype) {
+                myconfig.env_vars.add("PATH=./_install/bin:${env.PATH}")
                 withEnv(myconfig.env_vars) {
                     println("task: myconfig.nodetype = ${myconfig.nodetype}")
                     println("task: myconfig.build_mode = ${myconfig.build_mode}")
@@ -51,7 +52,7 @@ def concurrent(configs) {
                         for (cmd in myconfig.build_cmds) {
                             sh(script: cmd)
                         }
-                    } //end stage
+                    }
                     if (myconfig.run_tests) {
                         try {
                             stage("Test (${myconfig.build_mode})") {
