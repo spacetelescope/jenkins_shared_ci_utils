@@ -1,8 +1,7 @@
-// src/org/foo/MyClass.groovy
+// src/bconfig.groovy
+package bconfig; 
 
-package org.foo; 
-
-class MyClass implements Serializable {
+class bconfig implements Serializable {
     def name = "My name"
 }
 

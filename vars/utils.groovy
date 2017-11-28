@@ -1,5 +1,3 @@
-import org.foo.Myclass
-
 // Jenkinsfile utilities
 
 // Clone the source repository and examine the most recent commit message.
@@ -36,8 +34,6 @@ class TClass implements Serializable {
 
 
 def concurrent2(configs) {
-    myobj = new MyClass()
-    println("myobj.name = ${myobj.name}")
     def tasks = [:]
     println("Size of configs = ${configs.size()}")
     for (config in configs) {
