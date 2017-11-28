@@ -49,18 +49,18 @@ def concurrent2(configs) {
         tasks["${config.nodetype}/${config.build_mode}"] = {
             node(config.nodetype) {
                 //withEnv(config.env_vars) {
-                    println("task: build.nodetype = ${config.nodetype}")
-                    println("task: build.build_mode= ${config.build_mode}")
-                    println("task: build.build_args= ${config.build_args}")
-                    println("task: build.env_vars= ${config.env_vars}")
-                    println("task: config.run_tests = ${config.run_tests}")
+                    println("task: build.nodetype = ${myconfig.nodetype}")
+                    println("task: build.build_mode= ${myconfig.build_mode}")
+                    println("task: build.build_args= ${myconfig.build_args}")
+                    println("task: build.env_vars= ${myconfig.env_vars}")
+                    println("task: config.run_tests = ${myconfig.run_tests}")
                     println("task: run_tests = ${run_tests}")
                     def prefix = pwd() + "/_install"
-                    stage("Build (${config.build_mode})") {
+                    stage("Build (${myconfig.build_mode})") {
                         unstash "source_tree"
                         sh(script: "ls -al")
                     } //end stage
-                    stage("Test (${config.build_mode})") {
+                    stage("Test (${myconfig.build_mode})") {
                         //if (config.run_tests) {
                         if (run_tests) {
                             println("RUNNING TESTS")
