@@ -1,6 +1,7 @@
 // src/BuildConfig.groovy
 package BuildConfig; 
 
+//@AutoClone  // annotation is not CPS-compatible?
 class BuildConfig implements Serializable {
     def nodetype = ""
     def build_mode = ""
@@ -31,8 +32,3 @@ class BuildConfig implements Serializable {
         }
     }
 }
-
-//class bconfig implements Serializable {
-//    def name = "My name"
-//}
-

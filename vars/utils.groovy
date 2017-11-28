@@ -29,40 +29,28 @@ def scm_checkout() {
     return skip_job
 }
 
-class TClass implements Serializable {
-  def var = "varvalue"
-}
 
-
-def concurrent2(configs) {
+def concurrent(configs) {
     def tasks = [:]
     println("Size of configs = ${configs.size()}")
     for (config in configs) {
-        t = new TClass()
-        println("concurrent2: build.nodetype = ${config.nodetype}")
-        println("concurrent2: build.build_mode= ${config.build_mode}")
-        println("concurrent2: build.build_args= ${config.build_args}")
-        println("concurrent2: build.env_vars= ${config.env_vars}")
-        def run_tests = config.run_tests
         def myconfig = new BuildConfig()
         myconfig = config.copy()
         tasks["${config.nodetype}/${config.build_mode}"] = {
             node(config.nodetype) {
                 //withEnv(config.env_vars) {
-                    println("task: build.nodetype = ${myconfig.nodetype}")
-                    println("task: build.build_mode= ${myconfig.build_mode}")
-                    println("task: build.build_args= ${myconfig.build_args}")
-                    println("task: build.env_vars= ${myconfig.env_vars}")
-                    println("task: config.run_tests = ${myconfig.run_tests}")
-                    println("task: run_tests = ${run_tests}")
+                    println("task: myconfig.nodetype = ${myconfig.nodetype}")
+                    println("task: myconfig.build_mode = ${myconfig.build_mode}")
+                    println("task: myconfig.build_args = ${myconfig.build_args}")
+                    println("task: myconfig.env_vars = ${myconfig.env_vars}")
+                    println("task: myconfig.run_tests = ${myconfig.run_tests}")
                     def prefix = pwd() + "/_install"
                     stage("Build (${myconfig.build_mode})") {
                         unstash "source_tree"
                         sh(script: "ls -al")
                     } //end stage
                     stage("Test (${myconfig.build_mode})") {
-                        //if (config.run_tests) {
-                        if (run_tests) {
+                        if (myconfig.run_tests) {
                             println("RUNNING TESTS")
                         }
                     }
@@ -73,7 +61,7 @@ def concurrent2(configs) {
     stage("Matrix") {
         parallel(tasks)
     }
-} //end concurrent2
+} //end concurrent
 
 // Allow deep copying of a config object to another instance.
 def copy(config) {
