@@ -17,10 +17,7 @@ def scm_checkout() {
                 skip_job = 1
                 currentBuild.result = 'SUCCESS'
                 println("\nBuild skipped due to commit message directive.\n")
-                // System.exit(0) // WARNING: FATAL to Jenkins
                 return skip_job
-                //throw new hudson.AbortException('Guess what!')
-                //throw new java.io.IOException('Guess what!')
             }
             sh(script: "ls -al")
             stash includes: '**/*', name: 'source_tree'
@@ -30,6 +27,9 @@ def scm_checkout() {
 }
 
 
+// Execute build/test tasks in parallel
+// Each task is defined by a BuildConfig object.
+// A list of such objects is iterated over to process all configurations.
 def concurrent(configs) {
     def tasks = [:]
     println("Size of configs = ${configs.size()}")
@@ -62,8 +62,3 @@ def concurrent(configs) {
         parallel(tasks)
     }
 } //end concurrent
-
-// Allow deep copying of a config object to another instance.
-def copy(config) {
-    return config.createNewInstance()
-}
