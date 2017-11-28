@@ -49,9 +49,21 @@ def concurrent(configs) {
                         unstash "source_tree"
                         sh(script: "ls -al")
                     } //end stage
-                    stage("Test (${myconfig.build_mode})") {
-                        if (myconfig.run_tests) {
-                            println("RUNNING TESTS")
+                    if (myconfig.run_tests) {
+                        try {
+                            stage("Test (${myconfig.build_mode})") {
+                                    // Test command(s) here
+                                    println("RUNNING TESTS")
+                            }
+                        }
+                        finally {
+                            // TODO: Test for presence of report file.
+                            step([$class: 'XUnitBuilder',
+                                thresholds: [
+                                [$class: 'SkippedThreshold', failureThreshold: '0'],
+                                [$class: 'FailedThreshold', unstableThreshold: '1'],
+                                [$class: 'FailedThreshold', failureThreshold: '6']],
+                                tools: [[$class: 'JUnitType', pattern: '*.xml']]])
                         }
                     }
                 } //end withEnv
