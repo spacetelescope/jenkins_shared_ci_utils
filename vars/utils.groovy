@@ -38,7 +38,7 @@ def concurrent(configs) {
         myconfig = config.copy()
         tasks["${config.nodetype}/${config.build_mode}"] = {
             node(config.nodetype) {
-                //withEnv(config.env_vars) {
+                withEnv(myconfig.env_vars) {
                     println("task: myconfig.nodetype = ${myconfig.nodetype}")
                     println("task: myconfig.build_mode = ${myconfig.build_mode}")
                     println("task: myconfig.build_args = ${myconfig.build_args}")
@@ -54,7 +54,7 @@ def concurrent(configs) {
                             println("RUNNING TESTS")
                         }
                     }
-                //} //end withEnv
+                } //end withEnv
             } // end node
         }
     } //end for
