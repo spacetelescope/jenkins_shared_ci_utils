@@ -1,4 +1,5 @@
 // Jenkinsfile utilities
+import bconfig
 
 // Clone the source repository and examine the most recent commit message.
 // If a '[ci skip]' or '[skip ci]' directive is present, immediately
