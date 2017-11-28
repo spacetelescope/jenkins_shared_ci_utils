@@ -28,12 +28,15 @@ def scm_checkout() {
     return skip_job
 }
 
+class TClass implements Serializable {
+  def var = "varvalue"
+}
 
 def concurrent2(configs) {
     def tasks = [:]
     println("Size of configs = ${configs.size()}")
     for (config in configs) {
-         
+        t = new TClass()
         println("concurrent2: build.nodetype = ${config.nodetype}")
         println("concurrent2: build.build_mode= ${config.build_mode}")
         println("concurrent2: build.build_args= ${config.build_args}")
