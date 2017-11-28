@@ -37,6 +37,8 @@ class TClass implements Serializable {
 def concurrent2(configs) {
     def tasks = [:]
     println("Size of configs = ${configs.size()}")
+    def myconf = new bconfig()
+    println("myconf.name = ${myconf.name}")
     for (config in configs) {
         t = new TClass()
         println("concurrent2: build.nodetype = ${config.nodetype}")
