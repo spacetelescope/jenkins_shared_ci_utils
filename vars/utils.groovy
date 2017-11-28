@@ -33,26 +33,29 @@ def concurrent2(configs) {
     def tasks = [:]
     println("Size of configs = ${configs.size()}")
     for (config in configs) {
+         
         println("concurrent2: build.nodetype = ${config.nodetype}")
         println("concurrent2: build.build_mode= ${config.build_mode}")
         println("concurrent2: build.build_args= ${config.build_args}")
         println("concurrent2: build.env_vars= ${config.env_vars}")
-
+        def run_tests = config.run_tests
         tasks["${config.nodetype}/${config.build_mode}"] = {
             node(config.nodetype) {
                 //withEnv(config.env_vars) {
-                    println("tasks: build.nodetype = ${config.nodetype}")
-                    println("tasks: build.build_mode= ${config.build_mode}")
-                    println("tasks: build.build_args= ${config.build_args}")
-                    println("tasks: build.env_vars= ${config.env_vars}")
-                    println("Run tests = ${config.run_tests}")
+                    println("task: build.nodetype = ${config.nodetype}")
+                    println("task: build.build_mode= ${config.build_mode}")
+                    println("task: build.build_args= ${config.build_args}")
+                    println("task: build.env_vars= ${config.env_vars}")
+                    println("task: config.run_tests = ${config.run_tests}")
+                    println("task: run_tests = ${run_tests}")
                     def prefix = pwd() + "/_install"
                     stage("Build (${config.build_mode})") {
                         unstash "source_tree"
                         sh(script: "ls -al")
                     } //end stage
                     stage("Test (${config.build_mode})") {
-                        if (config.run_tests) {
+                        //if (config.run_tests) {
+                        if (run_tests) {
                             println("RUNNING TESTS")
                         }
                     }
