@@ -9,6 +9,7 @@ class BuildConfig implements Serializable {
     def env_vars = []
     def configure_cmds = []
     def build_cmds = []
+    def test_cmds = []
     def run_tests = true
     //Boolean boolValue
 
