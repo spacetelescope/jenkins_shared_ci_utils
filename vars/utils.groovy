@@ -82,7 +82,7 @@ def concurrent(configs) {
                             //    [$class: 'FailedThreshold', failureThreshold: '6']],
                             //    tools: [[$class: 'JUnitType', pattern: '*.xml']]])
                             step([$class: 'XUnitBuilder',
-                                thresholds: [myconfig.xunit_map],
+                                thresholds: [myconfig.thresholds],
                                 tools: [[$class: 'JUnitType', pattern: '*.xml']]])
                         }
                     }

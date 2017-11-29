@@ -1,5 +1,6 @@
 // src/BuildConfig.groovy
-package BuildConfig; 
+package BuildConfig;
+import org.jenkinsci.plugins.xunit.threshold.XUnitThreshold
 
 //@AutoClone  // annotation is not CPS-compatible?
 class BuildConfig implements Serializable {
@@ -9,18 +10,23 @@ class BuildConfig implements Serializable {
     def build_cmds = []
     def test_cmds = []
     def run_tests = true
-    def xunit_map = [[$class: 'SkippedThreshold', failureThreshold: '0'],
-                     [$class: 'FailedThreshold', unstableThreshold: '1'],
-                     [$class: 'FailedThreshold', failureThreshold: '6']]
+    def thresh = XUnitThreshold() 
+    def thresholds = [[$class: 'FailedThreshold', failureNewThreshold: '', failureThreshold: '', unstableNewThreshold: '', unstableThreshold: ''],
+	              [$class: 'SkippedThreshold', failureNewThreshold: '', failureThreshold: '', unstableNewThreshold: '', unstableThreshold: '']],
 
     // Constructors
-    BuildConfig() {
-        nodetype = ""
-    }
+    //BuildConfig() {
+    //    nodetype = ""
+    //}
 
     BuildConfig(nodetype) {
         this.nodetype = nodetype
     }
+
+    //def setTestThreshold(valuemap) {
+    //    for (threshold in this.xunit_map) {
+    //        if (threshold
+    //}
 
     // copy method requires Jenkins script approval for the
     // following signatures:
@@ -28,9 +34,9 @@ class BuildConfig implements Serializable {
     // method groovy.lang.MetaObjectProtocol getProperties
     // method groovy.lang.MetaProperty getProperty java.lang.Object
     // method groovy.lang.MetaProperty setProperty java.lang.Object java.lang.Object
-    def BuildConfig copy(){
-        BuildConfig.metaClass.getProperties().findAll(){it.getSetter()!=null}.inject(new BuildConfig()){buildconfig,metaProp->
-            metaProp.setProperty(buildconfig,metaProp.getProperty(this))
+    def BuildConfig copy() {
+        BuildConfig.metaClass.getProperties().findAll(){it.getSetter()!=null}.inject(new BuildConfig()){
+            buildconfig,metaProp->metaProp.setProperty(buildconfig,metaProp.getProperty(this))
             buildconfig
         }
     }
