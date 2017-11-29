@@ -42,7 +42,7 @@ def concurrent(configs) {
             node(config.nodetype) {
                 println("**** WORKSPACE = ${env.WORKSPACE}")
                 // FIXME: Generalize env vars.
-                env.PATH = "${env.WORKSPACE}/_install:${env.PATH}"
+                env.PATH = "${env.WORKSPACE}/_install/bin:${env.PATH}"
                 withEnv(myconfig.env_vars) {
                 //withEnv(vars) {
                     println("task: env.PATH = ${env.PATH}")
