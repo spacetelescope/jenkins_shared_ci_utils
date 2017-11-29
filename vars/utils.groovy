@@ -88,9 +88,6 @@ def concurrent(configs) {
                                 [$class: 'FailedThreshold', unstableThreshold: "${myconfig.failedUnstableThresh}"],
                                 [$class: 'FailedThreshold', failureThreshold: "${myconfig.failedFailureThresh}"]],
                                 tools: [[$class: 'JUnitType', pattern: '*.xml']]])
-                            //step([$class: 'XUnitBuilder',
-                            //    thresholds: [myconfig.thresholds],
-                            //    tools: [[$class: 'JUnitType', pattern: '*.xml']]])
                         }
                     }
                 //} //end withEnv

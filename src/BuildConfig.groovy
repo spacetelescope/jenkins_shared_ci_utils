@@ -10,8 +10,7 @@ class BuildConfig implements Serializable {
     def build_cmds = []
     def test_cmds = []
     def run_tests = true
-    def thresholds = [[$class: 'FailedThreshold', failureNewThreshold: '', failureThreshold: '', unstableNewThreshold: '', unstableThreshold: ''],
-	              [$class: 'SkippedThreshold', failureNewThreshold: '', failureThreshold: '', unstableNewThreshold: '', unstableThreshold: '']]
+
     def failedFailureNewThresh = ''
     def failedFailureThresh = ''
     def failedUnstableNewThresh = ''
@@ -21,7 +20,6 @@ class BuildConfig implements Serializable {
     def skippedFailureThresh = ''
     def skippedUnstableNewThresh = ''
     def skippedUnstableThresh= ''
-
 
     // Constructors
     BuildConfig() {
