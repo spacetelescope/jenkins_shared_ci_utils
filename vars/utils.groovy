@@ -42,8 +42,15 @@ def concurrent(configs) {
             node(config.nodetype) {
                 println("**** WORKSPACE = ${env.WORKSPACE}")
                 // FIXME: Generalize env vars.
-                env.PATH = "${env.WORKSPACE}/_install/bin:${env.PATH}"
-                withEnv(myconfig.env_vars) {
+                for (var in myconfig.env_vars) {
+                    if (var.contains("PATH")) {
+                        cwd = pwd()
+                        tvar = var.replace(".", cwd)env.PATH}"
+                        env.PATH = "${tvar}:${env.PATH}"
+                    }
+                }
+                //env.PATH = "${env.WORKSPACE}/_install/bin:${env.PATH}"
+                //withEnv(myconfig.env_vars) {
                 //withEnv(vars) {
                     println("task: env.PATH = ${env.PATH}")
                     println("task: myconfig.nodetype = ${myconfig.nodetype}")
@@ -76,7 +83,7 @@ def concurrent(configs) {
                                 tools: [[$class: 'JUnitType', pattern: '*.xml']]])
                         }
                     }
-                } //end withEnv
+                //} //end withEnv
             } // end node
         } //end tasks
 
