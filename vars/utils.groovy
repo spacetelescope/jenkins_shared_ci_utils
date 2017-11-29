@@ -33,8 +33,8 @@ def scm_checkout() {
 def concurrent(configs) {
     def tasks = [:]
     println("Size of configs = ${configs.size()}")
+    def myconfig = new BuildConfig()
     for (config in configs) {
-        def myconfig = new BuildConfig()
         myconfig = config.copy()
         tasks["${config.nodetype}/${config.build_mode}"] = {
             node(config.nodetype) {
@@ -77,7 +77,6 @@ def concurrent(configs) {
                 } //end withEnv
             } // end node
         }
-        myconfig = null
     } //end for
     stage("Matrix") {
         parallel(tasks)
