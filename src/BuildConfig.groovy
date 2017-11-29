@@ -15,9 +15,9 @@ class BuildConfig implements Serializable {
 	              [$class: 'SkippedThreshold', failureNewThreshold: '', failureThreshold: '', unstableNewThreshold: '', unstableThreshold: '']]
 
     // Constructors
-    //BuildConfig() {
-    //    nodetype = ""
-    //}
+    BuildConfig() {
+        nodetype = ""
+    }
 
     BuildConfig(nodetype) {
         this.nodetype = nodetype
