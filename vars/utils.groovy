@@ -77,6 +77,7 @@ def concurrent(configs) {
                 } //end withEnv
             } // end node
         }
+        myconfig = null
     } //end for
     stage("Matrix") {
         parallel(tasks)
