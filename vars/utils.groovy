@@ -34,16 +34,23 @@ def concurrent(configs) {
     def tasks = [:]
     println("Size of configs = ${configs.size()}")
     for (config in configs) {
-        def myconfig = new BuildConfig()
+        def myconfig = new BuildConfig() // MUST be inside for loop.
         myconfig = config.copy()
+
+        // Code defined within 'tasks' is eventually executed on a separate node.
         tasks["${config.nodetype}/${config.build_mode}"] = {
             node(config.nodetype) {
                 // FIXME: Generalize env vars.
-                myconfig.env_vars.add("PATH=./_install/bin:${env.PATH}")
                 for (var in myconfig.env_vars) {
                     println(var)
                 }
-                withEnv(myconfig.env_vars) {
+                def vars = myconfig.env_vars
+                vars.add("PATH=${env.WORKSPACE}/_install")
+                for (var in vars) {
+                    println(var)
+                }
+                //withEnv(myconfig.env_vars) {
+                withEnv(vars) {
                     println("task: myconfig.nodetype = ${myconfig.nodetype}")
                     println("task: myconfig.build_mode = ${myconfig.build_mode}")
                     println("task: myconfig.env_vars = ${myconfig.env_vars}")
@@ -76,7 +83,8 @@ def concurrent(configs) {
                     }
                 } //end withEnv
             } // end node
-        }
+        } //end tasks
+
     } //end for
     stage("Matrix") {
         parallel(tasks)
