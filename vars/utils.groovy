@@ -75,11 +75,14 @@ def concurrent(configs) {
                         }
                         finally {
                             // TODO: Test for presence of report file.
+                            //step([$class: 'XUnitBuilder',
+                            //    thresholds: [
+                            //    [$class: 'SkippedThreshold', failureThreshold: '0'],
+                            //    [$class: 'FailedThreshold', unstableThreshold: '1'],
+                            //    [$class: 'FailedThreshold', failureThreshold: '6']],
+                            //    tools: [[$class: 'JUnitType', pattern: '*.xml']]])
                             step([$class: 'XUnitBuilder',
-                                thresholds: [
-                                [$class: 'SkippedThreshold', failureThreshold: '0'],
-                                [$class: 'FailedThreshold', unstableThreshold: '1'],
-                                [$class: 'FailedThreshold', failureThreshold: '6']],
+                                thresholds: [myconfig.xunit_map],
                                 tools: [[$class: 'JUnitType', pattern: '*.xml']]])
                         }
                     }

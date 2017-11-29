@@ -9,7 +9,9 @@ class BuildConfig implements Serializable {
     def build_cmds = []
     def test_cmds = []
     def run_tests = true
-    //Boolean boolValue
+    def xunit_map = [[$class: 'SkippedThreshold', failureThreshold: '0'],
+                     [$class: 'FailedThreshold', unstableThreshold: '1'],
+                     [$class: 'FailedThreshold', failureThreshold: '6']]
 
     // Constructors
     BuildConfig() {
