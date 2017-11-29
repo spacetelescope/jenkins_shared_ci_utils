@@ -45,7 +45,7 @@ def concurrent(configs) {
                     println(var)
                 }
                 def vars = myconfig.env_vars
-                vars.add("PATH=${env.WORKSPACE}/_install")
+                vars.add("PATH=${env.WORKSPACE}/_install:${env.PATH}")
                 for (var in vars) {
                     println(var)
                 }
