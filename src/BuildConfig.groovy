@@ -12,7 +12,7 @@ class BuildConfig implements Serializable {
     def run_tests = true
     def thresh = XUnitThreshold() 
     def thresholds = [[$class: 'FailedThreshold', failureNewThreshold: '', failureThreshold: '', unstableNewThreshold: '', unstableThreshold: ''],
-	              [$class: 'SkippedThreshold', failureNewThreshold: '', failureThreshold: '', unstableNewThreshold: '', unstableThreshold: '']],
+	              [$class: 'SkippedThreshold', failureNewThreshold: '', failureThreshold: '', unstableNewThreshold: '', unstableThreshold: '']]
 
     // Constructors
     //BuildConfig() {
