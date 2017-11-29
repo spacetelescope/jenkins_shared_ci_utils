@@ -45,7 +45,7 @@ def concurrent(configs) {
                 for (var in myconfig.env_vars) {
                     if (var.contains("PATH")) {
                         cwd = pwd()
-                        tvar = var.replace(".", cwd)
+                        tvar = var.replace("PATH=.", cwd)
                         env.PATH = "${tvar}:${env.PATH}"
                     }
                 }
