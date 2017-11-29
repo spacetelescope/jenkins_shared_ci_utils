@@ -1,6 +1,6 @@
 // src/BuildConfig.groovy
 package BuildConfig;
-import org.jenkinsci.plugins.xunit.threshold.XUnitThreshold
+//import org.jenkinsci.plugins.xunit.threshold.XUnitThreshold
 
 //@AutoClone  // annotation is not CPS-compatible?
 class BuildConfig implements Serializable {
@@ -10,9 +10,18 @@ class BuildConfig implements Serializable {
     def build_cmds = []
     def test_cmds = []
     def run_tests = true
-    def thresh = XUnitThreshold() 
     def thresholds = [[$class: 'FailedThreshold', failureNewThreshold: '', failureThreshold: '', unstableNewThreshold: '', unstableThreshold: ''],
 	              [$class: 'SkippedThreshold', failureNewThreshold: '', failureThreshold: '', unstableNewThreshold: '', unstableThreshold: '']]
+    def failedFailureNewThresh = ''
+    def failedFailureThresh = ''
+    def failedUnstableNewThresh = ''
+    def failedUnstableThresh= ''
+
+    def skippedFailureNewThresh = ''
+    def skippedFailureThresh = ''
+    def skippedUnstableNewThresh = ''
+    def skippedUnstableThresh= ''
+
 
     // Constructors
     BuildConfig() {
@@ -22,11 +31,6 @@ class BuildConfig implements Serializable {
     BuildConfig(nodetype) {
         this.nodetype = nodetype
     }
-
-    //def setTestThreshold(valuemap) {
-    //    for (threshold in this.xunit_map) {
-    //        if (threshold
-    //}
 
     // copy method requires Jenkins script approval for the
     // following signatures:
