@@ -40,6 +40,7 @@ def concurrent(configs) {
         // Code defined within 'tasks' is eventually executed on a separate node.
         tasks["${config.nodetype}/${config.build_mode}"] = {
             node(config.nodetype) {
+                println("**** WORKSPACE = ${env.WORKSPACE}")
                 // FIXME: Generalize env vars.
                 for (var in myconfig.env_vars) {
                     println(var)
