@@ -1,6 +1,5 @@
 // src/BuildConfig.groovy
 package BuildConfig;
-//import org.jenkinsci.plugins.xunit.threshold.XUnitThreshold
 
 //@AutoClone  // annotation is not CPS-compatible?
 class BuildConfig implements Serializable {
@@ -23,6 +22,7 @@ class BuildConfig implements Serializable {
 
     // Constructors
     BuildConfig() {
+        return
     }
 
     //BuildConfig(nodetype) {
