@@ -36,7 +36,6 @@ def concurrent(configs) {
     println("Size of configs = ${configs.size()}")
     for (config in configs) {
         def myconfig = new BuildConfig() // MUST be inside for loop.
-        //myconfig = config.copy()
         myconfig = SerializationUtils.clone(config)
 
         // Code defined within 'tasks' is eventually executed on a separate node.
@@ -51,7 +50,6 @@ def concurrent(configs) {
                         env.PATH = "${tvar}:${env.PATH}"
                     }
                 }
-                //env.PATH = "${env.WORKSPACE}/_install/bin:${env.PATH}"
                 //withEnv(myconfig.env_vars) {
                 //withEnv(vars) {
                     println("task: env.PATH = ${env.PATH}")
@@ -77,12 +75,6 @@ def concurrent(configs) {
                         }
                         finally {
                             // TODO: Test for presence of report file.
-                            //step([$class: 'XUnitBuilder',
-                            //    thresholds: [
-                            //    [$class: 'SkippedThreshold', failureThreshold: '0'],
-                            //    [$class: 'FailedThreshold', unstableThreshold: '1'],
-                            //    [$class: 'FailedThreshold', failureThreshold: '6']],
-                            //    tools: [[$class: 'JUnitType', pattern: '*.xml']]])
                             step([$class: 'XUnitBuilder',
                                 thresholds: [
                                 [$class: 'SkippedThreshold', unstableThreshold: "${myconfig.skippedUnstableThresh}"],
@@ -102,13 +94,6 @@ def concurrent(configs) {
     }
 } //end concurrent
 
-
-// standard deep copy implementation
-def deepcopy(orig) {
-     bos = new ByteArrayOutputStream()
-     oos = new ObjectOutputStream(bos)
-     oos.writeObject(orig); oos.flush()
-     bin = new ByteArrayInputStream(bos.toByteArray())
-     ois = new ObjectInputStream(bin)
-     return ois.readObject()
+def copy(obj) {
+    return SerializationUtils.clone(obj)
 }
