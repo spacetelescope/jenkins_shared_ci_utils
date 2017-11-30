@@ -105,16 +105,16 @@ def concurrent(configs) {
  * This method makes a "deep clone" of any object it is given.
  */
 def deepClone(object) {
-    try {
+    //try {
         ByteArrayOutputStream baos = new ByteArrayOutputStream()
         ObjectOutputStream oos = new ObjectOutputStream(baos)
         oos.writeObject(object)
         ByteArrayInputStream bais = new ByteArrayInputStream(baos.toByteArray())
         ObjectInputStream ois = new ObjectInputStream(bais)
         return ois.readObject()
-    }
-    catch (Exception e) {
-        e.printStackTrace()
-        return null
-    }
+    //}
+    //catch (Exception e) {
+    //    e.printStackTrace()
+    //    return null
+    //}
 }
