@@ -101,20 +101,30 @@ def concurrent(configs) {
 } //end concurrent
 
 
-/**
- * This method makes a "deep clone" of any object it is given.
- */
-def deepClone(object) {
-    //try {
-        ByteArrayOutputStream baos = new ByteArrayOutputStream()
-        ObjectOutputStream oos = new ObjectOutputStream(baos)
-        oos.writeObject(object)
-        ByteArrayInputStream bais = new ByteArrayInputStream(baos.toByteArray())
-        ObjectInputStream ois = new ObjectInputStream(bais)
-        return ois.readObject()
-    //}
-    //catch (Exception e) {
-    //    e.printStackTrace()
-    //    return null
-    //}
+///**
+// * This method makes a "deep clone" of any object it is given.
+// */
+//def deepClone(object) {
+//    //try {
+//        ByteArrayOutputStream baos = new ByteArrayOutputStream()
+//        ObjectOutputStream oos = new ObjectOutputStream(baos)
+//        oos.writeObject(object)
+//        ByteArrayInputStream bais = new ByteArrayInputStream(baos.toByteArray())
+//        ObjectInputStream ois = new ObjectInputStream(bais)
+//        return ois.readObject()
+//    //}
+//    //catch (Exception e) {
+//    //    e.printStackTrace()
+//    //    return null
+//    //}
+//}
+
+// standard deep copy implementation
+def deepcopy(orig) {
+     bos = new ByteArrayOutputStream()
+     oos = new ObjectOutputStream(bos)
+     oos.writeObject(orig); oos.flush()
+     bin = new ByteArrayInputStream(bos.toByteArray())
+     ois = new ObjectInputStream(bin)
+     return ois.readObject()
 }
