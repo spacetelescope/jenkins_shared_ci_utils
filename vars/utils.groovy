@@ -1,4 +1,4 @@
-// Jenkinsfile utilities
+// Jenkinsfile support utilities
 import BuildConfig.BuildConfig
 import org.apache.commons.lang3.SerializationUtils
 
@@ -41,7 +41,6 @@ def concurrent(configs) {
         // Code defined within 'tasks' is eventually executed on a separate node.
         tasks["${config.nodetype}/${config.build_mode}"] = {
             node(config.nodetype) {
-                println("**** WORKSPACE = ${env.WORKSPACE}")
                 // FIXME: Generalize env vars.
                 for (var in myconfig.env_vars) {
                     if (var.contains("PATH")) {
@@ -50,41 +49,38 @@ def concurrent(configs) {
                         env.PATH = "${tvar}:${env.PATH}"
                     }
                 }
-                //withEnv(myconfig.env_vars) {
-                //withEnv(vars) {
-                    println("task: env.PATH = ${env.PATH}")
-                    println("task: myconfig.nodetype = ${myconfig.nodetype}")
-                    println("task: myconfig.build_mode = ${myconfig.build_mode}")
-                    println("task: myconfig.env_vars = ${myconfig.env_vars}")
-                    println("task: myconfig.build_cmds = ${myconfig.build_cmds}")
-                    println("task: myconfig.test_cmds = ${myconfig.test_cmds}")
-                    println("task: myconfig.run_tests = ${myconfig.run_tests}")
-                    stage("Build (${myconfig.build_mode})") {
-                        unstash "source_tree"
-                        for (cmd in myconfig.build_cmds) {
-                            sh(script: cmd)
-                        }
+                println("task: env.PATH = ${env.PATH}")
+                println("task: myconfig.nodetype = ${myconfig.nodetype}")
+                println("task: myconfig.build_mode = ${myconfig.build_mode}")
+                println("task: myconfig.env_vars = ${myconfig.env_vars}")
+                println("task: myconfig.build_cmds = ${myconfig.build_cmds}")
+                println("task: myconfig.test_cmds = ${myconfig.test_cmds}")
+                println("task: myconfig.run_tests = ${myconfig.run_tests}")
+                stage("Build (${myconfig.build_mode})") {
+                    unstash "source_tree"
+                    for (cmd in myconfig.build_cmds) {
+                        sh(script: cmd)
                     }
-                    if (myconfig.test_cmds.size() > 0) {
-                        try {
-                            stage("Test (${myconfig.build_mode})") {
-                                for (cmd in myconfig.test_cmds) {
-                                    sh(script: cmd)
-                                }
+                }
+                if (myconfig.test_cmds.size() > 0) {
+                    try {
+                        stage("Test (${myconfig.build_mode})") {
+                            for (cmd in myconfig.test_cmds) {
+                                sh(script: cmd)
                             }
                         }
-                        finally {
-                            // TODO: Test for presence of report file.
-                            step([$class: 'XUnitBuilder',
-                                thresholds: [
-                                [$class: 'SkippedThreshold', unstableThreshold: "${myconfig.skippedUnstableThresh}"],
-                                [$class: 'SkippedThreshold', failureThreshold: "${myconfig.skippedFailureThresh}"],
-                                [$class: 'FailedThreshold', unstableThreshold: "${myconfig.failedUnstableThresh}"],
-                                [$class: 'FailedThreshold', failureThreshold: "${myconfig.failedFailureThresh}"]],
-                                tools: [[$class: 'JUnitType', pattern: '*.xml']]])
-                        }
                     }
-                //} //end withEnv
+                    finally {
+                        // TODO: Test for presence of report file.
+                        step([$class: 'XUnitBuilder',
+                            thresholds: [
+                            [$class: 'SkippedThreshold', unstableThreshold: "${myconfig.skippedUnstableThresh}"],
+                            [$class: 'SkippedThreshold', failureThreshold: "${myconfig.skippedFailureThresh}"],
+                            [$class: 'FailedThreshold', unstableThreshold: "${myconfig.failedUnstableThresh}"],
+                            [$class: 'FailedThreshold', failureThreshold: "${myconfig.failedFailureThresh}"]],
+                            tools: [[$class: 'JUnitType', pattern: '*.xml']]])
+                    }
+                }
             } // end node
         } //end tasks
 
@@ -94,6 +90,8 @@ def concurrent(configs) {
     }
 } //end concurrent
 
+
+// Convenience function that performs a deep copy on the supplied object.
 def copy(obj) {
     return SerializationUtils.clone(obj)
 }
