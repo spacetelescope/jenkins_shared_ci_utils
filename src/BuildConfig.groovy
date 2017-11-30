@@ -22,7 +22,7 @@ class BuildConfig implements Serializable {
 
     // Constructors
     BuildConfig() {
-        return
+        this.nodetype = ""
     }
 
     //BuildConfig(nodetype) {
