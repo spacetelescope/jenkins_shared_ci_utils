@@ -45,21 +45,21 @@ class BuildConfig implements Serializable {
 }
 
 
-class BuildConfig2 implements Serializable {
-    def nodetype = ""
-    def build_mode = ""
-    def env_vars = []
-    def build_cmds = []
-    def test_cmds = []
-    def run_tests = true
-
-    def failedFailureNewThresh = ''
-    def failedFailureThresh = ''
-    def failedUnstableNewThresh = ''
-    def failedUnstableThresh= ''
-
-    def skippedFailureNewThresh = ''
-    def skippedFailureThresh = ''
-    def skippedUnstableNewThresh = ''
-    def skippedUnstableThresh= ''
-}
+//class BuildConfig2 implements Serializable {
+//    def nodetype = ""
+//    def build_mode = ""
+//    def env_vars = []
+//    def build_cmds = []
+//    def test_cmds = []
+//    def run_tests = true
+//
+//    def failedFailureNewThresh = ''
+//    def failedFailureThresh = ''
+//    def failedUnstableNewThresh = ''
+//    def failedUnstableThresh= ''
+//
+//    def skippedFailureNewThresh = ''
+//    def skippedFailureThresh = ''
+//    def skippedUnstableNewThresh = ''
+//    def skippedUnstableThresh= ''
+//}
