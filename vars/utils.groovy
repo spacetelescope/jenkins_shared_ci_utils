@@ -50,8 +50,8 @@ def concurrent(configs) {
                     }
                 }
                 for (var in myconfig.env_vars_map) {
-                    def abspath = new File(var.value).absolutePath
-                    println("task: abspath = ${abspath}")
+                    def cpath= new File(var.value).getCanonicalPath()
+                    println("task: cpath = ${cpath}")
                 }
                 println("task: env.PATH = ${env.PATH}")
                 println("task: myconfig.nodetype = ${myconfig.nodetype}")
