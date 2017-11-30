@@ -22,9 +22,8 @@ class BuildConfig implements Serializable {
     def skippedUnstableThresh= ''
 
     // Constructors
-    //BuildConfig() {
-    //    nodetype = ""
-    //}
+    BuildConfig() {
+    }
 
     //BuildConfig(nodetype) {
     //    this.nodetype = nodetype
