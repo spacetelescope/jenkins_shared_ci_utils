@@ -1,5 +1,6 @@
 // Jenkinsfile utilities
 import BuildConfig.BuildConfig
+import org.apache.commons.lang3.SerializationUtils
 
 // Clone the source repository and examine the most recent commit message.
 // If a '[ci skip]' or '[skip ci]' directive is present, immediately
@@ -35,7 +36,8 @@ def concurrent(configs) {
     println("Size of configs = ${configs.size()}")
     for (config in configs) {
         def myconfig = new BuildConfig() // MUST be inside for loop.
-        myconfig = config.copy()
+        //myconfig = config.copy()
+        myconfig = SerializationUtils.clone(config)
 
         // Code defined within 'tasks' is eventually executed on a separate node.
         tasks["${config.nodetype}/${config.build_mode}"] = {
