@@ -20,7 +20,6 @@ def scm_checkout() {
                 println("\nBuild skipped due to commit message directive.\n")
                 return skip_job
             }
-            sh(script: "ls -al")
             stash includes: '**/*', name: 'source_tree'
         }
     }
@@ -33,7 +32,6 @@ def scm_checkout() {
 // A list of such objects is iterated over to process all configurations.
 def concurrent(configs) {
     def tasks = [:]
-    println("Size of configs = ${configs.size()}")
     for (config in configs) {
         def myconfig = new BuildConfig() // MUST be inside for loop.
         myconfig = SerializationUtils.clone(config)
@@ -48,29 +46,6 @@ def concurrent(configs) {
                         env.PATH = "${tvar}:${env.PATH}"
                     }
                 }
-
-                //for (var in myconfig.env_vars) {
-                //    // Get varname
-                //    varname = var.tokenize("=")[0]
-                //    // Get value
-                //    varvalue = var.tokenize("=")[1]
-                //    // Test for expandable
-                //    if (varvalue.contains("\$")) {
-                //        println("found : ${varvalue}")
-                //        // Get $VAR segment
-                //        def match = varvalue =~ /\$.*:|\$.*/
-                //        // generate new value with '$VAR's replaced
-                //        def seg = match.group(1)
-                //        println("seg = ${seg}")
-                //    }
-                //}
-
-                println("task: myconfig.nodetype = ${myconfig.nodetype}")
-                println("task: myconfig.build_mode = ${myconfig.build_mode}")
-                println("task: myconfig.env_vars = ${myconfig.env_vars}")
-                println("task: myconfig.build_cmds = ${myconfig.build_cmds}")
-                println("task: myconfig.test_cmds = ${myconfig.test_cmds}")
-                println("task: myconfig.run_tests = ${myconfig.run_tests}")
                 stage("Build (${myconfig.build_mode})") {
                     unstash "source_tree"
                     for (cmd in myconfig.build_cmds) {
