@@ -52,20 +52,20 @@ def concurrent(configs) {
 
                 for (var in myconfig.env_vars_map) {
                     paths = var.value.tokenize(":")
-                    for (path in paths) {
-                        if (path =~ /\$.*:|\$.*/) {
-                            subvar = path[1..-1]
-                            var_exists = sh(script: "[ ! -z ${subvar} ]", returnStatus: true)
-                            if (var_exists) {
-                                println("${subvar} exists in all vars.")
-                                var_value = sh(script: "echo ${subvar}", returnStdout: true)
-                                expanded = var.replaceAll(subvar, var_value)
-                                println("REPLACED SUBVAR: ${expanded}")
-                            }
-                        }
-                        def cpath = new File("${env.WORKSPACE}", var.value).getCanonicalPath()
-                        println("task: cpath = ${cpath}")
-                    }
+                    //for (path in paths) {
+                    //    if (path =~ /\$.*:|\$.*/) {
+                    //        subvar = path[1..-1]
+                    //        var_exists = sh(script: "[ ! -z ${subvar} ]", returnStatus: true)
+                    //        if (var_exists) {
+                    //            println("${subvar} exists in all vars.")
+                    //            var_value = sh(script: "echo ${subvar}", returnStdout: true)
+                    //            expanded = var.replaceAll(subvar, var_value)
+                    //            println("REPLACED SUBVAR: ${expanded}")
+                    //        }
+                    //    }
+                    //    def cpath = new File("${env.WORKSPACE}", var.value).getCanonicalPath()
+                    //    println("task: cpath = ${cpath}")
+                    //}
                 }
                 println("task: env.PATH = ${env.PATH}")
                 println("task: myconfig.nodetype = ${myconfig.nodetype}")
