@@ -52,7 +52,8 @@ def concurrent(configs) {
 
                 for (var in myconfig.env_vars_map) {
                     paths = var.value.tokenize(":")
-                    //for (path in paths) {
+                    for (path in paths) {
+                        println("path in paths: ${path}")
                     //    if (path =~ /\$.*:|\$.*/) {
                     //        subvar = path[1..-1]
                     //        var_exists = sh(script: "[ ! -z ${subvar} ]", returnStatus: true)
@@ -65,7 +66,7 @@ def concurrent(configs) {
                     //    }
                     //    def cpath = new File("${env.WORKSPACE}", var.value).getCanonicalPath()
                     //    println("task: cpath = ${cpath}")
-                    //}
+                    }
                 }
                 println("task: env.PATH = ${env.PATH}")
                 println("task: myconfig.nodetype = ${myconfig.nodetype}")
