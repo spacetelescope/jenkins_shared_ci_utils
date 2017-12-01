@@ -50,27 +50,39 @@ def concurrent(configs) {
                     }
                 }
 
-                for (var in myconfig.env_vars_map) {
-                    paths = var.value.tokenize(":")
-                    for (path in paths) {
-                        println("path in paths: ${path}")
-                        if (path =~ /\$.*:|\$.*/) {
-                            def subvar = path[1..-1]
-                            //var_exists = sh(script: "[ ! -z ${subvar} ]", returnStatus: true)
-                            def var_val = sh(script: "[ ! -z ${subvar} ]", returnStdout: true)
-                            println(var_val)
-                    //        if (var_exists) {
-                    //            println("${subvar} exists in all vars.")
-                    //            var_value = sh(script: "echo ${subvar}", returnStdout: true)
-                    //            expanded = var.replaceAll(subvar, var_value)
-                    //            println("REPLACED SUBVAR: ${expanded}")
-                    //        }
-                        }
-                    //    def cpath = new File("${env.WORKSPACE}", var.value).getCanonicalPath()
-                    //    println("task: cpath = ${cpath}")
+                for (var in myconfig.env_vars) {
+                    // Get varname
+                    varname = var.tokenize("="):[0]
+                    // Get value
+                    varvalue = var.tokenize("="):[1]
+                    // Test for expandable
+                    subvar =~ /\$.*:|\$.*/
+                    if (subvar != "") {
+                       println("subvar = ${subvar}")
                     }
                 }
-                println("task: env.PATH = ${env.PATH}")
+
+                //for (var in myconfig.env_vars_map) {
+                //    paths = var.value.tokenize(":")
+                //    for (path in paths) {
+                //        println("path in paths: ${path}")
+                //        if (path =~ /\$.*:|\$.*/) {
+                //            def subvar = path[1..-1]
+                //            //var_exists = sh(script: "[ ! -z ${subvar} ]", returnStatus: true)
+                //            def var_val = sh(script: "[ ! -z ${subvar} ]", returnStdout: true)
+                //            println(var_val)
+                //    //        if (var_exists) {
+                //    //            println("${subvar} exists in all vars.")
+                //    //            var_value = sh(script: "echo ${subvar}", returnStdout: true)
+                //    //            expanded = var.replaceAll(subvar, var_value)
+                //    //            println("REPLACED SUBVAR: ${expanded}")
+                //    //        }
+                //        }
+                //    //    def cpath = new File("${env.WORKSPACE}", var.value).getCanonicalPath()
+                //    //    println("task: cpath = ${cpath}")
+                //    }
+                //}
+                //println("task: env.PATH = ${env.PATH}")
                 println("task: myconfig.nodetype = ${myconfig.nodetype}")
                 println("task: myconfig.build_mode = ${myconfig.build_mode}")
                 println("task: myconfig.env_vars = ${myconfig.env_vars}")
