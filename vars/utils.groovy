@@ -57,12 +57,12 @@ def concurrent(configs) {
                         if (path =~ /\$.*:|\$.*/) {
                             subvar = path[1..-1]
                             var_exists = sh(script: "[ ! -z ${subvar} ]", returnStatus: true)
-                            if (var_exists) {
+                    //        if (var_exists) {
                     //            println("${subvar} exists in all vars.")
                     //            var_value = sh(script: "echo ${subvar}", returnStdout: true)
                     //            expanded = var.replaceAll(subvar, var_value)
-                             //   println("REPLACED SUBVAR: ${expanded}")
-                             }
+                    //            println("REPLACED SUBVAR: ${expanded}")
+                    //         }
                         }
                     //    def cpath = new File("${env.WORKSPACE}", var.value).getCanonicalPath()
                     //    println("task: cpath = ${cpath}")
