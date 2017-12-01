@@ -50,14 +50,17 @@ def concurrent(configs) {
                     }
                 }
 
-                all_env_vars = sh(script: "env | sort", returnStdout: true)
                 for (var in myconfig.env_vars_map) {
                     paths = var.value.tokenize(":")
                     for (path in paths) {
                         if (path =~ /\$.*:|\$.*/) {
                             subvar = path[1..-1]
-                            if (all_env_vars.contains(subvar)) {
+                            var_exists = sh(script: "[ ! -z ${subvar} ]", returnStatus: true)
+                            if (var_exists) {
                                 println("${subvar} exists in all vars.")
+                                var_value = sh(script: "echo ${subvar}", returnStdout: true)
+                                expanded = var.replaceAll(subvar, var_value)
+                                println("REPLACED SUBVAR: ${expanded}")
                             }
                         }
                         def cpath = new File("${env.WORKSPACE}", var.value).getCanonicalPath()
