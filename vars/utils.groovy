@@ -44,8 +44,7 @@ def concurrent(configs) {
                 // FIXME: Generalize env vars.
                 for (var in myconfig.env_vars) {
                     if (var.contains("PATH")) {
-                        cwd = pwd()
-                        tvar = var.replace("PATH=.", cwd)
+                        tvar = var.replace("PATH=.", env.WORKSPACE)
                         env.PATH = "${tvar}:${env.PATH}"
                     }
                 }
@@ -57,6 +56,7 @@ def concurrent(configs) {
                     varvalue = var.tokenize("=")[1]
                     // Test for expandable
                     if (varvalue.contains("\$")) {
+                        println("$ found : ${varvalue}")
                         // Get $VAR segment
                         def match = varvalue =~ /\$.*:|\$.*/
                         // generate new value with '$VAR's replaced
@@ -65,27 +65,6 @@ def concurrent(configs) {
                     }
                 }
 
-                //for (var in myconfig.env_vars_map) {
-                //    paths = var.value.tokenize(":")
-                //    for (path in paths) {
-                //        println("path in paths: ${path}")
-                //        if (path =~ /\$.*:|\$.*/) {
-                //            def subvar = path[1..-1]
-                //            //var_exists = sh(script: "[ ! -z ${subvar} ]", returnStatus: true)
-                //            def var_val = sh(script: "[ ! -z ${subvar} ]", returnStdout: true)
-                //            println(var_val)
-                //    //        if (var_exists) {
-                //    //            println("${subvar} exists in all vars.")
-                //    //            var_value = sh(script: "echo ${subvar}", returnStdout: true)
-                //    //            expanded = var.replaceAll(subvar, var_value)
-                //    //            println("REPLACED SUBVAR: ${expanded}")
-                //    //        }
-                //        }
-                //    //    def cpath = new File("${env.WORKSPACE}", var.value).getCanonicalPath()
-                //    //    println("task: cpath = ${cpath}")
-                //    }
-                //}
-                //println("task: env.PATH = ${env.PATH}")
                 println("task: myconfig.nodetype = ${myconfig.nodetype}")
                 println("task: myconfig.build_mode = ${myconfig.build_mode}")
                 println("task: myconfig.env_vars = ${myconfig.env_vars}")
