@@ -56,9 +56,11 @@ def concurrent(configs) {
                     // Get value
                     varvalue = var.tokenize("=")[1]
                     // Test for expandable
-                    subvar =~ /\$.*:|\$.*/
-                    if (subvar != "") {
-                       println("subvar = ${subvar}")
+                    if (varvalue.contains("$")) {
+                        // Get $VAR segment
+                        def seg = varvalue =~ /\$.*:|\$.*/
+                        // generate new value with '$VAR's replaced
+                        println("seg = ${seg}")
                     }
                 }
 
