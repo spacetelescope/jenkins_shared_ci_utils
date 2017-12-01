@@ -56,7 +56,9 @@ def concurrent(configs) {
                         println("path in paths: ${path}")
                         if (path =~ /\$.*:|\$.*/) {
                             def subvar = path[1..-1]
-                            var_exists = sh(script: "[ ! -z ${subvar} ]", returnStatus: true)
+                            //var_exists = sh(script: "[ ! -z ${subvar} ]", returnStatus: true)
+                            def var_val = sh(script: "[ ! -z ${subvar} ]", returnStdout: true)
+                            println(var_val)
                     //        if (var_exists) {
                     //            println("${subvar} exists in all vars.")
                     //            var_value = sh(script: "echo ${subvar}", returnStdout: true)
