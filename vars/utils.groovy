@@ -49,9 +49,20 @@ def concurrent(configs) {
                         env.PATH = "${tvar}:${env.PATH}"
                     }
                 }
+
+                all_env_vars = sh(script: "env | sort", returnStdout: true)
                 for (var in myconfig.env_vars_map) {
-                    def cpath= new File("${env.WORKSPACE}", var.value).getCanonicalPath()
-                    println("task: cpath = ${cpath}")
+                    paths = var.value.tokenize(":")
+                    for (path in paths) {
+                        if (path =~ /\$.*:|\$.*/) {
+                            subvar = path[1..-1]
+                            if (all_env_vars.contains(subvar)) {
+                                println("${subvar} exists in all vars.")
+                            }
+                        }
+                        def cpath = new File("${env.WORKSPACE}", var.value).getCanonicalPath()
+                        println("task: cpath = ${cpath}")
+                    }
                 }
                 println("task: env.PATH = ${env.PATH}")
                 println("task: myconfig.nodetype = ${myconfig.nodetype}")
