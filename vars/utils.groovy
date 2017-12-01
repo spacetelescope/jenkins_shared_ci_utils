@@ -52,9 +52,9 @@ def concurrent(configs) {
 
                 for (var in myconfig.env_vars) {
                     // Get varname
-                    varname = var.tokenize("="):[0]
+                    varname = var.tokenize("=")[0]
                     // Get value
-                    varvalue = var.tokenize("="):[1]
+                    varvalue = var.tokenize("=")[1]
                     // Test for expandable
                     subvar =~ /\$.*:|\$.*/
                     if (subvar != "") {
