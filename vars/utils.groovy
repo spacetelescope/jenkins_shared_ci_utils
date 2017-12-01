@@ -49,21 +49,21 @@ def concurrent(configs) {
                     }
                 }
 
-                for (var in myconfig.env_vars) {
-                    // Get varname
-                    varname = var.tokenize("=")[0]
-                    // Get value
-                    varvalue = var.tokenize("=")[1]
-                    // Test for expandable
-                    if (varvalue.contains("\$")) {
-                        println("$ found : ${varvalue}")
-                        // Get $VAR segment
-                        def match = varvalue =~ /\$.*:|\$.*/
-                        // generate new value with '$VAR's replaced
-                        def seg = match.group(1)
-                        println("seg = ${seg}")
-                    }
-                }
+                //for (var in myconfig.env_vars) {
+                //    // Get varname
+                //    varname = var.tokenize("=")[0]
+                //    // Get value
+                //    varvalue = var.tokenize("=")[1]
+                //    // Test for expandable
+                //    if (varvalue.contains("\$")) {
+                //        println("found : ${varvalue}")
+                //        // Get $VAR segment
+                //        def match = varvalue =~ /\$.*:|\$.*/
+                //        // generate new value with '$VAR's replaced
+                //        def seg = match.group(1)
+                //        println("seg = ${seg}")
+                //    }
+                //}
 
                 println("task: myconfig.nodetype = ${myconfig.nodetype}")
                 println("task: myconfig.build_mode = ${myconfig.build_mode}")
