@@ -40,7 +40,6 @@ def concurrent(configs) {
         tasks["${config.nodetype}/${config.build_mode}"] = {
             node(config.nodetype) {
                 def runtime = []
-                // FIXME: Generalize env vars.
                 // Expand environment variable specifications by using the shell
                 // to dereference any var references and then render the entire
                 // value as a canonical path.
@@ -54,38 +53,34 @@ def concurrent(configs) {
                     }
                     // Convert var value to canonical based on a WORKSPACE base directory.
                     canonicalVarValue = new File(env.WORKSPACE, expansion).getCanonicalPath().trim()
-                    //println("canonicalVarValue= ${canonicalVarValue}")
                     runtime.add("${varName}=${canonicalVarValue}")
-                    for (envvar in runtime) {
-                        println("${envvar}")
-                    }
                 }
                 withEnv(runtime) {
-                stage("Build (${myconfig.build_mode})") {
-                    unstash "source_tree"
-                    for (cmd in myconfig.build_cmds) {
-                        sh(script: cmd)
-                    }
-                }
-                if (myconfig.test_cmds.size() > 0) {
-                    try {
-                        stage("Test (${myconfig.build_mode})") {
-                            for (cmd in myconfig.test_cmds) {
-                                sh(script: cmd)
-                            }
+                    stage("Build (${myconfig.build_mode})") {
+                        unstash "source_tree"
+                        for (cmd in myconfig.build_cmds) {
+                            sh(script: cmd)
                         }
                     }
-                    finally {
-                        // TODO: Test for presence of report file.
-                        step([$class: 'XUnitBuilder',
-                            thresholds: [
-                            [$class: 'SkippedThreshold', unstableThreshold: "${myconfig.skippedUnstableThresh}"],
-                            [$class: 'SkippedThreshold', failureThreshold: "${myconfig.skippedFailureThresh}"],
-                            [$class: 'FailedThreshold', unstableThreshold: "${myconfig.failedUnstableThresh}"],
-                            [$class: 'FailedThreshold', failureThreshold: "${myconfig.failedFailureThresh}"]],
-                            tools: [[$class: 'JUnitType', pattern: '*.xml']]])
+                    if (myconfig.test_cmds.size() > 0) {
+                        try {
+                            stage("Test (${myconfig.build_mode})") {
+                                for (cmd in myconfig.test_cmds) {
+                                    sh(script: cmd)
+                                }
+                            }
+                        }
+                        finally {
+                            // TODO: Test for presence of report file.
+                            step([$class: 'XUnitBuilder',
+                                thresholds: [
+                                [$class: 'SkippedThreshold', unstableThreshold: "${myconfig.skippedUnstableThresh}"],
+                                [$class: 'SkippedThreshold', failureThreshold: "${myconfig.skippedFailureThresh}"],
+                                [$class: 'FailedThreshold', unstableThreshold: "${myconfig.failedUnstableThresh}"],
+                                [$class: 'FailedThreshold', failureThreshold: "${myconfig.failedFailureThresh}"]],
+                                tools: [[$class: 'JUnitType', pattern: '*.xml']]])
+                        }
                     }
-                }
                 } // end withEnv
             } // end node
         } //end tasks
