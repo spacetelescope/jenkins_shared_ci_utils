@@ -59,7 +59,7 @@ def concurrent(configs) {
                     println("Runtime: ${runtime}")
                 }
                 stage("Build (${myconfig.build_mode})") {
-                withEnv("PATH=/home/jenkins/workspace/_testing_hstcal_regtest-poc-BV7WPUNQGJWB7XDDIYDKOGP2WJOFNP5CSFOVLNFGV547MYRZDXEA/_install/bin:/opt/conda/bin:/usr/local/bin:/bin:/usr/bin") {
+                withEnv(["PATH=/home/jenkins/workspace/_testing_hstcal_regtest-poc-BV7WPUNQGJWB7XDDIYDKOGP2WJOFNP5CSFOVLNFGV547MYRZDXEA/_install/bin:/opt/conda/bin:/usr/local/bin:/bin:/usr/bin"]) {
                     unstash "source_tree"
                     for (cmd in myconfig.build_cmds) {
                         sh(script: cmd)
