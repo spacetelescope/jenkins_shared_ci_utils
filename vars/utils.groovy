@@ -40,32 +40,22 @@ def concurrent(configs) {
         tasks["${config.nodetype}/${config.build_mode}"] = {
             node(config.nodetype) {
                 // FIXME: Generalize env vars.
-                //for (var in myconfig.env_vars) {
-                //    if (var.contains("PATH")) {
-                //        tvar = var.replace("PATH=.", env.WORKSPACE)
-                //        env.PATH = "${tvar}:${env.PATH}"
-                //    }
-                //}
-
-                // More sophisticated approach.
+                // Expand environment variable specifications by using the shell
+                // to dereference any var references and then render the entire
+                // value as a canonical path.
                 for (var in myconfig.env_vars) {
                     def varName = var.tokenize("=")[0]
-                    println("var name = ${varName}")
                     def varValue= var.tokenize("=")[1]
-                    println("var value = ${varValue}")
                     // examine var value, if it contains var refs, expand them.
                     def expansion = ""
                     if (varValue.contains("\$")) {
-                        println("dollar sign")
                         expansion = sh(script: "echo ${varValue}", returnStdout: true)
                         println("EXPANSION = ${expansion}")
                     }
                     // Convert var value to canonical based on a WORKSPACE base directory.
-                    absVarValue = new File(env.WORKSPACE, expansion).getCanonicalPath()
-                    println("ABS VAR VALUE = ${absVarValue}")
+                    canonicalVarValue = new File(env.WORKSPACE, expansion).getCanonicalPath()
+                    println("canonicalVarValue= ${canonicalVarValue}")
                 }
-
-
                 stage("Build (${myconfig.build_mode})") {
                     unstash "source_tree"
                     for (cmd in myconfig.build_cmds) {
