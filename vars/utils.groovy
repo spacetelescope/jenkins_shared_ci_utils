@@ -56,7 +56,7 @@ def concurrent(configs) {
                     canonicalVarValue = new File(env.WORKSPACE, expansion).getCanonicalPath()
                     //println("canonicalVarValue= ${canonicalVarValue}")
                     runtime.add("${varName}=${canonicalVarValue}")
-                    for (envar in runtime) {
+                    for (envvar in runtime) {
                         println("${envvar}")
                     }
                 }
