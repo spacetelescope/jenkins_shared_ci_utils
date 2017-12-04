@@ -61,7 +61,7 @@ def concurrent(configs) {
                     //if (varValue.contains("\$")) {
                     //if (varValue =~ /\$/) {
                         println("dollar sign")
-                        def expansion = sh(script: "echo ${SOMETHING}", returnStdout: true)
+                        def expansion = sh(script: "echo SOMETHING", returnStdout: true)
                         println("EXPANSION = ${expansion}")
                         def expansion2 = sh(script: "echo ${varValue}", returnStdout: true)
                         println("EXPANSION = ${expansion2}")
