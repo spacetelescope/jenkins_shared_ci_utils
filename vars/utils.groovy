@@ -49,25 +49,19 @@ def concurrent(configs) {
 
                 // More sophisticated approach.
                 for (var in myconfig.env_vars) {
-                    // get var name via regex group match.
-                    //def varNameFind = var =~ /^(.*)=/
-                    //def varName = varNameFind[0][1]
                     def varName = var.tokenize("=")[0]
                     println("var name = ${varName}")
-                    // get var value
-                    //def varValueFind = var =~ /=(.*)/
-                    //def varValue = varValueFind[0][1].toString()
                     def varValue= var.tokenize("=")[1]
                     println("var value = ${varValue}")
                     // examine var value, if it contains var refs, expand them.
-                    //if (varValue.contains("\$")) {
-                    //if (varValue =~ /\$/) {
+                    if (varValue.contains("\$")) {
                         println("dollar sign")
-                        def expansion = sh(script: "echo SOMETHING", returnStdout: true)
-                        println("EXPANSION = ${expansion}")
                         def expansion2 = sh(script: "echo ${varValue}", returnStdout: true)
                         println("EXPANSION = ${expansion2}")
-                    //}
+                    }
+                    // Convert var value to canonical based on a WORKSPACE base directory.
+                    absVarValue = new File(env.WORKSPACE, varValue).getCanonicalPath()
+                    println("ABS VAR VALUE = ${absVarValue}")
                 }
 
 
