@@ -56,11 +56,11 @@ def concurrent(configs) {
                     // examine var value, if it contains var refs, expand them.
                     if (varValue.contains("\$")) {
                         println("dollar sign")
-                        def expansion2 = sh(script: "echo ${varValue}", returnStdout: true)
-                        println("EXPANSION = ${expansion2}")
+                        def expansion = sh(script: "echo ${varValue}", returnStdout: true)
+                        println("EXPANSION = ${expansion}")
                     }
                     // Convert var value to canonical based on a WORKSPACE base directory.
-                    absVarValue = new File(env.WORKSPACE, varValue).getCanonicalPath()
+                    absVarValue = new File(env.WORKSPACE, expansion)getCanonicalPath()
                     println("ABS VAR VALUE = ${absVarValue}")
                 }
 
