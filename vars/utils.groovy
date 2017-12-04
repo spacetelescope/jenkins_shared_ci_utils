@@ -61,7 +61,7 @@ def concurrent(configs) {
                         println("EXPANSION = ${expansion}")
                     }
                     // Convert var value to canonical based on a WORKSPACE base directory.
-                    absVarValue = new File(env.WORKSPACE, expansion)getCanonicalPath()
+                    absVarValue = new File(env.WORKSPACE, expansion).getCanonicalPath()
                     println("ABS VAR VALUE = ${absVarValue}")
                 }
 
