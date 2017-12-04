@@ -39,6 +39,7 @@ def concurrent(configs) {
         // Code defined within 'tasks' is eventually executed on a separate node.
         tasks["${config.nodetype}/${config.build_mode}"] = {
             node(config.nodetype) {
+                def runtime = []
                 // FIXME: Generalize env vars.
                 // Expand environment variable specifications by using the shell
                 // to dereference any var references and then render the entire
@@ -50,11 +51,12 @@ def concurrent(configs) {
                     def expansion = ""
                     if (varValue.contains("\$")) {
                         expansion = sh(script: "echo ${varValue}", returnStdout: true)
-                        println("EXPANSION = ${expansion}")
                     }
                     // Convert var value to canonical based on a WORKSPACE base directory.
                     canonicalVarValue = new File(env.WORKSPACE, expansion).getCanonicalPath()
-                    println("canonicalVarValue= ${canonicalVarValue}")
+                    //println("canonicalVarValue= ${canonicalVarValue}")
+                    runtime.add("${varName}=${canonicalVarValue}")
+                    println("Runtime: ${runtime}")
                 }
                 stage("Build (${myconfig.build_mode})") {
                     unstash "source_tree"
