@@ -53,7 +53,7 @@ def concurrent(configs) {
                         expansion = sh(script: "echo ${varValue}", returnStdout: true)
                     }
                     // Convert var value to canonical based on a WORKSPACE base directory.
-                    canonicalVarValue = new File(env.WORKSPACE, expansion).getCanonicalPath()
+                    canonicalVarValue = new File(env.WORKSPACE, expansion).getCanonicalPath().trim()
                     //println("canonicalVarValue= ${canonicalVarValue}")
                     runtime.add("${varName}=${canonicalVarValue}")
                     for (envvar in runtime) {
