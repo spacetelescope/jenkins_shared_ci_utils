@@ -46,9 +46,9 @@ def concurrent(configs) {
                 // value as a canonical path.
                 for (var in myconfig.env_vars) {
                     def varName = var.tokenize("=")[0]
-                    def varValue= var.tokenize("=")[1]
+                    def varValue = var.tokenize("=")[1]
                     // examine var value, if it contains var refs, expand them.
-                    def expansion = ""
+                    def expansion = varValue
                     if (varValue.contains("\$")) {
                         expansion = sh(script: "echo ${varValue}", returnStdout: true)
                     }
@@ -58,6 +58,7 @@ def concurrent(configs) {
                     runtime.add("${varName}=${canonicalVarValue}")
                     println("Runtime: ${runtime}")
                 }
+                withEnv(runtime) {
                 stage("Build (${myconfig.build_mode})") {
                     unstash "source_tree"
                     for (cmd in myconfig.build_cmds) {
@@ -83,6 +84,7 @@ def concurrent(configs) {
                             tools: [[$class: 'JUnitType', pattern: '*.xml']]])
                     }
                 }
+                } //end withEnv
             } // end node
         } //end tasks
 
