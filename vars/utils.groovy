@@ -63,8 +63,8 @@ def concurrent(configs) {
                         println("dollar sign")
                         def expansion = sh(script: "echo ${SOMETHING}", returnStdout: true)
                         println("EXPANSION = ${expansion}")
-                        def expansion = sh(script: "echo ${varValue}", returnStdout: true)
-                        println("EXPANSION = ${expansion}")
+                        def expansion2 = sh(script: "echo ${varValue}", returnStdout: true)
+                        println("EXPANSION = ${expansion2}")
                     //}
                 }
 
