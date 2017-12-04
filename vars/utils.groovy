@@ -59,7 +59,7 @@ def concurrent(configs) {
                     println("var value = ${varValue}")
                     // examine var value, if it contains var refs, expand them.
                     //if (varValue.contains("\$")) {
-                    if (varValue.contains("\$")) {
+                    if (varValue =~ /\$/) {
                         println("Found a dollar sign")
                         def expansion = sh(script: "echo ${varValue}", returnStdout: true)
                         //sh(script: "echo ${varValue}")
