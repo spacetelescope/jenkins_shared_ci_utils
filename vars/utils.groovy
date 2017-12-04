@@ -56,15 +56,18 @@ def concurrent(configs) {
                     canonicalVarValue = new File(env.WORKSPACE, expansion).getCanonicalPath()
                     //println("canonicalVarValue= ${canonicalVarValue}")
                     runtime.add("${varName}=${canonicalVarValue}")
-                    println("Runtime: ${runtime}")
+                    for (envar in runtime) {
+                        println("${envvar}")
+                    }
                 }
                 stage("Build (${myconfig.build_mode})") {
-                withEnv(["PATH=/home/jenkins/workspace/_testing_hstcal_regtest-poc-BV7WPUNQGJWB7XDDIYDKOGP2WJOFNP5CSFOVLNFGV547MYRZDXEA/_install/bin:/opt/conda/bin:/usr/local/bin:/bin:/usr/bin"]) {
+                //withEnv(["PATH=/home/jenkins/workspace/_testing_hstcal_regtest-poc-BV7WPUNQGJWB7XDDIYDKOGP2WJOFNP5CSFOVLNFGV547MYRZDXEA/_install/bin:/opt/conda/bin:/usr/local/bin:/bin:/usr/bin"]) {
+                withEnv(runtime) {
                     unstash "source_tree"
                     for (cmd in myconfig.build_cmds) {
                         sh(script: cmd)
                     }
-                }
+                } // end withEnv
                 }
                 if (myconfig.test_cmds.size() > 0) {
                     try {
