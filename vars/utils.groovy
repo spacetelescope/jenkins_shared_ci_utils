@@ -40,12 +40,12 @@ def concurrent(configs) {
         tasks["${config.nodetype}/${config.build_mode}"] = {
             node(config.nodetype) {
                 // FIXME: Generalize env vars.
-                for (var in myconfig.env_vars) {
-                    if (var.contains("PATH")) {
-                        tvar = var.replace("PATH=.", env.WORKSPACE)
-                        env.PATH = "${tvar}:${env.PATH}"
-                    }
-                }
+                //for (var in myconfig.env_vars) {
+                //    if (var.contains("PATH")) {
+                //        tvar = var.replace("PATH=.", env.WORKSPACE)
+                //        env.PATH = "${tvar}:${env.PATH}"
+                //    }
+                //}
 
                 // More sophisticated approach.
                 for (var in myconfig.env_vars) {
@@ -59,8 +59,8 @@ def concurrent(configs) {
                     println("var value = ${varValue}")
                     // examine var value, if it contains var refs, expand them.
                     if (varValue.contains("\$")) {
-                        sh(script: "echo ${varValue}") //, returnStdout: true)
-                        //println("EXPANSION = ${expansion}")
+                        def expansion = sh(script: "echo ${varValue}", returnStdout: true)
+                        println("EXPANSION = ${expansion}")
                     }
                 }
 
