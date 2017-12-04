@@ -46,6 +46,23 @@ def concurrent(configs) {
                         env.PATH = "${tvar}:${env.PATH}"
                     }
                 }
+
+                // More sophisticated approach.
+                for (var in myconfig.env_vars) {
+                    // get var name via regex group match.
+                    def varNameFind = var =~ /^(.*)=/
+                    def varName = varNameFind[0][1]
+                    println("var name = ${varName}")
+                    // get var value
+                    def varValueFind = var =~ /=(.*)/
+                    def varValue = varValueFind[0][1]
+                    println("var value = ${varValue}")
+                    // examine var value, if it contains var refs, handle them
+                    //if (varValue.contains("?")) {
+                        //
+                }
+
+
                 stage("Build (${myconfig.build_mode})") {
                     unstash "source_tree"
                     for (cmd in myconfig.build_cmds) {
