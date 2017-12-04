@@ -50,12 +50,14 @@ def concurrent(configs) {
                 // More sophisticated approach.
                 for (var in myconfig.env_vars) {
                     // get var name via regex group match.
-                    def varNameFind = var =~ /^(.*)=/
-                    def varName = varNameFind[0][1]
+                    //def varNameFind = var =~ /^(.*)=/
+                    //def varName = varNameFind[0][1]
+                    def varName = var.tokenize("=")[0]
                     println("var name = ${varName}")
                     // get var value
-                    def varValueFind = var =~ /=(.*)/
-                    def varValue = varValueFind[0][1].toString()
+                    //def varValueFind = var =~ /=(.*)/
+                    //def varValue = varValueFind[0][1].toString()
+                    def varValue= var.tokenize("=")[1]
                     println("var value = ${varValue}")
                     // examine var value, if it contains var refs, expand them.
                     //if (varValue.contains("\$")) {
