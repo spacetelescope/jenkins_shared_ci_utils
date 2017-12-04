@@ -55,7 +55,7 @@ def concurrent(configs) {
                     println("var name = ${varName}")
                     // get var value
                     def varValueFind = var =~ /=(.*)/
-                    def varValue = varValueFind[0][1]
+                    def varValue = varValueFind[0][1].toString()
                     println("var value = ${varValue}")
                     // examine var value, if it contains var refs, expand them.
                     //if (varValue.contains("\$")) {
