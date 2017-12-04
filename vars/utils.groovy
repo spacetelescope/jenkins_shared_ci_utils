@@ -58,12 +58,13 @@ def concurrent(configs) {
                     runtime.add("${varName}=${canonicalVarValue}")
                     println("Runtime: ${runtime}")
                 }
-                withEnv(runtime) {
                 stage("Build (${myconfig.build_mode})") {
+                withEnv(runtime) {
                     unstash "source_tree"
                     for (cmd in myconfig.build_cmds) {
                         sh(script: cmd)
                     }
+                }
                 }
                 if (myconfig.test_cmds.size() > 0) {
                     try {
@@ -84,7 +85,6 @@ def concurrent(configs) {
                             tools: [[$class: 'JUnitType', pattern: '*.xml']]])
                     }
                 }
-                } //end withEnv
             } // end node
         } //end tasks
 
