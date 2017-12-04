@@ -60,14 +60,12 @@ def concurrent(configs) {
                         println("${envvar}")
                     }
                 }
-                stage("Build (${myconfig.build_mode})") {
-                //withEnv(["PATH=/home/jenkins/workspace/_testing_hstcal_regtest-poc-BV7WPUNQGJWB7XDDIYDKOGP2WJOFNP5CSFOVLNFGV547MYRZDXEA/_install/bin:/opt/conda/bin:/usr/local/bin:/bin:/usr/bin"]) {
                 withEnv(runtime) {
+                stage("Build (${myconfig.build_mode})") {
                     unstash "source_tree"
                     for (cmd in myconfig.build_cmds) {
                         sh(script: cmd)
                     }
-                } // end withEnv
                 }
                 if (myconfig.test_cmds.size() > 0) {
                     try {
@@ -88,6 +86,7 @@ def concurrent(configs) {
                             tools: [[$class: 'JUnitType', pattern: '*.xml']]])
                     }
                 }
+                } // end withEnv
             } // end node
         } //end tasks
 
