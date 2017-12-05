@@ -58,8 +58,10 @@ def concurrent(configs) {
                 withEnv(runtime) {
                     stage("Build (${myconfig.build_mode})") {
                         unstash "source_tree"
-                        for (cmd in myconfig.build_cmds) {
-                            sh(script: cmd)
+                        ansiColor('xterm') {
+                            for (cmd in myconfig.build_cmds) {
+                                sh(script: cmd)
+                            }
                         }
                     }
                     if (myconfig.test_cmds.size() > 0) {
