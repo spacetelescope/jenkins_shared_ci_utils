@@ -58,7 +58,7 @@ def concurrent(configs) {
                 withEnv(runtime) {
                     stage("Build (${myconfig.build_mode})") {
                         unstash "source_tree"
-                        ansiColor('xterm') {
+                        ansiColor('gnome-terminal') {
                             for (cmd in myconfig.build_cmds) {
                                 sh(script: cmd)
                             }
