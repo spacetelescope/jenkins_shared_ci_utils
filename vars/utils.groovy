@@ -72,13 +72,22 @@ def concurrent(configs) {
                         }
                         finally {
                             // TODO: Test for presence of report file.
-                            step([$class: 'XUnitBuilder',
-                                thresholds: [
-                                [$class: 'SkippedThreshold', unstableThreshold: "${myconfig.skippedUnstableThresh}"],
-                                [$class: 'SkippedThreshold', failureThreshold: "${myconfig.skippedFailureThresh}"],
-                                [$class: 'FailedThreshold', unstableThreshold: "${myconfig.failedUnstableThresh}"],
-                                [$class: 'FailedThreshold', failureThreshold: "${myconfig.failedFailureThresh}"]],
-                                tools: [[$class: 'JUnitType', pattern: '*.xml']]])
+                            // This will throw an error if a non JUnit format .xml file exists in the
+                            // root of the workspace. Specifying an explicit test report file name
+                            // would avoid this, but that value must be passed in from the Jenkinsfile
+                            // somehow or a standard name used.
+                            report_exists = sh(script: "test -e *.xml", returnStatus: true)
+                            if (report_exists == 0) {
+                                step([$class: 'XUnitBuilder',
+                                    thresholds: [
+                                    [$class: 'SkippedThreshold', unstableThreshold: "${myconfig.skippedUnstableThresh}"],
+                                    [$class: 'SkippedThreshold', failureThreshold: "${myconfig.skippedFailureThresh}"],
+                                    [$class: 'FailedThreshold', unstableThreshold: "${myconfig.failedUnstableThresh}"],
+                                    [$class: 'FailedThreshold', failureThreshold: "${myconfig.failedFailureThresh}"]],
+                                    tools: [[$class: 'JUnitType', pattern: '*.xml']]])
+                            } else {
+                                println("No .xml files found in workspace. Test report ingest skipped.")
+                            }
                         }
                     }
                 } // end withEnv
