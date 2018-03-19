@@ -98,9 +98,10 @@ def run_configs(configs, run_parallel = true) {
         if (run_parallel == true) {
             parallel(tasks)
         } else {
+            def localtask = [:]
             tasks.each{ key, value ->
                 println("tasks key = ${key}")
-                def localtask[key] = tasks[key]
+                localtask[key] = tasks[key]
                 parallel(localtask)
             }
             //for (int i = 0; i < tasks.size(); i++) {
