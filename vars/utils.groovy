@@ -98,11 +98,14 @@ def run_configs(configs, run_parallel = true) {
         if (run_parallel == true) {
             parallel(tasks)
         } else {
-            for (int i = 0; i < tasks.size(); i++) {
-                println("Serial execution of task entry ${i}...")
-                println(tasks[i])
-                //parallel([tasks[i]])
+            tasks.each{ key, value ->
+                println("tasks key = ${key}")
             }
+            //for (int i = 0; i < tasks.size(); i++) {
+            //    println("Serial execution of task entry ${i}...")
+            //    println(tasks[i])
+            //    //parallel([tasks[i]])
+            //}
         }
 
     }
