@@ -100,7 +100,8 @@ def run_configs(configs, run_parallel = true) {
         } else {
             tasks.each{ key, value ->
                 println("tasks key = ${key}")
-                parallel(tasks[key])
+                def localtask[key] = tasks[key]
+                parallel(localtask)
             }
             //for (int i = 0; i < tasks.size(); i++) {
             //    println("Serial execution of task entry ${i}...")
