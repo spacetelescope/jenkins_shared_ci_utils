@@ -95,13 +95,13 @@ def run_configs(configs, run_parallel = true) {
     } //end for
 
     stage("Matrix") {
-        if (run_parallel == true) {
+        //if (run_parallel == true) {
             parallel(tasks)
-        } else {
-            for (task in tasks) {
-                script { task }
-            }
-        }
+        //} else {
+        //    for (task in tasks) {
+        //        script { task }
+        //    }
+        //}
 
     }
 } //end concurrent
