@@ -42,6 +42,7 @@ def run_configs(configs, concurrent = true) {
         myconfig = SerializationUtils.clone(config)
 
         // Code defined within 'tasks' is eventually executed on a separate node.
+        // 'tasks' is a java.util.LinkedHashMap, which preserves insertion order.
         tasks["${config.nodetype}/${config.build_mode}"] = {
             node(config.nodetype) {
                 def runtime = []
@@ -100,10 +101,10 @@ def run_configs(configs, concurrent = true) {
     } //end for
 
     stage("Matrix") {
-        println("tasks.getClass: ${tasks.getClass()}")
         if (concurrent == true) {
             parallel(tasks)
         } else {
+            // Run tasks sequentially. Any failure halts the sequence.
             tasks.each{ key, value ->
                 def localtask = [:]
                 localtask[key] = tasks[key]
