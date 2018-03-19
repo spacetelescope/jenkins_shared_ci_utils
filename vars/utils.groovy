@@ -100,7 +100,7 @@ def run_configs(configs, run_parallel = true) {
         } else {
             for (int i = 0; i < tasks.size(); i++) {
                 println("Serial execution of task entry ${i}...")
-                script { tasks[i] }
+                parallel(tasks[i])
             }
         }
 
