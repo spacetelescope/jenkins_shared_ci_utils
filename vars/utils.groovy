@@ -27,10 +27,15 @@ def scm_checkout() {
 }
 
 
-// Execute build/test tasks in parallel
+// Execute build/test task(s) based on passed-in configuration(s).
 // Each task is defined by a BuildConfig object.
 // A list of such objects is iterated over to process all configurations.
-def run_configs(configs, run_parallel = true) {
+//   Arguments:
+//             configs    - list of BuildConfig objects
+// (optional)  concurrent - boolean, whether or not to run all build
+//                          configurations in parallel. The default is
+//                          true when no value is provided.
+def run_configs(configs, concurrent = true) {
     def tasks = [:]
     for (config in configs) {
         def myconfig = new BuildConfig() // MUST be inside for loop.
@@ -95,21 +100,15 @@ def run_configs(configs, run_parallel = true) {
     } //end for
 
     stage("Matrix") {
-        if (run_parallel == true) {
+        println("tasks.getClass: ${tasks.getClass()}")
+        if (concurrent == true) {
             parallel(tasks)
         } else {
-            //def localtask = [:]
             tasks.each{ key, value ->
                 def localtask = [:]
-                println("tasks key = ${key}")
                 localtask[key] = tasks[key]
                 parallel(localtask)
             }
-            //for (int i = 0; i < tasks.size(); i++) {
-            //    println("Serial execution of task entry ${i}...")
-            //    println(tasks[i])
-            //    //parallel([tasks[i]])
-            //}
         }
 
     }
