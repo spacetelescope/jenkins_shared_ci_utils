@@ -30,7 +30,7 @@ def scm_checkout() {
 // Execute build/test tasks in parallel
 // Each task is defined by a BuildConfig object.
 // A list of such objects is iterated over to process all configurations.
-def concurrent(configs) {
+def run_configs(configs, run_parallel = true) {
     def tasks = [:]
     for (config in configs) {
         def myconfig = new BuildConfig() // MUST be inside for loop.
@@ -93,8 +93,16 @@ def concurrent(configs) {
         } //end tasks
 
     } //end for
+
     stage("Matrix") {
-        parallel(tasks)
+        if (run_parallel == true) {
+            parallel(tasks)
+        } else {
+            for (task in tasks) {
+                script { task }
+            }
+        }
+
     }
 } //end concurrent
 
