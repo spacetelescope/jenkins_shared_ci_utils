@@ -95,16 +95,18 @@ def run_configs(configs, run_parallel = true) {
     } //end for
 
     stage("Matrix") {
-        //if (run_parallel == true) {
+        if (run_parallel == true) {
             parallel(tasks)
-        //} else {
-        //    for (task in tasks) {
-        //        script { task }
-        //    }
-        //}
+        } else {
+            for (int i = 0; i < tasks.size(); i++) {
+                println("Serial execution of task entry ${i}...")
+                script { tasks[i] }
+            }
+        }
 
     }
-} //end concurrent
+
+}
 
 
 // Convenience function that performs a deep copy on the supplied object.
