@@ -106,13 +106,14 @@ def run_configs(configs, concurrent = true) {
         }
     } else {
         // Run tasks sequentially. Any failure halts the sequence.
+        def iter = 0 
         tasks.each{ key, value ->
             def localtask = [:]
-            def iter = 0
             localtask[key] = tasks[key]
             stage("Serial-${iter}") {
                 parallel(localtask)
             }
+            iter++
         }
     }
 }
