@@ -100,19 +100,23 @@ def run_configs(configs, concurrent = true) {
 
     } //end for
 
-    stage("Matrix") {
-        if (concurrent == true) {
+    //stage("Matrix") {
+    if (concurrent == true) {
+        stage("Matrix") {
             parallel(tasks)
-        } else {
-            // Run tasks sequentially. Any failure halts the sequence.
-            tasks.each{ key, value ->
-                def localtask = [:]
-                localtask[key] = tasks[key]
+        }
+    } else {
+        // Run tasks sequentially. Any failure halts the sequence.
+        tasks.each{ key, value ->
+            def localtask = [:]
+            localtask[key] = tasks[key]
+            stage("Serial") {
                 parallel(localtask)
             }
         }
-
     }
+
+    //}
 
 }
 
