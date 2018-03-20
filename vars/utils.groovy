@@ -35,7 +35,7 @@ def scm_checkout() {
 // (optional)  concurrent - boolean, whether or not to run all build
 //                          configurations in parallel. The default is
 //                          true when no value is provided.
-def run_configs(configs, concurrent = true) {
+def run(configs, concurrent = true) {
     def tasks = [:]
     for (config in configs) {
         def myconfig = new BuildConfig() // MUST be inside for loop.
