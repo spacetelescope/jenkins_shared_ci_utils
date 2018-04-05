@@ -20,7 +20,7 @@ def scm_checkout() {
                 println("\nBuild skipped due to commit message directive.\n")
                 return skip_job
             }
-            stash includes: '**/*', name: 'source_tree'
+            stash includes: '**/*', name: 'source_tree', useDefaultExcludes: false
         }
     }
     return skip_job
