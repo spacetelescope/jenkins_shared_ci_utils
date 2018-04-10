@@ -35,7 +35,7 @@ def scm_checkout() {
 // (optional)  concurrent - boolean, whether or not to run all build
 //                          configurations in parallel. The default is
 //                          true when no value is provided.
-def run(configs, concurrent = true) {
+def run(configs, concurrent = true, debug = false) {
     def tasks = [:]
     for (config in configs) {
         def myconfig = new BuildConfig() // MUST be inside for loop.
@@ -57,9 +57,18 @@ def run(configs, concurrent = true) {
                     if (varValue.contains("\$")) {
                         expansion = sh(script: "echo ${varValue}", returnStdout: true)
                     }
+                    // For each segment of the var value, if the value is a path AND
+                    // the first char is '.', replace with env.WORKSPACE.
+
                     // Convert var value to canonical based on a WORKSPACE base directory.
                     canonicalVarValue = new File(env.WORKSPACE, expansion).getCanonicalPath().trim()
                     runtime.add("${varName}=${canonicalVarValue}")
+                    //if (debug) {
+                        println("varName: ${varName}")
+                        println("varValue: ${varValue}")
+                        println("expansion: ${expansion}")
+                        println("canonicalVarValue: ${canonicalVarValue}")
+                    //}
                 }
                 for (var in myconfig.env_vars_raw) {
                     runtime.add(var)
