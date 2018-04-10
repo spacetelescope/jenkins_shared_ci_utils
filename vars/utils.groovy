@@ -62,7 +62,7 @@ def run(configs, concurrent = true, debug = false) {
                        expansion = "${env.WORKSPACE}${expansion[1..-1]}"
                     }
                     // Replace any ':.' combination with env.WORKSPACE ?
-                    expansion = expansion.replaceAll(':\.', ":${env.WORKSPACE}")
+                    expansion = expansion.replaceAll(":\.", ":${env.WORKSPACE}")
 
                     // Convert var value to canonical based on a WORKSPACE base directory.
                     //canonicalVarValue = new File(env.WORKSPACE, expansion).getCanonicalPath().trim()
