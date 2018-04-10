@@ -72,16 +72,14 @@ def run(configs, concurrent = true, debug = false) {
                     expansion = expansion.replaceAll(':\\.', ":${env.WORKSPACE}")
 
                     // Convert var value to canonical based on a WORKSPACE base directory.
-                    def canonicalVarValue = ""
                     if (expansion.contains('..')) {
-                        canonicalVarValue = new File(expansion).getCanonicalPath().trim()
+                        expansion = new File(expansion).getCanonicalPath().trim()
                     }
-                    runtime.add("${varName}=${canonicalVarValue}")
+                    runtime.add("${varName}=${expansion}")
                     //if (debug) {
                         println("varName: ${varName}")
                         println("varValue: ${varValue}")
                         println("expansion: ${expansion}")
-                        println("canonicalVarValue: ${canonicalVarValue}")
                     //}
                 }
                 for (var in myconfig.env_vars_raw) {
