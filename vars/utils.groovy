@@ -59,7 +59,7 @@ def run(configs, concurrent = true, debug = false) {
                     }
                     // Replace a leading '.' in the value with env.WORKSPACE
                     if (expansion[0] == '.') {
-                       expansion = "${env.WORKSPACE}${varValue[1..-1]}"
+                       expansion = "${env.WORKSPACE}${expansion[1..-1]}"
                     }
                     // Replace any ':.' combination with env.WORKSPACE ?
 
