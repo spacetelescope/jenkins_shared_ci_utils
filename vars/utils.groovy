@@ -57,6 +57,11 @@ def run(configs, concurrent = true, debug = false) {
                     if (varValue.contains("\$")) {
                         expansion = sh(script: "echo ${varValue}", returnStdout: true)
                     }
+                    // Replace a leading '.' in the value with env.WORKSPACE
+                    if (varValue[0] == '.') {
+                       varValue = "${env.WORKSPACE}${varValue[1..-1]}"
+                    }
+                    // Replace any ':.' combination with env.WORKSPACE ?
 
                     // Convert var value to canonical based on a WORKSPACE base directory.
                     //canonicalVarValue = new File(env.WORKSPACE, expansion).getCanonicalPath().trim()
