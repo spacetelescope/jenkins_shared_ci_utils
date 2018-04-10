@@ -2,6 +2,7 @@
 import BuildConfig.BuildConfig
 import org.apache.commons.lang3.SerializationUtils
 
+
 // Clone the source repository and examine the most recent commit message.
 // If a '[ci skip]' or '[skip ci]' directive is present, immediately
 // terminate the job with a success code.
@@ -11,6 +12,7 @@ def scm_checkout() {
     skip_job = 0
     node("on-master") {
         stage("Setup") {
+            println("debug = ${this.debug}")
             checkout(scm)
             // Obtain the last commit message and examine it for skip directives.
             logoutput = sh(script:"git log -1 --pretty=%B", returnStdout: true).trim()
@@ -50,20 +52,36 @@ def run(configs, concurrent = true) {
                 // to dereference any var references and then render the entire
                 // value as a canonical path.
                 for (var in myconfig.env_vars) {
-                    def varName = var.tokenize("=")[0]
-                    def varValue = var.tokenize("=")[1]
+                    def varName = var.tokenize("=")[0].trim()
+                    def varValue = var.tokenize("=")[1].trim()
                     // examine var value, if it contains var refs, expand them.
                     def expansion = varValue
                     if (varValue.contains("\$")) {
-                        expansion = sh(script: "echo ${varValue}", returnStdout: true)
+                        expansion = sh(script: "echo \"${varValue}\"", returnStdout: true)
                     }
+
+                    // Change values of '.' and './' to the node's WORKSPACE.
+                    // Replace a leading './' with the node's WORKSPACE.
+                    if (expansion == '.' || expansion == './') {
+                        expansion = env.WORKSPACE
+                    } else if(expansion[0..1] == './') {
+                        expansion = "${env.WORKSPACE}/${expansion[2..-1]}"
+                    }
+
+                    // Replace all ':.' combinations with the node's WORKSPACE.
+                    expansion = expansion.replaceAll(':\\.', ":${env.WORKSPACE}")
+
                     // Convert var value to canonical based on a WORKSPACE base directory.
-                    canonicalVarValue = new File(env.WORKSPACE, expansion).getCanonicalPath().trim()
-                    runtime.add("${varName}=${canonicalVarValue}")
+                    if (expansion.contains('..')) {
+                        expansion = new File(expansion).getCanonicalPath()
+                    }
+                    expansion = expansion.trim()
+                    runtime.add("${varName}=${expansion}")
                 }
                 for (var in myconfig.env_vars_raw) {
                     runtime.add(var)
                 }
+                println(runtime)
                 withEnv(runtime) {
                     stage("Build (${myconfig.build_mode})") {
                         unstash "source_tree"
