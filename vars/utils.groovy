@@ -57,16 +57,24 @@ def run(configs, concurrent = true, debug = false) {
                     if (varValue.contains("\$")) {
                         expansion = sh(script: "echo ${varValue}", returnStdout: true)
                     }
-                    // Replace a leading '.' in the value with env.WORKSPACE
-                    if (expansion[0] == '.') {
-                       expansion = "${env.WORKSPACE}${expansion[1..-1]}"
+                    // Replace a leading './' in the value with env.WORKSPACE
+                    // Caveat, what about hidden files?  (.file)
+                    if (expansion.size() == 1) {
+                        expansion = env.WORKSPACE
+                    } else if(expansion[0..1] == './') {
+                       if (expansion.size() > 2) {
+                           expansion = "${env.WORKSPACE}${expansion[1..-1]}"
+                        } else {
+                           expansion = env.WORKSPACE
+                        }
                     }
-                    // Replace any ':.' combination with env.WORKSPACE ?
+                    // Replace any ':.' combination with env.WORKSPACE
                     expansion = expansion.replaceAll(':\\.', ":${env.WORKSPACE}")
 
                     // Convert var value to canonical based on a WORKSPACE base directory.
-                    //canonicalVarValue = new File(env.WORKSPACE, expansion).getCanonicalPath().trim()
-                    canonicalVarValue = new File(expansion).getCanonicalPath().trim()
+                    if (expansion.contains('..') {
+                        canonicalVarValue = new File(expansion).getCanonicalPath().trim()
+                    }
                     runtime.add("${varName}=${canonicalVarValue}")
                     //if (debug) {
                         println("varName: ${varName}")
