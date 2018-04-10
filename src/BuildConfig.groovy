@@ -5,6 +5,7 @@ class BuildConfig implements Serializable {
     def nodetype = ""
     def build_mode = ""
     def env_vars = []
+    def env_vars_raw = []
     def build_cmds = []
     def test_cmds = []
 

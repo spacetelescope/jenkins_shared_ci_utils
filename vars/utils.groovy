@@ -61,6 +61,9 @@ def run(configs, concurrent = true) {
                     canonicalVarValue = new File(env.WORKSPACE, expansion).getCanonicalPath().trim()
                     runtime.add("${varName}=${canonicalVarValue}")
                 }
+                for (var in myconfig.env_vars_raw) {
+                    runtime.add(var)
+                }
                 withEnv(runtime) {
                     stage("Build (${myconfig.build_mode})") {
                         unstash "source_tree"
