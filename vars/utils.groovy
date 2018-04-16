@@ -63,7 +63,7 @@ def run(configs, concurrent = true) {
                     // Replace a leading './' with the node's WORKSPACE.
                     if (expansion == '.' || expansion == './') {
                         expansion = env.WORKSPACE
-                    } else if(expansion[0..1] == './') {
+                    } else if(expansion.size() == 2 && expansion[0..1] == './') {
                         expansion = "${env.WORKSPACE}/${expansion[2..-1]}"
                     }
 
