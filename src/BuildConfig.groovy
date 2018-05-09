@@ -12,6 +12,7 @@ class BuildConfig implements Serializable {
     def env_vars_raw = []
     def build_cmds = []
     def test_cmds = []
+    def test_configs = []
 
     def failedFailureNewThresh = ''
     def failedFailureThresh = ''
