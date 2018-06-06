@@ -52,7 +52,7 @@ def run(configs, concurrent = true) {
                 def conda_runtime = []
                 // If conda packages were specified, create an environment containing
                 // them and then 'activate' it.
-                if (conda_packages.size() > 0) {
+                if (myconfig.conda_packages.size() > 0) {
                     def env_name = "tmp_env"
                     def conda_exe = sh(script: "which conda", returnStdout: true)
                     def conda_root = conda_exe.replace("/bin/conda", "")
