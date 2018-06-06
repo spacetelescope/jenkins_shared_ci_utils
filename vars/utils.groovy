@@ -49,35 +49,62 @@ def run(configs, concurrent = true) {
         tasks["${config.nodetype}/${config.build_mode}"] = {
             node(config.nodetype) {
                 def runtime = []
+                def conda_runtime = []
+                // If conda packages were specified, create an environment containing
+                // them and then 'activate' it.
+                if (conda_pkgs.size() > 0) {
+                    def env_name = "tmp_env"
+                    def conda_exe = sh(script: "which conda", returnStdout: true)
+                    def conda_root = conda_exe.replace("/bin/conda", "")
+                    def conda_prefix = "${conda_root}/envs/${env_name}"
+                    def packages = ""
+                    for (pkg in myconfig.conda_packages) {
+                        packages = "${packages} pkg"
+                    }
+                    println(packages)
+                    sh(script: "conda create -n ${env_name} ${packages}")
+                    // Configure job to use this conda environment.
+                    conda_runtime.add("CONDA_SHLVL=1")
+                    conda_runtime.add("CONDA_PROMPT_MODIFIER=${env_name}")
+                    conda_runtime.add("CONDA_EXE=${conda_exe}")
+                    conda_runtime.add("CONDA_PREFIX=${conda_prefix}")
+                    conda_runtime.add("CONDA_PYTHON_EXE=${conda_prefix}/bin/python")
+                    conda_runtime.add("CONDA_DEFAULT_ENV=${env_name}")
+                    // Prepend the PATH var adjustment to the list that gets processed below.
+                    def conda_path = "${conda_prefix}/bin:$PATH"
+                    myconfig.env_vars.add(0, conda_path)
+                }
                 // Expand environment variable specifications by using the shell
                 // to dereference any var references and then render the entire
                 // value as a canonical path.
                 for (var in myconfig.env_vars) {
-                    def varName = var.tokenize("=")[0].trim()
-                    def varValue = var.tokenize("=")[1].trim()
-                    // examine var value, if it contains var refs, expand them.
-                    def expansion = varValue
-                    if (varValue.contains("\$")) {
-                        expansion = sh(script: "echo \"${varValue}\"", returnStdout: true)
-                    }
+                    withEnv(runtime) {
+                        def varName = var.tokenize("=")[0].trim()
+                        def varValue = var.tokenize("=")[1].trim()
+                        // examine var value, if it contains var refs, expand them.
+                        def expansion = varValue
+                        if (varValue.contains("\$")) {
+                            expansion = sh(script: "echo \"${varValue}\"", returnStdout: true)
+                        }
 
-                    // Change values of '.' and './' to the node's WORKSPACE.
-                    // Replace a leading './' with the node's WORKSPACE.
-                    if (expansion == '.' || expansion == './') {
-                        expansion = env.WORKSPACE
-                    } else if(expansion.size() > 2 && expansion[0..1] == './') {
-                        expansion = "${env.WORKSPACE}/${expansion[2..-1]}"
-                    }
+                        // Change values of '.' and './' to the node's WORKSPACE.
+                        // Replace a leading './' with the node's WORKSPACE.
+                        if (expansion == '.' || expansion == './') {
+                            expansion = env.WORKSPACE
+                        } else if(expansion.size() > 2 && expansion[0..1] == './') {
+                            expansion = "${env.WORKSPACE}/${expansion[2..-1]}"
+                        }
 
-                    // Replace all ':.' combinations with the node's WORKSPACE.
-                    expansion = expansion.replaceAll(':\\.', ":${env.WORKSPACE}")
+                        // Replace all ':.' combinations with the node's WORKSPACE.
+                        expansion = expansion.replaceAll(':\\.', ":${env.WORKSPACE}")
 
-                    // Convert var value to canonical based on a WORKSPACE base directory.
-                    if (expansion.contains('..')) {
-                        expansion = new File(expansion).getCanonicalPath()
-                    }
-                    expansion = expansion.trim()
-                    runtime.add("${varName}=${expansion}")
+                        // Convert var value to canonical based on a WORKSPACE base directory.
+                        if (expansion.contains('..')) {
+                            expansion = new File(expansion).getCanonicalPath()
+                        }
+                        expansion = expansion.trim()
+                        runtime.add("${varName}=${expansion}")
+                    } // end withEnv
                 }
                 for (var in myconfig.env_vars_raw) {
                     runtime.add(var)
