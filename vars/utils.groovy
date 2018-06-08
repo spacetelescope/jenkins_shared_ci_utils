@@ -45,7 +45,7 @@ def run(configs, concurrent = true) {
         config.env_vars.add(0, 'PATH=condacondacondaconda/bin:$PATH')
         def myconfig = new BuildConfig() // MUST be inside for loop.
         myconfig = SerializationUtils.clone(config)
-        def env_vars = myconfig.env_vars
+        //def env_vars = myconfig.env_vars
 
         // Code defined within 'tasks' is eventually executed on a separate node.
         // 'tasks' is a java.util.LinkedHashMap, which preserves insertion order.
@@ -75,14 +75,13 @@ def run(configs, concurrent = true) {
                     conda_runtime.add("CONDA_DEFAULT_ENV=${env_name}")
                     // Prepend the PATH var adjustment to the list that gets processed below.
                     def conda_path = "PATH=${conda_prefix}/bin:$PATH"
-                    env_vars.add(0, conda_path)
+                    myconfig.env_vars.add(0, conda_path)
                 //}
                 // Expand environment variable specifications by using the shell
                 // to dereference any var references and then render the entire
                 // value as a canonical path.
-                println("---->> ${env_vars}")
-                ////for (var in myconfig.env_vars) {
-                for (var in env_vars) {
+                for (var in myconfig.env_vars) {
+                //for (var in env_vars) {
                     withEnv(runtime) { // this works for incremental var updates.
                         println("VAR = ${var}")
                         def varName = var.tokenize("=")[0].trim()
