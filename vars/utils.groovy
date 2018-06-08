@@ -50,7 +50,6 @@ def run(configs, concurrent = true) {
         tasks["${config.nodetype}/${config.build_mode}"] = {
             node(config.nodetype) {
                 def runtime = []
-                def conda_runtime = []
                 // If conda packages were specified, create an environment containing
                 // them and then 'activate' it.
                 if (myconfig.conda_packages.size() > 0) {
@@ -64,12 +63,12 @@ def run(configs, concurrent = true) {
                     }
                     sh(script: "conda create -q -y -n ${env_name} ${packages}")
                     // Configure job to use this conda environment.
-                    conda_runtime.add("CONDA_SHLVL=1")
-                    conda_runtime.add("CONDA_PROMPT_MODIFIER=${env_name}")
-                    conda_runtime.add("CONDA_EXE=${conda_exe}")
-                    conda_runtime.add("CONDA_PREFIX=${conda_prefix}")
-                    conda_runtime.add("CONDA_PYTHON_EXE=${conda_prefix}/bin/python")
-                    conda_runtime.add("CONDA_DEFAULT_ENV=${env_name}")
+                    myconfig.env_vars.add(0, "CONDA_SHLVL=1")
+                    myconfig.env_vars.add(0, "CONDA_PROMPT_MODIFIER=${env_name}")
+                    myconfig.env_vars.add(0, "CONDA_EXE=${conda_exe}")
+                    myconfig.env_vars.add(0, "CONDA_PREFIX=${conda_prefix}")
+                    myconfig.env_vars.add(0, "CONDA_PYTHON_EXE=${conda_prefix}/bin/python")
+                    myconfig.env_vars.add(0, "CONDA_DEFAULT_ENV=${env_name}")
                     // Prepend the PATH var adjustment to the list that gets processed below.
                     def conda_path = "PATH=${conda_prefix}/bin:$PATH"
                     myconfig.env_vars.add(0, conda_path)
