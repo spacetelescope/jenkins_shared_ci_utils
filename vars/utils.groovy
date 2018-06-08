@@ -41,6 +41,7 @@ def scm_checkout(skip_disable=false) {
 def run(configs, concurrent = true) {
     def tasks = [:]
     for (config in configs) {
+        println(config.env_vars)
         def conda_runtime = []
         // If conda packages were specified, create an environment containing
         // them and then 'activate' it.
@@ -66,6 +67,8 @@ def run(configs, concurrent = true) {
             def conda_path = "${cotnda_prefix}/bin:$PATH"
             config.env_vars.add(0, conda_path)
         }
+        println(config.env_vars)
+
         def myconfig = new BuildConfig() // MUST be inside for loop.
         myconfig = SerializationUtils.clone(config)
 
