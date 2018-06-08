@@ -81,7 +81,7 @@ def run(configs, concurrent = true) {
                 // to dereference any var references and then render the entire
                 // value as a canonical path.
                 ////for (var in myconfig.env_vars) {
-                for (var in .env_vars) {
+                for (var in env_vars) {
                     withEnv(runtime) { // this works for incremental var updates.
                         println("VAR = ${var}")
                         def varName = var.tokenize("=")[0].trim()
