@@ -43,7 +43,7 @@ def run(configs, concurrent = true) {
     for (config in configs) {
 
         config.env_vars.add("VARVAR=HERE_IS_THE_NEW")
-        config.env_vars.add(0, 'condacondacondaconda/bin:$PATH')
+        config.env_vars.add(0, 'PATH=condacondacondaconda/bin:$PATH')
         def myconfig = new BuildConfig() // MUST be inside for loop.
         myconfig = SerializationUtils.clone(config)
         def env_vars = myconfig.env_vars
