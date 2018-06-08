@@ -41,47 +41,48 @@ def scm_checkout(skip_disable=false) {
 def run(configs, concurrent = true) {
     def tasks = [:]
     for (config in configs) {
-        println(config.env_vars)
-        def conda_runtime = []
-        // If conda packages were specified, create an environment containing
-        // them and then 'activate' it.
-        if (config.conda_packages.size() > 0) {
-            def env_name = "tmp_env"
-            def conda_exe = sh(script: "which conda", returnStdout: true)
-            def conda_root = conda_exe.replace("/bin/conda", "")
-            def conda_prefix = "${conda_root}/envs/${env_name}"
-            def packages = ""
-            for (pkg in config.conda_packages) {
-                packages = "${packages} pkg"
-            }
-            println(packages)
-            sh(script: "conda create -q -y -n ${env_name} ${packages}")
-            // Configure job to use this conda environment.
-            conda_runtime.add("CONDA_SHLVL=1")
-            conda_runtime.add("CONDA_PROMPT_MODIFIER=${env_name}")
-            conda_runtime.add("CONDA_EXE=${conda_exe}")
-            conda_runtime.add("CONDA_PREFIX=${conda_prefix}")
-            conda_runtime.add("CONDA_PYTHON_EXE=${conda_prefix}/bin/python")
-            conda_runtime.add("CONDA_DEFAULT_ENV=${env_name}")
-            // Prepend the PATH var adjustment to the list that gets processed below.
-            def conda_path = "${cotnda_prefix}/bin:$PATH"
-            config.env_vars.add(0, conda_path)
-        }
-        println(config.env_vars)
 
+        config.env_vars.add("VARVAR=HERE_IS_THE_NEW")
         def myconfig = new BuildConfig() // MUST be inside for loop.
         myconfig = SerializationUtils.clone(config)
+        def env_vars = myconfig.env_vars
 
         // Code defined within 'tasks' is eventually executed on a separate node.
         // 'tasks' is a java.util.LinkedHashMap, which preserves insertion order.
         tasks["${config.nodetype}/${config.build_mode}"] = {
             node(config.nodetype) {
                 def runtime = []
+                def conda_runtime = []
+                // If conda packages were specified, create an environment containing
+                // them and then 'activate' it.
+                if (myconfig.conda_packages.size() > 0) {
+                    def env_name = "tmp_env"
+                    def conda_exe = sh(script: "which conda", returnStdout: true)
+                    def conda_root = conda_exe.replace("/bin/conda", "")
+                    def conda_prefix = "${conda_root}/envs/${env_name}"
+                    def packages = ""
+                    for (pkg in myconfig.conda_packages) {
+                        packages = "${packages} pkg"
+                    }
+                    println(packages)
+                    sh(script: "conda create -q -y -n ${env_name} ${packages}")
+                    // Configure job to use this conda environment.
+                    conda_runtime.add("CONDA_SHLVL=1")
+                    conda_runtime.add("CONDA_PROMPT_MODIFIER=${env_name}")
+                    conda_runtime.add("CONDA_EXE=${conda_exe}")
+                    conda_runtime.add("CONDA_PREFIX=${conda_prefix}")
+                    conda_runtime.add("CONDA_PYTHON_EXE=${conda_prefix}/bin/python")
+                    conda_runtime.add("CONDA_DEFAULT_ENV=${env_name}")
+                    // Prepend the PATH var adjustment to the list that gets processed below.
+                    def conda_path = "${conda_prefix}/bin:$PATH"
+                    env_vars.add(0, conda_path)
+                }
                 // Expand environment variable specifications by using the shell
                 // to dereference any var references and then render the entire
                 // value as a canonical path.
-                for (var in myconfig.env_vars) {
-                    withEnv(runtime) {
+                ////for (var in myconfig.env_vars) {
+                for (var in .env_vars) {
+                    withEnv(runtime) { // this works for incremental var updates.
                         println("VAR = ${var}")
                         def varName = var.tokenize("=")[0].trim()
                         def varValue = var.tokenize("=")[1].trim()
