@@ -80,6 +80,7 @@ def run(configs, concurrent = true) {
                 // Expand environment variable specifications by using the shell
                 // to dereference any var references and then render the entire
                 // value as a canonical path.
+                println("---->> ${env_vars}")
                 ////for (var in myconfig.env_vars) {
                 for (var in env_vars) {
                     withEnv(runtime) { // this works for incremental var updates.
