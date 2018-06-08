@@ -41,7 +41,7 @@ def scm_checkout(skip_disable=false) {
 def run(configs, concurrent = true) {
     def tasks = [:]
     for (config in configs) {
-        config.env_vars.add("HERE_IS_THE_NEW2")
+        config.env_vars.add("VARVAR=HERE_IS_THE_NEW")
         def myconfig = new BuildConfig() // MUST be inside for loop.
         myconfig = SerializationUtils.clone(config)
 
