@@ -78,7 +78,8 @@ def run(configs, concurrent = true) {
                 // to dereference any var references and then render the entire
                 // value as a canonical path.
                 for (var in myconfig.env_vars) {
-                    withEnv(runtime) { // this works for incremental var updates.
+                    // Process each var in an environment defined by all the prior vars.
+                    withEnv(runtime) {
                         def varName = var.tokenize("=")[0].trim()
                         def varValue = var.tokenize("=")[1].trim()
                         // examine var value, if it contains var refs, expand them.
@@ -109,7 +110,6 @@ def run(configs, concurrent = true) {
                 for (var in myconfig.env_vars_raw) {
                     runtime.add(var)
                 }
-                println(runtime)
                 withEnv(runtime) {
                     stage("Build (${myconfig.build_mode})") {
                         unstash "source_tree"
