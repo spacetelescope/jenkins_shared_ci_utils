@@ -71,7 +71,7 @@ def run(configs, concurrent = true) {
                     conda_runtime.add("CONDA_PYTHON_EXE=${conda_prefix}/bin/python")
                     conda_runtime.add("CONDA_DEFAULT_ENV=${env_name}")
                     // Prepend the PATH var adjustment to the list that gets processed below.
-                    def conda_path = "${conda_prefix}/bin:$PATH"
+                    def conda_path = "${cotnda_prefix}/bin:$PATH"
                     myconfig.env_vars.add(0, conda_path)
                 }
                 // Expand environment variable specifications by using the shell
@@ -79,6 +79,7 @@ def run(configs, concurrent = true) {
                 // value as a canonical path.
                 for (var in myconfig.env_vars) {
                     withEnv(runtime) {
+                        println("VAR = ${var}")
                         def varName = var.tokenize("=")[0].trim()
                         def varValue = var.tokenize("=")[1].trim()
                         // examine var value, if it contains var refs, expand them.
