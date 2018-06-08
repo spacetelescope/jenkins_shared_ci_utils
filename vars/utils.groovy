@@ -42,7 +42,6 @@ def run(configs, concurrent = true) {
     def tasks = [:]
     for (config in configs) {
 
-        config.env_vars.add("VARVAR=HERE_IS_THE_NEW")
         config.env_vars.add(0, 'PATH=condacondacondaconda/bin:$PATH')
         def myconfig = new BuildConfig() // MUST be inside for loop.
         myconfig = SerializationUtils.clone(config)
@@ -56,7 +55,7 @@ def run(configs, concurrent = true) {
                 def conda_runtime = []
                 // If conda packages were specified, create an environment containing
                 // them and then 'activate' it.
-                if (myconfig.conda_packages.size() > 0) {
+                //if (myconfig.conda_packages.size() > 0) {
                     def env_name = "tmp_env"
                     def conda_exe = sh(script: "which conda", returnStdout: true)
                     def conda_root = conda_exe.replace("/bin/conda", "")
@@ -77,7 +76,7 @@ def run(configs, concurrent = true) {
                     // Prepend the PATH var adjustment to the list that gets processed below.
                     def conda_path = "${conda_prefix}/bin:$PATH"
                     env_vars.add(0, conda_path)
-                }
+                //}
                 // Expand environment variable specifications by using the shell
                 // to dereference any var references and then render the entire
                 // value as a canonical path.
