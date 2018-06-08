@@ -60,7 +60,7 @@ def run(configs, concurrent = true) {
                     def conda_prefix = "${conda_root}/envs/${env_name}".trim()
                     def packages = ""
                     for (pkg in myconfig.conda_packages) {
-                        packages = "${packages} pkg"
+                        packages = "${packages} ${pkg}"
                     }
                     println(packages)
                     sh(script: "conda create -q -y -n ${env_name} ${packages}")
