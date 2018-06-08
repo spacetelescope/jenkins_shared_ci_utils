@@ -74,7 +74,7 @@ def run(configs, concurrent = true) {
                     conda_runtime.add("CONDA_PYTHON_EXE=${conda_prefix}/bin/python")
                     conda_runtime.add("CONDA_DEFAULT_ENV=${env_name}")
                     // Prepend the PATH var adjustment to the list that gets processed below.
-                    def conda_path = "${conda_prefix}/bin:$PATH"
+                    def conda_path = "PATH=${conda_prefix}/bin:$PATH"
                     env_vars.add(0, conda_path)
                 //}
                 // Expand environment variable specifications by using the shell
