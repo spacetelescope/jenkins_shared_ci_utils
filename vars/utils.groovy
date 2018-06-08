@@ -57,9 +57,9 @@ def run(configs, concurrent = true) {
                 // them and then 'activate' it.
                 //if (myconfig.conda_packages.size() > 0) {
                     def env_name = "tmp_env"
-                    def conda_exe = sh(script: "which conda", returnStdout: true)
-                    def conda_root = conda_exe.replace("/bin/conda", "")
-                    def conda_prefix = "${conda_root}/envs/${env_name}"
+                    def conda_exe = sh(script: "which conda", returnStdout: true).trim()
+                    def conda_root = conda_exe.replace("/bin/conda", "").trim()
+                    def conda_prefix = "${conda_root}/envs/${env_name}".trim()
                     def packages = ""
                     for (pkg in myconfig.conda_packages) {
                         packages = "${packages} pkg"
