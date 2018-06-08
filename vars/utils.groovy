@@ -62,7 +62,6 @@ def run(configs, concurrent = true) {
                     for (pkg in myconfig.conda_packages) {
                         packages = "${packages} ${pkg}"
                     }
-                    println(packages)
                     sh(script: "conda create -q -y -n ${env_name} ${packages}")
                     // Configure job to use this conda environment.
                     conda_runtime.add("CONDA_SHLVL=1")
@@ -80,7 +79,6 @@ def run(configs, concurrent = true) {
                 // value as a canonical path.
                 for (var in myconfig.env_vars) {
                     withEnv(runtime) { // this works for incremental var updates.
-                        println("VAR = ${var}")
                         def varName = var.tokenize("=")[0].trim()
                         def varValue = var.tokenize("=")[1].trim()
                         // examine var value, if it contains var refs, expand them.
@@ -106,7 +104,6 @@ def run(configs, concurrent = true) {
                         }
                         expansion = expansion.trim()
                         runtime.add("${varName}=${expansion}")
-                        sh("env")
                     } // end withEnv
                 }
                 for (var in myconfig.env_vars_raw) {
