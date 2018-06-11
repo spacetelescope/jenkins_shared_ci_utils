@@ -61,7 +61,18 @@ def run(configs, concurrent = true) {
                     for (pkg in myconfig.conda_packages) {
                         packages = "${packages} ${pkg}"
                     }
-                    sh(script: "conda create -q -y -n ${env_name} ${packages}")
+                    // Override removes the implicit 'defaults' channel from the channels
+                    // to be used, The conda_channels list is then used verbatim (in
+                    // (priority order) by conda.
+                    def override = ""
+                    if (myconfig.conda_override_channels == 'true') {
+                        override = "--override-channels"
+                    }
+                    def chans = ""
+                    for (chan in myconfig.conda_channels) {
+                        chans = "${chans} -c ${chan}"
+                    }
+                    sh(script: "conda create -q -y -n ${env_name} ${override} ${chans} ${packages}")
                     // Configure job to use this conda environment.
                     myconfig.env_vars.add(0, "CONDA_SHLVL=1")
                     myconfig.env_vars.add(0, "CONDA_PROMPT_MODIFIER=${env_name}")
