@@ -65,7 +65,7 @@ def run(configs, concurrent = true) {
                     // to be used, The conda_channels list is then used verbatim (in
                     // (priority order) by conda.
                     def override = ""
-                    if (myconfig.conda_override_channels == 'true') {
+                    if (myconfig.conda_override_channels.toString() == 'true') {
                         override = "--override-channels"
                     }
                     def chans = ""
