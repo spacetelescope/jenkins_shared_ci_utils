@@ -41,14 +41,23 @@ def scm_checkout(skip_disable=false) {
 def run(configs, concurrent = true) {
     def tasks = [:]
     for (config in configs) {
-
-        def myconfig = new BuildConfig() // MUST be inside for loop.
+ 
+        def BuildConfig myconfig = new BuildConfig() // MUST be inside for loop.
         myconfig = SerializationUtils.clone(config)
+ 
+        def config_name = ""
+        config_name = config.name
+        // For staged deprecation of '.build_mode' in favor of '.name'.
+        // TODO: Remove once all Jenkinsfiles are converted.
+        if (myconfig.build_mode != "") {
+            config_name = myconfig.build_mode
+        }
+        println("config_name: ${config_name}")
 
         // Code defined within 'tasks' is eventually executed on a separate node.
         // 'tasks' is a java.util.LinkedHashMap, which preserves insertion order.
-        tasks["${config.nodetype}/${config.build_mode}"] = {
-            node(config.nodetype) {
+        tasks["${myconfig.nodetype}/${config_name}"] = {
+            node(myconfig.nodetype) {
                 def runtime = []
                 // If conda packages were specified, create an environment containing
                 // them and then 'activate' it.
@@ -121,7 +130,7 @@ def run(configs, concurrent = true) {
                     runtime.add(var)
                 }
                 withEnv(runtime) {
-                    stage("Build (${myconfig.build_mode})") {
+                    stage("Build (${myconfig.name})") {
                         unstash "source_tree"
                         for (cmd in myconfig.build_cmds) {
                             sh(script: cmd)
@@ -129,7 +138,7 @@ def run(configs, concurrent = true) {
                     }
                     if (myconfig.test_cmds.size() > 0) {
                         try {
-                            stage("Test (${myconfig.build_mode})") {
+                            stage("Test (${myconfig.name})") {
                                 for (cmd in myconfig.test_cmds) {
                                     sh(script: cmd)
                                 }
