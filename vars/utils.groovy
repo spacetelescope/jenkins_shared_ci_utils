@@ -1,6 +1,9 @@
 // Jenkinsfile support utilities
 import BuildConfig.BuildConfig
+import groovy.io.FileType
+import groovy.json.JsonOutput
 import org.apache.commons.lang3.SerializationUtils
+import org.apache.commons.io.FilenameUtils
 
 
 // Clone the source repository and examine the most recent commit message.
@@ -162,6 +165,52 @@ def run(configs, concurrent = true) {
                             }
                         }
                     }
+
+                    if (myconfig.test_configs.size() > 0) {
+                        stage("Artifactory (${myconfig.build_mode})") {
+                            println("Scanning for directives...")
+                            for (artifact in myconfig.test_configs) {
+
+                                // Construct absolute path to data
+                                def path = FilenameUtils.getFullPath(
+                                            "${env.WORKSPACE}/${artifact.root}"
+                                )
+
+                                // Record listing of all files starting at ${path}
+                                // (Native Java and Groovy approaches will not work here)
+                                sh(script: "find ${path} -type f",
+                                   returnStdout: true).trim().tokenize('\n').each {
+
+                                    // Semi-wildcard matching of JSON input files
+                                    // ex:
+                                    //      it = "test_1234_result.json"
+                                    //      artifact.match_prefix = "(.*)_result"
+                                    //
+                                    //      pattern becomes: (.*)_result(.*)\\.json
+                                    if (it.matches(
+                                            artifact.match_prefix + '(.*)\\.json')) {
+                                        println("Reading: ${it}")
+                                        def basename = FilenameUtils.getBaseName(it)
+                                        def data = readFile(it)
+
+                                        // Store JSON in a logical map
+                                        // i.e. ["basename": [data]]
+                                        artifact.insert(basename, data)
+                                    }
+                                } // end find.each
+
+                                // Submit each request to the Artifactory server
+                                artifact.data.each { blob ->
+                                    println("Ingesting: ${blob.key}")
+                                    println(JsonOutput.prettyPrint(blob.value))
+                                    def server = Artifactory.server artifact.server_id
+                                    def buildInfo = server.upload spec: blob.value
+                                    server.publishBuildInfo buildInfo
+                                }
+
+                            } // end for-loop
+                        } // end stage Artifactory
+                    } // end test_configs for-loop
                 } // end withEnv
             } // end node
         } //end tasks
@@ -174,10 +223,10 @@ def run(configs, concurrent = true) {
         }
     } else {
         // Run tasks sequentially. Any failure halts the sequence.
-        def iter = 0 
-        tasks.each{ key, value ->
+        def iter = 0
+        for (task in tasks) {
             def localtask = [:]
-            localtask[key] = tasks[key]
+            localtask[task.key] = task.value
             stage("Serial-${iter}") {
                 parallel(localtask)
             }
