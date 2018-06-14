@@ -111,7 +111,7 @@ Two things need to be done to allow this type of build/test classification.
   
   This will cause the command to always return a success status, even if the pytest invocation itself returns and error code.
   
-WARNING: Adding   || true    to arbitrary commands will mask problems and make diagnosing failures more difficult than necessary. Only use this approach in specific instances where it is required to suppress unnecessary failure return values from testing tools that cannot be suppressed in any other way.
+WARNING: Adding   `|| true`    to arbitrary commands will mask problems and make diagnosing failures more difficult than necessary. Only use this approach in specific instances where it is required to suppress unnecessary failure return values from testing tools that cannot be suppressed in any other way.
 
 ### Build Sequence
 
