@@ -5,7 +5,7 @@ support continuous integration (CI) build and test jobs for projects within the 
 
 Functionality provided that extends the native Groovy syntax approach
 1. Terminate job execution immediately (with a success status) when the string `[skip ci]` or `[ci skip]` is found in the commit message.
-2. Selection of either parallel (default) or sequential execution of the specific build matrix.
+2. Selection of either parallel (default) or sequential execution of the specified build matrix.
 
 This library's functionality is automatically made available to every Jenkinsfile hosted in the spacetelescope Github organization.
 
@@ -90,3 +90,33 @@ It has the following members:
 | `skippedUnstableNewThresh`	| integer	| no | (Default is no threshold set.) The threshold for the number of newly appearing skipped tests that will cause the build to be flagged as "UNSTABLE". |
 | `skippedUnstableThresh`	| integer	| no | (Default is no threshold set.) The threshold for the number of skipped tests that will cause the build to be flagged as "UNSTABLE". |
 
+### Test Results Customization
+
+Under certain circumstances it might be desirable force a job to produce a PASSING status even if a certain number of tests are failing.
+
+This approach may be seen in the following documentation for the xUnit plugin which is used to provide the test report functionality in the CI system. The heading "Accept a Baseline". https://jenkins.io/blog/2016/10/31/xunit-reporting/ describes the scenario and how to set the appropriate thresholds.
+
+Two things need to be done to allow this type of build/test classification.
+
+* The test reporting thresholds must be set correctly to allow a certain number of 'expected failures'.
+* No stages in the build may return a failure status 
+  * The implication of this requirement is that any commands run, in the test_cmds list in particular, must not return an error code. Tools such as pytest return an error status if any tests in the suite fail and so will cause that stage in the Jenkins job to show a failure status. NOTE: The most severe failure status in any build stage is always propagated up to be reflected in the overall job status.
+  * To prevent the test execution command in this case from causing the entire job to return a FAILURE status, the command may be adjusted to use the following construction. ```<command_that_returns_error_status_when_a_tests_fail> || true``` i.e. in following the example job definition from above: ```"pytest tests --basetemp=tests_output --junitxml results.xml --remote-data || true"``` This will cause the command to always return a success status, even if the pytest invocation itself returns and error code.
+  
+WARNING: Adding   || true    to arbitrary commands will mask problems and make diagnosing failures more difficult than necessary. Only use this approach in specific instances where it is required to suppress unnecessary failure return values from testing tools that cannot be suppressed in any other way.
+
+### Build Sequence
+
+This is a brief description of the job execution sequence to aid in understanding CI system behavior when constructing build configuration scripts.
+
+1. A repository in https://github.com/spacetelescope has a Jenkinsfile added to one or more branches or PRs. The Jenkinsfile describes the build and test activities to take place upon a git push event.
+2. A git push event takes place on a branch containing a Jenkinsfile.
+3. Jenkins initiates a clone of the repository where the push event occurred.
+4. Source check out
+   a. When the   `if (utils.scm_checkout()) return`   construct is used, the commit message is examined and the build is immediately terminated with a SUCCESS status if the string `[skip ci]` or `[ci skip]` appears in the latest commit message. If no such string is found, job execution continues.
+   b. Jenkins creates a "stash" of all the files that were retrieved by the git clone and distributes them internally ("unstashes" them) to each build host that is spawned later in this sequence. This is done to minimize network calls to external resources.
+5. The Jenkinsfile is executed as a Jenkins "pipeline script"
+   1. For every build configuration passed in to the utils.run() function a docker container will be created to host the build and test activities for that configuration.
+   2. Environment variables specified in env_vars list are added to the environment before executing each command in build_cmds and then test_cmds in their order of appearance in those lists.
+   3. After the last test_cmds command is executed, Jenkins examines the build environment for a filename with an .xml extension. If one is found, it is assumed to be a JUnit-compliant test report and is read.
+      1. Any test reporting thresholds supplied in the build configuration are applied and the results presented accordingly via the Jenkins user interface.
