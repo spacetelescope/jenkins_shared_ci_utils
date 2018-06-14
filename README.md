@@ -101,7 +101,15 @@ Two things need to be done to allow this type of build/test classification.
 * The test reporting thresholds must be set correctly to allow a certain number of 'expected failures'.
 * No stages in the build may return a failure status 
   * The implication of this requirement is that any commands run, in the test_cmds list in particular, must not return an error code. Tools such as pytest return an error status if any tests in the suite fail and so will cause that stage in the Jenkins job to show a failure status. NOTE: The most severe failure status in any build stage is always propagated up to be reflected in the overall job status.
-  * To prevent the test execution command in this case from causing the entire job to return a FAILURE status, the command may be adjusted to use the following construction. ```<command_that_returns_error_status_when_a_tests_fail> || true``` i.e. in following the example job definition from above: ```"pytest tests --basetemp=tests_output --junitxml results.xml --remote-data || true"``` This will cause the command to always return a success status, even if the pytest invocation itself returns and error code.
+  * To prevent the test execution command in this case from causing the entire job to return a FAILURE status, the command may be adjusted to use the following construction.
+  
+  ```<command_that_returns_error_status_when_a_tests_fail> || true``` 
+  
+  i.e. in following the example job definition from above:
+  
+  ```"pytest tests --basetemp=tests_output --junitxml results.xml --remote-data || true"```
+  
+  This will cause the command to always return a success status, even if the pytest invocation itself returns and error code.
   
 WARNING: Adding   || true    to arbitrary commands will mask problems and make diagnosing failures more difficult than necessary. Only use this approach in specific instances where it is required to suppress unnecessary failure return values from testing tools that cannot be suppressed in any other way.
 
