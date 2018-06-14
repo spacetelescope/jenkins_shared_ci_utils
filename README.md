@@ -6,6 +6,7 @@ support continuous integration (CI) build and test jobs for projects within the 
 Functionality provided that extends the native Groovy syntax approach
 1. Terminate job execution immediately (with a success status) when the string `[skip ci]` or `[ci skip]` is found in the commit message.
 2. Selection of either parallel (default) or sequential execution of the specified build matrix.
+3. Automatic creation of a conda environment with user-specified dependencies to host the build.
 
 This library's functionality is automatically made available to every Jenkinsfile hosted in the spacetelescope Github organization.
 
