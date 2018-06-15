@@ -44,10 +44,10 @@ def scm_checkout(skip_disable=false) {
 def run(configs, concurrent = true) {
     def tasks = [:]
     for (config in configs) {
- 
+
         def BuildConfig myconfig = new BuildConfig() // MUST be inside for loop.
         myconfig = SerializationUtils.clone(config)
- 
+
         def config_name = ""
         config_name = config.name
         // For staged deprecation of '.build_mode' in favor of '.name'.
@@ -167,9 +167,15 @@ def run(configs, concurrent = true) {
                     }
 
                     if (myconfig.test_configs.size() > 0) {
-                        stage("Artifactory (${myconfig.build_mode})") {
+                        stage("Artifactory (${myconfig.name})") {
+                            def buildInfo = Artifactory.newBuildInfo()
+                            buildInfo.env.capture = true
+                            buildInfo.env.collect()
+                            def server
+
                             println("Scanning for directives...")
                             for (artifact in myconfig.test_configs) {
+                                server = Artifactory.server artifact.server_id
 
                                 // Construct absolute path to data
                                 def path = FilenameUtils.getFullPath(
@@ -189,7 +195,6 @@ def run(configs, concurrent = true) {
                                     //      pattern becomes: (.*)_result(.*)\\.json
                                     if (it.matches(
                                             artifact.match_prefix + '(.*)\\.json')) {
-                                        println("Reading: ${it}")
                                         def basename = FilenameUtils.getBaseName(it)
                                         def data = readFile(it)
 
@@ -203,12 +208,14 @@ def run(configs, concurrent = true) {
                                 artifact.data.each { blob ->
                                     println("Ingesting: ${blob.key}")
                                     println(JsonOutput.prettyPrint(blob.value))
-                                    def server = Artifactory.server artifact.server_id
-                                    def buildInfo = server.upload spec: blob.value
-                                    server.publishBuildInfo buildInfo
+                                    def bi_temp = server.upload spec: blob.value
+                                    buildInfo.append bi_temp
                                 }
 
                             } // end for-loop
+
+                            server.publishBuildInfo buildInfo
+
                         } // end stage Artifactory
                     } // end test_configs for-loop
                 } // end withEnv
