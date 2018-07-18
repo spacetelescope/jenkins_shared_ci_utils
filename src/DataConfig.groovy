@@ -6,6 +6,9 @@ class DataConfig implements Serializable {
     String root = '.'
     String server_id = ''
     String match_prefix = '(.*)'
+    Boolean keep_data = false
+    int keep_builds = 20
+    int keep_days = 10
     def data = [:]
 
     DataConfig() {}
