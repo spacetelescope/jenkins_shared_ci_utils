@@ -16,6 +16,7 @@ def scm_checkout(skip_disable=false) {
     node("on-master") {
         stage("Setup") {
             checkout(scm)
+            println("skip_disable = ${skip_disable}")
             if (skip_disable == 'false') {
                 // Obtain the last commit message and examine it for skip directives.
                 logoutput = sh(script:"git log -1 --pretty=%B", returnStdout: true).trim()
