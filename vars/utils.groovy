@@ -21,7 +21,6 @@ def scm_checkout(args = ['skip_disable':false]) {
             if (args['skip_disable'] == false) {
                 // Obtain the last commit message and examine it for skip directives.
                 logoutput = sh(script:"git log -1 --pretty=%B", returnStdout: true).trim()
-                println(logoutput)
                 if (logoutput.contains("[ci skip]") || logoutput.contains("[skip ci]")) {
                     skip_job = 1
                     currentBuild.result = 'SUCCESS'
