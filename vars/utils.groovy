@@ -11,13 +11,14 @@ import org.apache.commons.io.FilenameUtils
 // terminate the job with a success code.
 // If no skip directive is found, or skip_disable is true, stash all the
 // source files for efficient retrieval by subsequent nodes.
-def scm_checkout(skip_disable=false) {
+//def scm_checkout(skip_disable=false) {
+def scm_checkout(args = ['skip_disable':false]) {
     skip_job = 0
     node("on-master") {
         stage("Setup") {
             checkout(scm)
-            println("skip_disable = ${skip_disable.toString()}")
-            if (skip_disable.toString() == 'false' || skip_disable == null) {
+            println("args['skip_disable'] = ${args['skip_disable']}")
+            if (args['skip_disable'] == false) {
                 // Obtain the last commit message and examine it for skip directives.
                 logoutput = sh(script:"git log -1 --pretty=%B", returnStdout: true).trim()
                 println(logoutput)
