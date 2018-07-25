@@ -51,11 +51,6 @@ def run(configs, concurrent = true) {
         def config_name = ""
         config_name = config.name
 
-        // For staged deprecation of '.build_mode' in favor of '.name'.
-        // TODO: Remove once all Jenkinsfiles are converted.
-        if (myconfig.build_mode != "") {
-            config_name = myconfig.build_mode
-        }
         println("config_name: ${config_name}")
 
         // Code defined within 'tasks' is eventually executed on a separate node.

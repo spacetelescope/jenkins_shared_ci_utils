@@ -3,7 +3,6 @@ package BuildConfig;
 
 class BuildConfig implements Serializable {
     def nodetype = ""
-    def build_mode = ""
     def name = ""
     def conda_packages = []
     def conda_override_channels = false
