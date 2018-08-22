@@ -98,7 +98,9 @@ def install_conda(version, install_dir) {
     def conda_install_dir = "${cwd}/${install_dir}"
     def conda_installer = "Miniconda3-${installer_ver}-${OSname}-x86_64.sh"
     dl_cmd = dl_cmd + " ${conda_base_url}/${conda_installer}"
-    sh dl_cmd
+    if (!fileExists("./${conda_installer}")) {
+        sh dl_cmd
+    }
 
     // Install miniconda
     sh "bash ./${conda_installer} -b -p ${install_dir}"
@@ -139,6 +141,9 @@ def run(configs, concurrent = true) {
                     // Test for presence of conda. If not available, install it in
                     // a prefix unique to this build configuration.
                     def conda_exe = null
+                    // If conda is already present, it is assumed that the builds are
+                    // taking place within isolated containers, since those containers
+                    // are built with conda pre-installed.
                     if (!conda_present()) {
                         println('CONDA NOT FOUND, INSTALLING')
                         conda_inst_dir = "${env.WORKSPACE}/miniconda-bconf${index}"
