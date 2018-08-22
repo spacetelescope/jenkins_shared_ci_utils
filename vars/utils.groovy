@@ -138,13 +138,13 @@ def run(configs, concurrent = true) {
                     // Test for presence of conda. If not available, install it in
                     // a prefix unique to this build configuration.
                     def conda_exe = null
-                    if (!conda_present()) {
-                        conda_inst_dir = "${WORKDIR}/miniconda-bconf${index}"
-                        install_conda(myconfig.conda_ver, conda_inst_subdir)
-                        conda_exe = "${conda_inst_dir}/bin/conda"
-                    } else {
+                    //if (!conda_present()) {
+                    //    conda_inst_dir = "${WORKDIR}/miniconda-bconf${index}"
+                    //    install_conda(myconfig.conda_ver, conda_inst_subdir)
+                    //    conda_exe = "${conda_inst_dir}/bin/conda"
+                    //} else {
                         conda_exe = sh(script: "which conda", returnStdout: true).trim()
-                    }
+                    //}
                     def conda_root = conda_exe.replace("/bin/conda", "").trim()
                     def conda_prefix = "${conda_root}/envs/${env_name}".trim()
                     def env_name = "tmp_env${index}"
