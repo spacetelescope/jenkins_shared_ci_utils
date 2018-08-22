@@ -117,9 +117,7 @@ def install_conda(version, dir) {
 //                          true when no value is provided.
 def run(configs, concurrent = true) {
     def tasks = [:]
-    //configs.eachWithIndex { config, index ->
-    for (config in configs) {
-        def index = 0
+    configs.eachWithIndex { config, index ->
         def BuildConfig myconfig = new BuildConfig() // MUST be inside for loop.
         myconfig = SerializationUtils.clone(config)
         def config_name = ""
@@ -215,7 +213,9 @@ def run(configs, concurrent = true) {
                 }
                 withEnv(runtime) {
                     stage("Build (${myconfig.name})") {
+                        println('About to unstash')
                         unstash "source_tree"
+                        println('Unstash complete')
                         for (cmd in myconfig.build_cmds) {
                             sh(script: cmd)
                         }
