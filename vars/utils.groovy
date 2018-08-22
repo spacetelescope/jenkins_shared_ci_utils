@@ -118,7 +118,7 @@ def install_conda(version, dir) {
 //                          true when no value is provided.
 def run(configs, concurrent = true) {
     def tasks = [:]
-    configs.eachWithIndex { config, index -->
+    configs.eachWithIndex { config, index ->
         def BuildConfig myconfig = new BuildConfig() // MUST be inside for loop.
         myconfig = SerializationUtils.clone(config)
         def config_name = ""

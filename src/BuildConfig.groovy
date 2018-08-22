@@ -4,9 +4,12 @@ package BuildConfig;
 class BuildConfig implements Serializable {
     def nodetype = ""
     def name = ""
+
     def conda_packages = []
     def conda_override_channels = false
     def conda_channels = []
+    def conda_ver = null
+
     def env_vars = []
     def env_vars_raw = []
     def build_cmds = []
