@@ -13,7 +13,6 @@ import org.apache.commons.io.FilenameUtils
 // source files for efficient retrieval by subsequent nodes.
 //def scm_checkout(skip_disable=false) {
 def scm_checkout(args = ['skip_disable':false]) {
-    deleteDir()
     skip_job = 0
     node("on-master") {
         stage("Setup") {
@@ -130,6 +129,9 @@ def run(configs, concurrent = true) {
         // 'tasks' is a java.util.LinkedHashMap, which preserves insertion order.
         tasks["${myconfig.nodetype}/${config_name}"] = {
             node(myconfig.nodetype) {
+                if (index == 0) {
+                    deleteDir()
+                }
                 def runtime = []
                 // If conda packages were specified, create an environment containing
                 // them and then 'activate' it. If a specific python version is
