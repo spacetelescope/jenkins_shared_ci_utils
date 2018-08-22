@@ -151,8 +151,8 @@ def run(configs, concurrent = true) {
                         println('Found conda exe at ${conda_exe}.')
                     }
                     def conda_root = conda_exe.replace("/bin/conda", "").trim()
-                    def conda_prefix = "${conda_root}/envs/${env_name}".trim()
                     def env_name = "tmp_env${index}"
+                    def conda_prefix = "${conda_root}/envs/${env_name}".trim()
                     def packages = ""
                     for (pkg in myconfig.conda_packages) {
                         packages = "${packages} ${pkg}"
