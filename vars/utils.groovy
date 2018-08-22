@@ -95,8 +95,7 @@ def install_conda(version, dir) {
     }
 
     def WORKDIR = pwd()
-    //def conda_install_dir = "${WORKDIR}/${install_dir}"
-    def conda_install_dir = "./${install_dir}"
+    def conda_install_dir = "${WORKDIR}/${install_dir}"
     def conda_installer = "Miniconda3-${installer_ver}-${OSname}-x86_64.sh"
     dl_cmd = dl_cmd + " ${conda_base_url}/${conda_installer}"
     sh dl_cmd
