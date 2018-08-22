@@ -144,7 +144,7 @@ def run(configs, concurrent = true) {
                     if (!conda_present()) {
                         println('CONDA NOT FOUND, INSTALLING')
                         conda_inst_dir = "${WORKDIR}/miniconda-bconf${index}"
-                        install_conda(myconfig.conda_ver, conda_inst_subdir)
+                        install_conda(myconfig.conda_ver, conda_inst_dir)
                         conda_exe = "${conda_inst_dir}/bin/conda"
                     } else {
                         conda_exe = sh(script: "which conda", returnStdout: true).trim()
