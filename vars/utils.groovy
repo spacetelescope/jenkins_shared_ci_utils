@@ -34,6 +34,79 @@ def scm_checkout(args = ['skip_disable':false]) {
     return skip_job
 }
 
+// Returns true if the conda exe is somewhere in the $PATH, false otherwise.
+def conda_present() {
+    def success = sh(script: "conda --version", returnStatus: true)
+    if (success == 0) {
+        return true
+    } else {
+        return false
+    }
+}
+
+
+// Install a particular version of conda by downloading and running the miniconda
+// installer and then installing conda at the specified version.
+//  No version argument will result in the latest available conda version
+//  being installed.
+def install_conda(version, dir) {
+
+    installer_ver = '4.5.4'
+    default_conda_version = '4.5.4'
+    default_dir = 'miniconda'
+
+    if (version == null) {
+        version = default_conda_version
+    }
+    if (dir == null) {
+        dir = default_dir
+    }
+
+    def conda_base_url = "https://repo.continuum.io/miniconda"
+
+    def OSname = null
+    def uname = sh(script: "uname", returnStdout: true).trim()
+    if (uname == "Darwin") {
+        OSname = "MacOSX"
+        println("OSname=${OSname}")
+    }
+    if (uname == "Linux") {
+        OSname = uname
+        println("OSname=${OSname}")
+    }
+    assert uname != null
+
+    // Check for the availability of a download tool and then use it
+    // to get the conda installer.
+    def dl_cmds = ["curl -OSs",
+                   "wget --no-verbose --server-response --no-check-certificate"]
+    def dl_cmd = null
+    def stat1 = 999
+    for (cmd in dl_cmds) {
+        stat1 = sh(script: "which ${cmd.tokenize()[0]}", returnStatus: true)
+        if( stat1 == 0 ) {
+            dl_cmd = cmd
+            break
+        }
+    }
+    if (stat1 != 0) {
+        println("Could not find a download tool for obtaining conda. Unable to proceed.")
+        return false
+    }
+
+    def WORKDIR = pwd()
+    //def conda_install_dir = "${WORKDIR}/${install_dir}"
+    def conda_install_dir = "./${install_dir}"
+    def conda_installer = "Miniconda3-${installer_ver}-${OSname}-x86_64.sh"
+    dl_cmd = dl_cmd + " ${conda_base_url}/${conda_installer}"
+    sh dl_cmd
+
+    // Install specific version of miniconda
+    if (version != installer_ver) {
+        sh "bash ./${conda_installer} -b -p ${dir}"
+    }
+    return true
+}
 
 // Execute build/test task(s) based on passed-in configuration(s).
 // Each task is defined by a BuildConfig object.
@@ -45,7 +118,7 @@ def scm_checkout(args = ['skip_disable':false]) {
 //                          true when no value is provided.
 def run(configs, concurrent = true) {
     def tasks = [:]
-    for (config in configs) {
+    configs.eachWithIndex { config, index -->
         def BuildConfig myconfig = new BuildConfig() // MUST be inside for loop.
         myconfig = SerializationUtils.clone(config)
         def config_name = ""
@@ -59,19 +132,30 @@ def run(configs, concurrent = true) {
             node(myconfig.nodetype) {
                 def runtime = []
                 // If conda packages were specified, create an environment containing
-                // them and then 'activate' it.
+                // them and then 'activate' it. If a specific python version is
+                // desired, it must be specified as a package, i.e. 'python=3.6'
+                // in the list config.conda_packages.
                 if (myconfig.conda_packages.size() > 0) {
-                    def env_name = "tmp_env"
-                    def conda_exe = sh(script: "which conda", returnStdout: true).trim()
+                    // Test for presence of conda. If not available, install it in
+                    // a prefix unique to this build configuration.
+                    def conda_exe = null
+                    if (!conda_present()) {
+                        conda_inst_dir = "${WORKDIR}/miniconda-bconf${index}"
+                        install_conda(myconfig.conda_ver, conda_inst_subdir)
+                        conda_exe = "${conda_inst_dir}/bin/conda"
+                    } else {
+                        conda_exe = sh(script: "which conda", returnStdout: true).trim()
+                    }
                     def conda_root = conda_exe.replace("/bin/conda", "").trim()
                     def conda_prefix = "${conda_root}/envs/${env_name}".trim()
+                    def env_name = "tmp_env${index}"
                     def packages = ""
                     for (pkg in myconfig.conda_packages) {
                         packages = "${packages} ${pkg}"
                     }
                     // Override removes the implicit 'defaults' channel from the channels
                     // to be used, The conda_channels list is then used verbatim (in
-                    // (priority order) by conda.
+                    // priority order) by conda.
                     def override = ""
                     if (myconfig.conda_override_channels.toString() == 'true') {
                         override = "--override-channels"
