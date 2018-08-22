@@ -101,9 +101,7 @@ def install_conda(version, install_dir) {
     sh dl_cmd
 
     // Install miniconda
-    if (version != installer_ver) {
-        sh "bash ./${conda_installer} -b -p ${install_dir}"
-    }
+    sh "bash ./${conda_installer} -b -p ${install_dir}"
     return true
 }
 
