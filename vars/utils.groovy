@@ -13,6 +13,7 @@ import org.apache.commons.io.FilenameUtils
 // source files for efficient retrieval by subsequent nodes.
 //def scm_checkout(skip_disable=false) {
 def scm_checkout(args = ['skip_disable':false]) {
+    deleteDir()
     skip_job = 0
     node("on-master") {
         stage("Setup") {
