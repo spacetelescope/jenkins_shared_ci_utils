@@ -214,6 +214,8 @@ def run(configs, concurrent = true) {
                 withEnv(runtime) {
                     stage("Build (${myconfig.name})") {
                         println('About to unstash')
+                        sh "pwd"
+                        sh "ls -al"
                         unstash "source_tree"
                         println('Unstash complete')
                         for (cmd in myconfig.build_cmds) {
