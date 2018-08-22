@@ -94,8 +94,8 @@ def install_conda(version, install_dir) {
         return false
     }
 
-    def WORKDIR = pwd()
-    def conda_install_dir = "${WORKDIR}/${install_dir}"
+    def cwd = pwd()
+    def conda_install_dir = "${cwd}/${install_dir}"
     def conda_installer = "Miniconda3-${installer_ver}-${OSname}-x86_64.sh"
     dl_cmd = dl_cmd + " ${conda_base_url}/${conda_installer}"
     sh dl_cmd
@@ -143,7 +143,7 @@ def run(configs, concurrent = true) {
                     def conda_exe = null
                     if (!conda_present()) {
                         println('CONDA NOT FOUND, INSTALLING')
-                        conda_inst_dir = "${WORKDIR}/miniconda-bconf${index}"
+                        conda_inst_dir = "${env.WORKSPACE}/miniconda-bconf${index}"
                         install_conda(myconfig.conda_ver, conda_inst_dir)
                         conda_exe = "${conda_inst_dir}/bin/conda"
                     } else {
