@@ -49,7 +49,7 @@ def conda_present() {
 // installer and then installing conda at the specified version.
 //  No version argument will result in the latest available conda version
 //  being installed.
-def install_conda(version, dir) {
+def install_conda(version, install_dir) {
 
     installer_ver = '4.5.4'
     default_conda_version = '4.5.4'
@@ -58,8 +58,8 @@ def install_conda(version, dir) {
     if (version == null) {
         version = default_conda_version
     }
-    if (dir == null) {
-        dir = default_dir
+    if (install_dir == null) {
+        install_dir = default_dir
     }
 
     def conda_base_url = "https://repo.continuum.io/miniconda"
@@ -100,9 +100,9 @@ def install_conda(version, dir) {
     dl_cmd = dl_cmd + " ${conda_base_url}/${conda_installer}"
     sh dl_cmd
 
-    // Install specific version of miniconda
+    // Install miniconda
     if (version != installer_ver) {
-        sh "bash ./${conda_installer} -b -p ${dir}"
+        sh "bash ./${conda_installer} -b -p ${install_dir}"
     }
     return true
 }
