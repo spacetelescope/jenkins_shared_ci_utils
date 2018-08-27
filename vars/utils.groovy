@@ -47,8 +47,8 @@ def conda_present() {
 
 // Install a particular version of conda by downloading and running the miniconda
 // installer and then installing conda at the specified version.
-//  No version argument will result in the latest available conda version
-//  being installed.
+//  A version argument of 'null' will result in the latest available conda
+//  version being installed.
 def install_conda(version, install_dir) {
 
     installer_ver = '4.5.4'
@@ -125,7 +125,10 @@ def run(configs, concurrent = true) {
 
         println("config_name: ${config_name}")
 
-        // Code defined within 'tasks' is eventually executed on a separate node.
+        // For containerized CI builds, code defined within 'tasks' is eventually executed
+        // on a separate node.
+        // CAUTION: For builds elsewhere (e.g. nightly regression tests), any parallel
+        //          configs will be executed simultaneously WITHIN THE SAME WORKSPACE.
         // 'tasks' is a java.util.LinkedHashMap, which preserves insertion order.
         tasks["${myconfig.nodetype}/${config_name}"] = {
             node(myconfig.nodetype) {
@@ -141,11 +144,8 @@ def run(configs, concurrent = true) {
                     // Test for presence of conda. If not available, install it in
                     // a prefix unique to this build configuration.
                     def conda_exe = null
-                    // If conda is already present, it is assumed that the builds are
-                    // taking place within isolated containers, since those containers
-                    // are built with conda pre-installed.
                     if (!conda_present()) {
-                        println('CONDA NOT FOUND, INSTALLING')
+                        println('CONDA NOT FOUND. INSTALLING.')
                         conda_inst_dir = "${env.WORKSPACE}/miniconda-bconf${index}"
                         install_conda(myconfig.conda_ver, conda_inst_dir)
                         conda_exe = "${conda_inst_dir}/bin/conda"
