@@ -116,6 +116,7 @@ def install_conda(version, install_dir) {
 //                          configurations in parallel. The default is
 //                          true when no value is provided.
 def run(configs, concurrent = true) {
+
     def tasks = [:]
     configs.eachWithIndex { config, index ->
         def BuildConfig myconfig = new BuildConfig() // MUST be inside for loop.
@@ -125,10 +126,26 @@ def run(configs, concurrent = true) {
 
         println("config_name: ${config_name}")
 
-        // For containerized CI builds, code defined within 'tasks' is eventually executed
-        // on a separate node.
-        // CAUTION: For builds elsewhere (e.g. nightly regression tests), any parallel
-        //          configs will be executed simultaneously WITHIN THE SAME WORKSPACE.
+        // Test for GStrings (double quoted). These perform string interpolation
+        // immediately and are very likely not what the user intends to do when
+        // defnining environment variables to use in the build. Disallow them here.
+        config.env_vars.each { evar ->
+            println(evar)
+            if (evar.getClass() == org.codehaus.groovy.runtime.GStringImpl) {
+                msg = "Immediate interpolation of variables in the 'env_vars'" +
+                      " list is not supported and will probably not do what" +
+                      " you expect. Please change the double quotes (\") to " +
+                      "single quotes (') in each value of the 'env_vars' list."
+                println(msg)
+                error('Abort the build.')
+            }
+        }
+
+        // For containerized CI builds, code defined within 'tasks' is
+        // eventually executed on a separate node.
+        // CAUTION: For builds elsewhere (e.g. nightly regression tests),
+        //          any parallel configs will be executed simultaneously
+        //          WITHIN THE SAME WORKSPACE.
         // 'tasks' is a java.util.LinkedHashMap, which preserves insertion order.
         tasks["${myconfig.nodetype}/${config_name}"] = {
             node(myconfig.nodetype) {
