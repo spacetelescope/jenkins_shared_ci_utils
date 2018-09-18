@@ -119,7 +119,7 @@ def run(configs, concurrent = true) {
 
     def tasks = [:]
     configs.eachWithIndex { config, index ->
-        def BuildConfig myconfig = new BuildConfig() // MUST be inside for loop.
+        def BuildConfig myconfig = new BuildConfig() // MUST be inside eachWith loop.
         myconfig = SerializationUtils.clone(config)
         def config_name = ""
         config_name = config.name
@@ -127,8 +127,8 @@ def run(configs, concurrent = true) {
         println("config_name: ${config_name}")
 
         // Test for GStrings (double quoted). These perform string interpolation
-        // immediately and are very likely not what the user intends to do when
-        // defnining environment variables to use in the build. Disallow them here.
+        // immediately and may not what the user intends to do when defining
+        // environment variables to use in the build. Disallow them here.
         config.env_vars.each { evar ->
             println(evar)
             if (evar.getClass() == org.codehaus.groovy.runtime.GStringImpl) {
@@ -141,17 +141,16 @@ def run(configs, concurrent = true) {
             }
         }
 
-        // For containerized CI builds, code defined within 'tasks' is
-        // eventually executed on a separate node.
-        // CAUTION: For builds elsewhere (e.g. nightly regression tests),
-        //          any parallel configs will be executed simultaneously
-        //          WITHIN THE SAME WORKSPACE.
+        def conda_exe = null
+        def conda_inst_dir = null
+
+        // For containerized CI builds, code defined within 'tasks' is eventually executed
+        // on a separate node. Parallel builds on the RT system each get assigned a new
+        // workspace directory by Jenkins. i.e. workspace, workspace@2, etc.
         // 'tasks' is a java.util.LinkedHashMap, which preserves insertion order.
         tasks["${myconfig.nodetype}/${config_name}"] = {
             node(myconfig.nodetype) {
-                if (index == 0) {
-                    deleteDir()
-                }
+                deleteDir()
                 def runtime = []
                 // If conda packages were specified, create an environment containing
                 // them and then 'activate' it. If a specific python version is
@@ -160,15 +159,16 @@ def run(configs, concurrent = true) {
                 if (myconfig.conda_packages.size() > 0) {
                     // Test for presence of conda. If not available, install it in
                     // a prefix unique to this build configuration.
-                    def conda_exe = null
                     if (!conda_present()) {
-                        println('CONDA NOT FOUND. INSTALLING.')
+                        println('Conda not found. Installing.')
                         conda_inst_dir = "${env.WORKSPACE}/miniconda-bconf${index}"
+                        println("conda_inst_dir = ${conda_inst_dir}")
                         install_conda(myconfig.conda_ver, conda_inst_dir)
                         conda_exe = "${conda_inst_dir}/bin/conda"
+                        println("conda_exe = ${conda_exe}")
                     } else {
                         conda_exe = sh(script: "which conda", returnStdout: true).trim()
-                        println('Found conda exe at ${conda_exe}.')
+                        println("Found conda exe at ${conda_exe}.")
                     }
                     def conda_root = conda_exe.replace("/bin/conda", "").trim()
                     def env_name = "tmp_env${index}"
