@@ -1,21 +1,35 @@
 // Jenkinsfile support utilities
 import BuildConfig.BuildConfig
+import JobConfig
 import groovy.io.FileType
 import groovy.json.JsonOutput
 import org.apache.commons.lang3.SerializationUtils
 import org.apache.commons.io.FilenameUtils
 
+@Grab(group='org.kohsuke', module='github-api', version='1.93')
+import org.kohsuke.github.GitHub
+
+
+@NonCPS
+def github(reponame, username, password, subject, message) {
+    def github = GitHub.connectUsingPassword("${username}", "${password}")
+    def repo = github.getRepository(reponame)
+    def ibuilder = repo.createIssue(subject)
+    ibuilder.body(message)
+    ibuilder.create()
+}
 
 // Clone the source repository and examine the most recent commit message.
 // If a '[ci skip]' or '[skip ci]' directive is present, immediately
 // terminate the job with a success code.
 // If no skip directive is found, or skip_disable is true, stash all the
 // source files for efficient retrieval by subsequent nodes.
-//def scm_checkout(skip_disable=false) {
 def scm_checkout(args = ['skip_disable':false]) {
+    def JobConfig jc = new JobConfig()
     skip_job = 0
     node("on-master") {
         stage("Setup") {
+
             checkout(scm)
             println("args['skip_disable'] = ${args['skip_disable']}")
             if (args['skip_disable'] == false) {
@@ -107,6 +121,102 @@ def install_conda(version, install_dir) {
     return true
 }
 
+
+//
+// Testing summary notifier
+//
+def test_summary_notify(single_issue) {
+    // Unstash all test reports produced by all possible agents.
+    // Iterate over all unique files to compose the testing summary.
+    def confname = ''
+    def report_hdr = ''
+    def short_hdr = ''
+    def raw_totals = ''
+    def totals = [:]
+    def message = "Regression Testing (RT) Summary:\n\n"
+    def subject = ''
+    def send_notification = false
+    def stashcount = 0
+    println("Retrieving stashed test report files...")
+    while(true) {
+       try {
+           unstash "${stashcount}.name"
+           unstash "${stashcount}.report" 
+       } catch(Exception) {
+           println("All test report stashes retrieved.")
+           break
+       }
+       confname = readFile "${stashcount}.name"
+       println("confname: ${confname}")
+       
+       report_hdr = sh(script:"grep 'testsuite errors' *.xml", 
+                         returnStdout: true)
+       short_hdr = report_hdr.findAll(/(?<=testsuite ).*/)[0]
+       short_hdr = short_hdr.split('><testcase')[0]
+
+       raw_totals = short_hdr.split()
+       totals = [:]
+
+       for (total in raw_totals) {
+           expr = total.split('=')
+           expr[1] = expr[1].replace('"', '')
+           totals[expr[0]] = expr[1]
+           try {
+               totals[expr[0]] = expr[1].toInteger()
+           } catch(Exception NumberFormatException) {
+               continue
+           }
+       }
+
+       // Check for errors or failures
+       if (totals['errors'] != 0 || totals['failures'] != 0) {
+           send_notification = true
+           message = "${message}Configuration: ${confname}\n\n" +
+                         "| Total tests |  ${totals['tests']} |\n" +
+                         "|----|----|\n" +
+                         "| Errors      | ${totals['errors']} |\n" +
+                         "| Failures    | ${totals['failures']} |\n" +
+                         "| Skipped     | ${totals['skips']} |\n\n"
+       }
+       stashcount++
+
+    } //end while(true) over stashes//
+
+    // If there were any test errors or failures, send the summary to github.
+    if (send_notification) {
+        // Match digits between '/' chars at end of BUILD_URL (build number).
+        def pattern = ~/\/\d+\/$/
+        def report_url = env.BUILD_URL.replaceAll(pattern, '/test_results_analyzer/')
+        message = "${message}Report: ${report_url}"
+        subject = "[AUTO] Regression testing summary"
+
+        def regpat = ~/https:\/\/github.com\//
+        def reponame = scm.userRemoteConfigs[0].url.replaceAll(regpat, '')
+        regpat = ~/\.git$/
+        reponame = reponame.replaceAll(regpat, '')
+
+        println("Test failures and/or errors occurred.\n" +
+                "Posting summary to Github.\n" +
+                "  ${reponame} Issue subject: ${subject}")
+        if (single_issue) {
+            withCredentials([usernamePassword(credentialsId:'github_st-automaton-01',
+                    usernameVariable: 'USERNAME',
+                    passwordVariable: 'PASSWORD')]) {
+                    // Locally bound vars here to keep Jenkins happy.
+                    def username = USERNAME
+                    def password = PASSWORD
+                    github(reponame, username, password, subject, message)
+            }
+        } else {
+            println("Posting all RT summaries in separate issues is not yet implemented.")
+            // TODO: Determine if the reserved issue and/or comment text already exists.
+            // If so, post message as a comment on that issue.
+            // If not, post a new issue with message text.
+        }
+    } //endif (send_notification)
+}
+
+
 // Execute build/test task(s) based on passed-in configuration(s).
 // Each task is defined by a BuildConfig object.
 // A list of such objects is iterated over to process all configurations.
@@ -115,16 +225,29 @@ def install_conda(version, install_dir) {
 // (optional)  concurrent - boolean, whether or not to run all build
 //                          configurations in parallel. The default is
 //                          true when no value is provided.
+//
+// Optionally accept a jobConfig object as part of the incoming list.
+//   Test for type of list object and parse attributes accordingly.
 def run(configs, concurrent = true) {
+
+    // Split off any JobConfig object, leaving the config objects.
+    def ljobconfig = null
+    def lconfigs = []
+    configs.eachWithIndex { config, index ->
+        if (config.getClass() == JobConfig) {
+            ljobconfig = config
+	    configs.remove(configs.indexOf(config))
+            return  // effectively a 'continue' from within a closure.
+        }
+    }
 
     def tasks = [:]
     configs.eachWithIndex { config, index ->
+
         def BuildConfig myconfig = new BuildConfig() // MUST be inside eachWith loop.
         myconfig = SerializationUtils.clone(config)
         def config_name = ""
         config_name = config.name
-
-        println("config_name: ${config_name}")
 
         // Test for GStrings (double quoted). These perform string interpolation
         // immediately and may not what the user intends to do when defining
@@ -238,11 +361,7 @@ def run(configs, concurrent = true) {
                 }
                 withEnv(runtime) {
                     stage("Build (${myconfig.name})") {
-                        println('About to unstash')
-                        sh "pwd"
-                        sh "ls -al"
                         unstash "source_tree"
-                        println('Unstash complete')
                         for (cmd in myconfig.build_cmds) {
                             sh(script: cmd)
                         }
@@ -329,16 +448,26 @@ def run(configs, concurrent = true) {
                                     [$class: 'FailedThreshold', unstableThreshold: "${myconfig.failedUnstableThresh}"],
                                     [$class: 'FailedThreshold', failureThreshold: "${myconfig.failedFailureThresh}"]],
                                     tools: [[$class: 'JUnitType', pattern: '*.xml']]])
+
                             } else {
                                 println("No .xml files found in workspace. Test report ingestion skipped.")
                             }
+                            writeFile file: "${index}.name", text: config_name, encoding: "UTF-8"
+                            def stashname = "${index}.name"
+                            // TODO: Define results file name centrally and reference here.
+                            if (fileExists('results.xml')) {
+                                stash includes: '*.name', name: stashname, useDefaultExcludes: false
+                                stashname = "${index}.report"
+                                stash includes: '*.xml', name: stashname, useDefaultExcludes: false
+                            }
+                            
                         } // end test test_cmd finally clause
                     } // end stage test_cmd
                 } // end withEnv
             } // end node
         } //end tasks
 
-    } //end for
+    } //end closure configs.eachWithIndex 
 
     if (concurrent == true) {
         stage("Matrix") {
@@ -356,6 +485,14 @@ def run(configs, concurrent = true) {
             iter++
         }
     }
+
+    node("on-master") {
+        stage("Post-build") {
+            if (ljobconfig.post_rt_summary) {
+                test_summary_notify(ljobconfig.all_posts_in_same_issue)
+            }
+        } //end stage
+    } //end node
 }
 
 
