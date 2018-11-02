@@ -175,7 +175,7 @@ def run(configs, concurrent = true) {
                     def conda_prefix = "${conda_root}/envs/${env_name}".trim()
                     def packages = ""
                     for (pkg in myconfig.conda_packages) {
-                        packages = "${packages} ${pkg}"
+                        packages = "${packages} '${pkg}'"
                     }
                     // Override removes the implicit 'defaults' channel from the channels
                     // to be used, The conda_channels list is then used verbatim (in
