@@ -1,6 +1,8 @@
 This Jenkins shared library provides common utility classes and functions used to
 support continuous integration (CI) build and test jobs for projects within the spacetelescope organization.
 
+Note: For jobs spawned as a result of the creation of a pull request (PR), Jenkins behaves differently than the Travis CI service (https://travis-ci.org/) in that the build will use the HEAD commit of the PR branch only, while Travis typically will run the build/test job on the _merge commit_ between the PR branch and the master branch.
+
 ## A Simplified Job Definition Syntax
 
 Functionality provided that extends the native Groovy syntax approach
