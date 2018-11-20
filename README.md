@@ -17,7 +17,14 @@ An example job that builds three parallel combinations and runs tests on one of 
 ```groovy
 // Obtain files from source control system.
 if (utils.scm_checkout()) return
- 
+
+
+// Allow modification of the job configuration, affects all relevant build configs.
+// Pass this object in the argument list to the`run()` function below to apply these settings to the job's execution.
+jobconfig = new JobConfig()
+jobconfig.post_test_summary = true
+
+
 // Config data to share between builds.
 CFLAGS = 'CFLAGS="-m64"'
 LDFLAGS = 'LDFLAGS="-m64"'
@@ -56,7 +63,8 @@ bc2.build_cmds[0] = "${configure_cmd} --O3"
  
 // Iterate over configurations that define the (distibuted) build matrix.
 // Spawn a host of the given nodetype for each combination and run in parallel.
-utils.run([bc0, bc1, bc2])
+// Also apply the job configuration defined in `jobconfig` above.
+utils.run([bc0, bc1, bc2, jobconfig])
 ```
 
 ### Utils Library
@@ -71,10 +79,20 @@ The `utils` library provides several functions:
 | `utils.copy()` | <ul><li>  Copies the single object passed in as an argument into a new instance holding all the same attribute values. Useful to avoid duplication of parameters when configurations are similar to one another.  </li></ul> Accepts:  <ul><li> a single `BuildConfig` object  </ul></li>  |
 | `utils.run(config_list, concurrent=true)` | <ul><li>  Responsible for running build tasks on separately provisioned hosts based on a list of configuration objects passed.  </li><li>  Parallel builds show up in the Jenkins (Blueocean) interface under the 'Matrix' heading. </li><li>  Serial builds show up in the Jenkins (Blueocean) interface under 'Serial-#' headings.  </li></ul>  Accepts:  <ul><li>  a single list of BuildConfig objects  </li><li>  (optional) A boolean named `concurrent`  Default is `true`. When 'false', each `BuildConfig` is built sequentially in the order in which they appear in the list passed to this function. NOTE: When `concurrent=False` (a sequential build), any failure encountered when executing a configuration will terminate the entire sequence.  </li></ul>
 
+#### JobConfig Class
+This class contains properties that may be adjusted to control the behavior of the overall Jenkins job.
+A JobConfig object must be created as shown in the example above and then passed in to the `run()` function in the list of BuildConfig objects for the customizations to be honored.
+
+It has the following properties:
+
+| Member | Type | Required | Purpose |
+| --- | --- | --- | --- |
+| `post_test_summary` | boolean | no | When `true`, will cause the creation of a Github issue on the project's repository containing a summary of test results produced by all build configurations hosted in the the job if any tests returned a `failure` or `error` status. Default is false, meaning no summary issues will be created upon test failures or errors. When set to `true`, if no test failures or errors occur, a summary post will not be generated. |
+
 #### BuildConfig Class
 The utils library also provides the definition of a class called BuildConfig that may be used to create build configuration objects used to define build tasks to be run on various hosts.
 
-It has the following members:
+It has the following properties:
 
 | Member | Type | Required | Purpose |
 | --- | --- | --- | --- |
@@ -95,6 +113,7 @@ It has the following members:
 | `skippedFailureThresh` | integer | no | (Default is no threshold set.) The threshold for the number of skipped tests that will cause the build to be flagged as "FAILED". |
 | `skippedUnstableNewThresh`	| integer	| no | (Default is no threshold set.) The threshold for the number of newly appearing skipped tests that will cause the build to be flagged as "UNSTABLE". |
 | `skippedUnstableThresh`	| integer	| no | (Default is no threshold set.) The threshold for the number of skipped tests that will cause the build to be flagged as "UNSTABLE". |
+
 
 ### Test Results Customization
 
