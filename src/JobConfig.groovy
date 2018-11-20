@@ -4,7 +4,7 @@
 class JobConfig implements Serializable {
 
     // Regression testing summary control
-    def post_rt_summary = false 
+    def post_test_summary = false
     def all_posts_in_same_issue = true
 
     // Build retention control

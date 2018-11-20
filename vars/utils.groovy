@@ -488,7 +488,7 @@ def run(configs, concurrent = true) {
 
     node("on-master") {
         stage("Post-build") {
-            if (ljobconfig.post_rt_summary) {
+            if (ljobconfig.post_test_summary) {
                 test_summary_notify(ljobconfig.all_posts_in_same_issue)
             }
         } //end stage
