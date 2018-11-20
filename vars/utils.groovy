@@ -25,7 +25,6 @@ def github(reponame, username, password, subject, message) {
 // If no skip directive is found, or skip_disable is true, stash all the
 // source files for efficient retrieval by subsequent nodes.
 def scm_checkout(args = ['skip_disable':false]) {
-    def JobConfig jc = new JobConfig()
     skip_job = 0
     node("on-master") {
         stage("Setup") {
@@ -231,8 +230,7 @@ def test_summary_notify(single_issue) {
 def run(configs, concurrent = true) {
 
     // Split off any JobConfig object, leaving the config objects.
-    def ljobconfig = null
-    def lconfigs = []
+    def ljobconfig = new JobConfig() // Set default values.
     configs.eachWithIndex { config, index ->
         if (config.getClass() == JobConfig) {
             ljobconfig = config
