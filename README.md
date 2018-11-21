@@ -94,8 +94,10 @@ It has the following properties:
 #### Test Summary Issue Posts
 If test summaries are requested using the `post_test_summary` property of the JobConfig class as described above, each Jenkins job that produces one or more test errors or failures will result in a single new Github issue being posted to the project's repository.
 
-An example of such an issue:
+An example issue:
 ![issue_image](doc/test_summary_issue.png "Example issue")
+
+If tests continue to fail or error in the periodically scheduled job, a (possibly redundant) issue will be posted each time the job runs.
 
 #### BuildConfig Class
 The utils library also provides the definition of a class called BuildConfig that may be used to create build configuration objects used to define build tasks to be run on various hosts.
