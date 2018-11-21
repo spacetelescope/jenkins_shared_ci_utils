@@ -12,7 +12,8 @@ Functionality provided that extends the native Groovy syntax approach
 
 This library's functionality is automatically made available to every Jenkinsfile hosted in the spacetelescope Github organization.
 
-An example job that builds three parallel combinations and runs tests on one of them.
+An example job that builds three parallel combinations and runs tests on one of them, posting a
+summary of test results for all build configurations if any test failures or errors occur.
 
 ```groovy
 // Obtain files from source control system.
