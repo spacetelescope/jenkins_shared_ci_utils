@@ -12,7 +12,8 @@ Functionality provided that extends the native Groovy syntax approach
 
 This library's functionality is automatically made available to every Jenkinsfile hosted in the spacetelescope Github organization.
 
-An example job that builds three parallel combinations and runs tests on one of them.
+An example job that builds three parallel combinations and runs tests on one of them, posting a
+summary of test results for all build configurations if any test failures or errors occur.
 
 ```groovy
 // Obtain files from source control system.
@@ -20,7 +21,8 @@ if (utils.scm_checkout()) return
 
 
 // Allow modification of the job configuration, affects all relevant build configs.
-// Pass this object in the argument list to the`run()` function below to apply these settings to the job's execution.
+// Pass this object in the argument list to the`run()` function below to apply
+// these settings to the job's execution.
 jobconfig = new JobConfig()
 jobconfig.post_test_summary = true
 
@@ -88,6 +90,14 @@ It has the following properties:
 | Member | Type | Required | Purpose |
 | --- | --- | --- | --- |
 | `post_test_summary` | boolean | no | When `true`, will cause the creation of a Github issue on the project's repository containing a summary of test results produced by all build configurations hosted in the the job if any tests returned a `failure` or `error` status. Default is false, meaning no summary issues will be created upon test failures or errors. When set to `true`, if no test failures or errors occur, a summary post will not be generated. |
+
+#### Test Summary Issue Posts
+If test summaries are requested using the `post_test_summary` property of the JobConfig class as described above, each Jenkins job that produces one or more test errors or failures will result in a single new Github issue being posted to the project's repository.
+
+An example issue:
+![issue_image](doc/test_summary_issue.png "Example issue")
+
+If tests continue to fail or error in the periodically scheduled job, a (possibly redundant) issue will be posted each time the job runs.
 
 #### BuildConfig Class
 The utils library also provides the definition of a class called BuildConfig that may be used to create build configuration objects used to define build tasks to be run on various hosts.
