@@ -229,18 +229,17 @@ def test_summary_notify(single_issue) {
 //   Test for type of list object and parse attributes accordingly.
 def run(configs, concurrent = true) {
 
-    // Split off any JobConfig object, leaving the config objects.
-    def ljobconfig = new JobConfig() // Set default values.
-    configs.eachWithIndex { config, index ->
-        if (config.getClass() == JobConfig) {
-            ljobconfig = config
-	    configs.remove(configs.indexOf(config))
-            return  // effectively a 'continue' from within a closure.
-        }
-    }
+    // Create JobConfig with default values.
+    def ljobconfig = new JobConfig()
 
     def tasks = [:]
     configs.eachWithIndex { config, index ->
+
+        // Extract a JobConfig object if one is found.
+        if (config.getClass() == JobConfig) {
+            ljobconfig = config
+            return  // effectively a 'continue' from within a closure.
+        }
 
         def BuildConfig myconfig = new BuildConfig() // MUST be inside eachWith loop.
         myconfig = SerializationUtils.clone(config)
