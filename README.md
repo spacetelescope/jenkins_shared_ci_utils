@@ -114,7 +114,7 @@ It has the following properties:
  | `conda_ver` | string | no | The version of conda to use when creating environments to host the build. If not supplied, a recent version of conda will be obtained.  |
  | `env_vars` | list of strings | no | Allow configuration of the shell environment in which build and test commands are run.  Of note:  <ul><li>  Only single-quoted `'` strings are supported in order to accommodate both early and late variable expansion (see later bullet points). An error will be thrown and the job status set to "FAILED" if double-quoted strings are used in this list.  </li><li>  Relative path characters such as `.` and '..' are honored with respect to the isolated build WORKSPACE directory into which the source repository is cloned and the build job takes place.  </li><li>  (Early expansion) -  Variables can be expanded into the `env_vars` list items before they are passed to the shell. This is useful for programmatic composition of values that takes place within the Jenkinsfile.   Example: <ul><li>  MATRIX_SUFFIX is a variable local to the Jenkinsfile script. </li><li>  'BUILD_MATRIX_SUFFIX=' + MATRIX_SUFFIX is how to compose a list item that will be expanded using the value of MATRIX_SUFFIX _prior_ to being passed to the shell. </li></ul> <li> (Late expansion) - Variable names prefixed with `$` are dereferenced to their value by the bash shell responsible for hosting the job's activities. The variable name to dereference must exist at the time the entry in the `env_vars` list is processed on each parallel node. I.e. variables can appear in the definition of other variables later in the list (the list is processed in order.)  </li></ul>  |
  | `build_cmds` | list of strings | yes | These commands are run in their order of appearance in this list with the default shell environment and any modifications to that environment provided by the `env_vars` list described above.  <ul><li>  Varables defined in the Jenkinsfile script itself may appear in these commands via `${varname}` notation and are interpolated at script execution time.  </li><li>  These command are executed BEFORE any optional `test_cmds`.  </li></ul>  |
-| `test_cmds` | list of strings | no | These commands are run in their order of appearance in this list with the default shell environment plus any modifications to that environment provided by the `env_vars` list described above.  <ul><li>  If this list is not set for a build configuration, no test commands are run and no test report is generated.  </li><li>  If present, these commands are executed AFTER the build_cmds.  </li></ul> |
+| `test_cmds` | list of strings | no | These commands are run in their order of appearance in this list with the default shell environment plus any modifications to that environment provided by the `env_vars` list described above.  <ul><li>  If this list is not set for a build configuration, no test commands are run and no test report is generated.  </li><li>  If present, these commands are executed AFTER the build_cmds. NOTE: The return code from each of the commands in this list is ignored. This is to prevent issues with tools such as `pytest` which return a nonzero exit code when tests fail, thus causing Jenkins to abort the entire job before the Post-Build stage runs where additional processing of results may occur. </li></ul> |
 | `failedFailureNewThresh` |	integer |	no | (Default is no threshold set.)	The threshold for the number of newly appearing test failures that will cause the build to be flagged as "FAILED". |
 | `failedFailureThresh` |	integer |	no | (Default is no threshold set.)	The threshold for the number of test failures that will cause the build to be flagged as "FAILED". |
 | `failedUnstableNewThresh`	| integer	| no |  (Default is no threshold set.) The threshold for the number of newly appearing test failures that will cause the build to be flagged as "UNSTABLE". |
@@ -127,26 +127,9 @@ It has the following properties:
 
 ### Test Results Customization
 
-Under certain circumstances it might be desirable force a job to produce a PASSING status even if a certain number of tests are failing.
+The following documentation for the xUnit plugin which is used to provide the test report functionality in the CI system may be useful when customizing test thresholds. The heading "Accept a Baseline". https://jenkins.io/blog/2016/10/31/xunit-reporting/ describes the scenario and how to set the appropriate thresholds.
 
-This approach may be seen in the following documentation for the xUnit plugin which is used to provide the test report functionality in the CI system. The heading "Accept a Baseline". https://jenkins.io/blog/2016/10/31/xunit-reporting/ describes the scenario and how to set the appropriate thresholds.
-
-Two things need to be done to allow this type of build/test classification.
-
-* The test reporting thresholds must be set correctly to allow a certain number of 'expected failures'.
-* No stages in the build may return a failure status 
-  * The implication of this requirement is that any commands run, in the test_cmds list in particular, must not return an error code. Tools such as pytest return an error status if any tests in the suite fail and so will cause that stage in the Jenkins job to show a failure status. NOTE: The most severe failure status in any build stage is always propagated up to be reflected in the overall job status.
-  * To prevent the test execution command in this case from causing the entire job to return a FAILURE status, the command may be adjusted to use the following construction.
-  
-  ```<command_that_returns_error_status_when_a_tests_fail> || true``` 
-  
-  i.e. in following the example job definition from above:
-  
-  ```"pytest tests --basetemp=tests_output --junitxml results.xml --remote-data || true"```
-  
-  This will cause the command to always return a success status, even if the pytest invocation itself returns and error code.
-  
-WARNING: Adding   `|| true`    to arbitrary commands will mask problems and make diagnosing failures more difficult than necessary. Only use this approach in specific instances where it is required to suppress unnecessary failure return values from testing tools that cannot be suppressed in any other way.
+The return code of all commands specified in the `test_cmds` list are explicitly ignored and do not affect the overall job status (Success/Unstable/Failure) in Jenkins.
 
 ### Build Sequence
 
