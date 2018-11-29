@@ -367,7 +367,13 @@ def run(configs, concurrent = true) {
                         try {
                             stage("Test (${myconfig.name})") {
                                 for (cmd in myconfig.test_cmds) {
-                                    sh(script: cmd)
+                                    // Ignore status code from all commands in
+                                    // test_cmds so Jenkins will always make it
+                                    // to the post-build stage.
+                                    // This accommodates tools like pytest returning
+                                    // !0 codes when a test fails which would
+                                    // abort the job too early.
+                                    sh(script: "${cmd} || true")
                                 }
                             }
                         }
