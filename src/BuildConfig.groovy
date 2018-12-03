@@ -19,7 +19,7 @@ class BuildConfig implements Serializable {
     def failedFailureNewThresh = ''
     def failedFailureThresh = ''
     def failedUnstableNewThresh = ''
-    def failedUnstableThresh= ''
+    def failedUnstableThresh= '0'
 
     def skippedFailureNewThresh = ''
     def skippedFailureThresh = ''
