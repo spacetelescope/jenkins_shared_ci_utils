@@ -221,6 +221,7 @@ def test_summary_notify(single_issue) {
 // root of the workspace, the XUnitBuilder report
 // ingestion will fail.
 def process_test_report(config, index) {
+    def config_name = config.name
     report_exists = sh(script: "test -e *.xml", returnStatus: true)
     def thresh_summary = "failedUnstableThresh: ${config.failedUnstableThresh}\n" +
         "failedFailureThresh: ${config.failedFailureThresh}\n" +
