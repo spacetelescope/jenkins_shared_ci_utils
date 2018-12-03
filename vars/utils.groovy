@@ -474,7 +474,7 @@ def run(configs, concurrent = true) {
                             } // end test_configs check
 
 
-                            process_test_report(myconfig. index)
+                            process_test_report(myconfig, index)
                             // If a non-JUnit format .xml file exists in the
                             // root of the workspace, the XUnitBuilder report
                             // ingestion will fail.
