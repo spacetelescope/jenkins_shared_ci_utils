@@ -252,14 +252,14 @@ def process_test_report(config, index) {
 
 
 def stage_artifactory(config) {
-    stage("Artifactory (${myconfig.name})") {
+    stage("Artifactory (${config.name})") {
         def buildInfo = Artifactory.newBuildInfo()
 
         buildInfo.env.capture = true
         buildInfo.env.collect()
         def server
 
-        for (artifact in myconfig.test_configs) {
+        for (artifact in config.test_configs) {
             server = Artifactory.server artifact.server_id
 
             // Construct absolute path to data
