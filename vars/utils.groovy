@@ -353,7 +353,7 @@ def build_and_test(config, config_idx, runtime) {
 
 
 
-def process_conda_pkgs(config) {
+def process_conda_pkgs(config, config_idx) {
     // If conda packages were specified, create an environment containing
     // them and then 'activate' it. If a specific python version is
     // desired, it must be specified as a package, i.e. 'python=3.6'
@@ -363,7 +363,7 @@ def process_conda_pkgs(config) {
         // a prefix unique to this build configuration.
         if (!conda_present()) {
             println('Conda not found. Installing.')
-            conda_inst_dir = "${env.WORKSPACE}/miniconda-bconf${index}"
+            conda_inst_dir = "${env.WORKSPACE}/miniconda-bconf${config_idx}"
             println("conda_inst_dir = ${conda_inst_dir}")
             install_conda(config.conda_ver, conda_inst_dir)
             conda_exe = "${conda_inst_dir}/bin/conda"
@@ -373,7 +373,7 @@ def process_conda_pkgs(config) {
             println("Found conda exe at ${conda_exe}.")
         }
         def conda_root = conda_exe.replace("/bin/conda", "").trim()
-        def env_name = "tmp_env${index}"
+        def env_name = "tmp_env${config_idx}"
         def conda_prefix = "${conda_root}/envs/${env_name}".trim()
         def packages = ""
         for (pkg in config.conda_packages) {
