@@ -493,7 +493,7 @@ def run(configs, concurrent = true) {
                 }
 
 
-                def build_and_test(myconfig, index, runtime)
+                build_and_test(myconfig, index, runtime)
 
                 //withEnv(runtime) {
                 //    stage("Build (${myconfig.name})") {
