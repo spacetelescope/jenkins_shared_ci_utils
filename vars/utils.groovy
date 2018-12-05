@@ -351,6 +351,60 @@ def build_and_test(config, config_idx, runtime) {
 }
 
 
+
+
+def process_conda_pkgs(config) {
+    // If conda packages were specified, create an environment containing
+    // them and then 'activate' it. If a specific python version is
+    // desired, it must be specified as a package, i.e. 'python=3.6'
+    // in the list config.conda_packages.
+    if (config.conda_packages.size() > 0) {
+        // Test for presence of conda. If not available, install it in
+        // a prefix unique to this build configuration.
+        if (!conda_present()) {
+            println('Conda not found. Installing.')
+            conda_inst_dir = "${env.WORKSPACE}/miniconda-bconf${index}"
+            println("conda_inst_dir = ${conda_inst_dir}")
+            install_conda(config.conda_ver, conda_inst_dir)
+            conda_exe = "${conda_inst_dir}/bin/conda"
+            println("conda_exe = ${conda_exe}")
+        } else {
+            conda_exe = sh(script: "which conda", returnStdout: true).trim()
+            println("Found conda exe at ${conda_exe}.")
+        }
+        def conda_root = conda_exe.replace("/bin/conda", "").trim()
+        def env_name = "tmp_env${index}"
+        def conda_prefix = "${conda_root}/envs/${env_name}".trim()
+        def packages = ""
+        for (pkg in config.conda_packages) {
+            packages = "${packages} '${pkg}'"
+        }
+        // Override removes the implicit 'defaults' channel from the channels
+        // to be used, The conda_channels list is then used verbatim (in
+        // priority order) by conda.
+        def override = ""
+        if (config.conda_override_channels.toString() == 'true') {
+            override = "--override-channels"
+        }
+        def chans = ""
+        for (chan in config.conda_channels) {
+            chans = "${chans} -c ${chan}"
+        }
+        sh(script: "${conda_exe} create -q -y -n ${env_name} ${override} ${chans} ${packages}")
+        // Configure job to use this conda environment.
+        config.env_vars.add(0, "CONDA_SHLVL=1")
+        config.env_vars.add(0, "CONDA_PROMPT_MODIFIER=${env_name}")
+        config.env_vars.add(0, "CONDA_EXE=${conda_exe}")
+        config.env_vars.add(0, "CONDA_PREFIX=${conda_prefix}")
+        config.env_vars.add(0, "CONDA_PYTHON_EXE=${conda_prefix}/bin/python")
+        config.env_vars.add(0, "CONDA_DEFAULT_ENV=${env_name}")
+        // Prepend the PATH var adjustment to the list that gets processed below.
+        def conda_path = "PATH=${conda_prefix}/bin:$PATH"
+        config.env_vars.add(0, conda_path)
+    }
+}
+
+
 // Execute build/test task(s) based on passed-in configuration(s).
 // Each task is defined by a BuildConfig object.
 // A list of such objects is iterated over to process all configurations.
@@ -407,54 +461,58 @@ def run(configs, concurrent = true) {
             node(myconfig.nodetype) {
                 deleteDir()
                 def runtime = []
-                // If conda packages were specified, create an environment containing
-                // them and then 'activate' it. If a specific python version is
-                // desired, it must be specified as a package, i.e. 'python=3.6'
-                // in the list config.conda_packages.
-                if (myconfig.conda_packages.size() > 0) {
-                    // Test for presence of conda. If not available, install it in
-                    // a prefix unique to this build configuration.
-                    if (!conda_present()) {
-                        println('Conda not found. Installing.')
-                        conda_inst_dir = "${env.WORKSPACE}/miniconda-bconf${index}"
-                        println("conda_inst_dir = ${conda_inst_dir}")
-                        install_conda(myconfig.conda_ver, conda_inst_dir)
-                        conda_exe = "${conda_inst_dir}/bin/conda"
-                        println("conda_exe = ${conda_exe}")
-                    } else {
-                        conda_exe = sh(script: "which conda", returnStdout: true).trim()
-                        println("Found conda exe at ${conda_exe}.")
-                    }
-                    def conda_root = conda_exe.replace("/bin/conda", "").trim()
-                    def env_name = "tmp_env${index}"
-                    def conda_prefix = "${conda_root}/envs/${env_name}".trim()
-                    def packages = ""
-                    for (pkg in myconfig.conda_packages) {
-                        packages = "${packages} '${pkg}'"
-                    }
-                    // Override removes the implicit 'defaults' channel from the channels
-                    // to be used, The conda_channels list is then used verbatim (in
-                    // priority order) by conda.
-                    def override = ""
-                    if (myconfig.conda_override_channels.toString() == 'true') {
-                        override = "--override-channels"
-                    }
-                    def chans = ""
-                    for (chan in myconfig.conda_channels) {
-                        chans = "${chans} -c ${chan}"
-                    }
-                    sh(script: "${conda_exe} create -q -y -n ${env_name} ${override} ${chans} ${packages}")
-                    // Configure job to use this conda environment.
-                    myconfig.env_vars.add(0, "CONDA_SHLVL=1")
-                    myconfig.env_vars.add(0, "CONDA_PROMPT_MODIFIER=${env_name}")
-                    myconfig.env_vars.add(0, "CONDA_EXE=${conda_exe}")
-                    myconfig.env_vars.add(0, "CONDA_PREFIX=${conda_prefix}")
-                    myconfig.env_vars.add(0, "CONDA_PYTHON_EXE=${conda_prefix}/bin/python")
-                    myconfig.env_vars.add(0, "CONDA_DEFAULT_ENV=${env_name}")
-                    // Prepend the PATH var adjustment to the list that gets processed below.
-                    def conda_path = "PATH=${conda_prefix}/bin:$PATH"
-                    myconfig.env_vars.add(0, conda_path)
-                }
+
+
+                process_conda_pkgs(config)
+
+                ////// If conda packages were specified, create an environment containing
+                ////// them and then 'activate' it. If a specific python version is
+                ////// desired, it must be specified as a package, i.e. 'python=3.6'
+                ////// in the list config.conda_packages.
+                ////if (myconfig.conda_packages.size() > 0) {
+                ////    // Test for presence of conda. If not available, install it in
+                ////    // a prefix unique to this build configuration.
+                ////    if (!conda_present()) {
+                ////        println('Conda not found. Installing.')
+                ////        conda_inst_dir = "${env.WORKSPACE}/miniconda-bconf${index}"
+                ////        println("conda_inst_dir = ${conda_inst_dir}")
+                ////        install_conda(myconfig.conda_ver, conda_inst_dir)
+                ////        conda_exe = "${conda_inst_dir}/bin/conda"
+                ////        println("conda_exe = ${conda_exe}")
+                ////    } else {
+                ////        conda_exe = sh(script: "which conda", returnStdout: true).trim()
+                ////        println("Found conda exe at ${conda_exe}.")
+                ////    }
+                ////    def conda_root = conda_exe.replace("/bin/conda", "").trim()
+                ////    def env_name = "tmp_env${index}"
+                ////    def conda_prefix = "${conda_root}/envs/${env_name}".trim()
+                ////    def packages = ""
+                ////    for (pkg in myconfig.conda_packages) {
+                ////        packages = "${packages} '${pkg}'"
+                ////    }
+                ////    // Override removes the implicit 'defaults' channel from the channels
+                ////    // to be used, The conda_channels list is then used verbatim (in
+                ////    // priority order) by conda.
+                ////    def override = ""
+                ////    if (myconfig.conda_override_channels.toString() == 'true') {
+                ////        override = "--override-channels"
+                ////    }
+                ////    def chans = ""
+                ////    for (chan in myconfig.conda_channels) {
+                ////        chans = "${chans} -c ${chan}"
+                ////    }
+                ////    sh(script: "${conda_exe} create -q -y -n ${env_name} ${override} ${chans} ${packages}")
+                ////    // Configure job to use this conda environment.
+                ////    myconfig.env_vars.add(0, "CONDA_SHLVL=1")
+                ////    myconfig.env_vars.add(0, "CONDA_PROMPT_MODIFIER=${env_name}")
+                ////    myconfig.env_vars.add(0, "CONDA_EXE=${conda_exe}")
+                ////    myconfig.env_vars.add(0, "CONDA_PREFIX=${conda_prefix}")
+                ////    myconfig.env_vars.add(0, "CONDA_PYTHON_EXE=${conda_prefix}/bin/python")
+                ////    myconfig.env_vars.add(0, "CONDA_DEFAULT_ENV=${env_name}")
+                ////    // Prepend the PATH var adjustment to the list that gets processed below.
+                ////    def conda_path = "PATH=${conda_prefix}/bin:$PATH"
+                ////    myconfig.env_vars.add(0, conda_path)
+                ////}
                 // Expand environment variable specifications by using the shell
                 // to dereference any var references and then render the entire
                 // value as a canonical path.
@@ -492,44 +550,7 @@ def run(configs, concurrent = true) {
                     runtime.add(var)
                 }
 
-
                 build_and_test(myconfig, index, runtime)
-
-                //withEnv(runtime) {
-                //    stage("Build (${myconfig.name})") {
-                //        unstash "source_tree"
-                //        for (cmd in myconfig.build_cmds) {
-                //            sh(script: cmd)
-                //        }
-                //    }
-                //    if (myconfig.test_cmds.size() > 0) {
-                //        try {
-                //            stage("Test (${myconfig.name})") {
-                //                for (cmd in myconfig.test_cmds) {
-                //                    // Ignore status code from all commands in
-                //                    // test_cmds so Jenkins will always make it
-                //                    // to the post-build stage.
-                //                    // This accommodates tools like pytest returning
-                //                    // !0 codes when a test fails which would
-                //                    // abort the job too early.
-                //                    sh(script: "${cmd} || true")
-                //                }
-                //            }
-                //        }
-                //        finally {
-                //            // Perform Artifactory upload if required
-                //            if (myconfig.test_configs.size() > 0) {
-
-                //                stage_artifactory(myconfig)
-
-                //            } // end test_configs check
-
-                //            process_test_report(myconfig, index)
-                //            
-                //        } // end test test_cmd finally clause
-                //    } // end stage test_cmd
-                //} // end withEnv
-
 
             } // end node
         } //end tasks
