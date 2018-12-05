@@ -251,6 +251,66 @@ def process_test_report(config, index) {
 }
 
 
+def stage_artifactory(config) {
+    stage("Artifactory (${config.name})") {
+        def buildInfo = Artifactory.newBuildInfo()
+
+        buildInfo.env.capture = true
+        buildInfo.env.collect()
+        def server
+
+        for (artifact in config.test_configs) {
+            server = Artifactory.server artifact.server_id
+
+            // Construct absolute path to data
+            def path = FilenameUtils.getFullPath(
+                        "${env.WORKSPACE}/${artifact.root}"
+            )
+
+            // Record listing of all files starting at ${path}
+            // (Native Java and Groovy approaches will not
+            // work here)
+            sh(script: "find ${path} -type f",
+               returnStdout: true).trim().tokenize('\n').each {
+
+                // Semi-wildcard matching of JSON input files
+                // ex:
+                //      it = "test_1234_result.json"
+                //      artifact.match_prefix = "(.*)_result"
+                //
+                //      pattern becomes: (.*)_result(.*)\\.json
+                if (it.matches(
+                        artifact.match_prefix + '(.*)\\.json')) {
+                    def basename = FilenameUtils.getBaseName(it)
+                    def data = readFile(it)
+
+                    // Store JSON in a logical map
+                    // i.e. ["basename": [data]]
+                    artifact.insert(basename, data)
+                }
+            } // end find.each
+
+            // Submit each request to the Artifactory server
+            artifact.data.each { blob ->
+                def bi_temp = server.upload spec: blob.value
+
+                // Define retention scheme
+                // Defaults: see DataConfig.groovy
+                bi_temp.retention \
+                    maxBuilds: artifact.keep_builds, \
+                    maxDays: artifact.keep_days, \
+                    deleteBuildArtifacts: !artifact.keep_data
+
+                buildInfo.append bi_temp
+            }
+
+        } // end for-loop
+
+        server.publishBuildInfo buildInfo
+
+    } // end stage Artifactory
+}
+
 // Execute build/test task(s) based on passed-in configuration(s).
 // Each task is defined by a BuildConfig object.
 // A list of such objects is iterated over to process all configurations.
@@ -415,63 +475,9 @@ def run(configs, concurrent = true) {
                         finally {
                             // Perform Artifactory upload if required
                             if (myconfig.test_configs.size() > 0) {
-                                stage("Artifactory (${myconfig.name})") {
-                                    def buildInfo = Artifactory.newBuildInfo()
 
-                                    buildInfo.env.capture = true
-                                    buildInfo.env.collect()
-                                    def server
+                                stage_artifactory(myconfig)
 
-                                    for (artifact in myconfig.test_configs) {
-                                        server = Artifactory.server artifact.server_id
-
-                                        // Construct absolute path to data
-                                        def path = FilenameUtils.getFullPath(
-                                                    "${env.WORKSPACE}/${artifact.root}"
-                                        )
-
-                                        // Record listing of all files starting at ${path}
-                                        // (Native Java and Groovy approaches will not
-                                        // work here)
-                                        sh(script: "find ${path} -type f",
-                                           returnStdout: true).trim().tokenize('\n').each {
-
-                                            // Semi-wildcard matching of JSON input files
-                                            // ex:
-                                            //      it = "test_1234_result.json"
-                                            //      artifact.match_prefix = "(.*)_result"
-                                            //
-                                            //      pattern becomes: (.*)_result(.*)\\.json
-                                            if (it.matches(
-                                                    artifact.match_prefix + '(.*)\\.json')) {
-                                                def basename = FilenameUtils.getBaseName(it)
-                                                def data = readFile(it)
-
-                                                // Store JSON in a logical map
-                                                // i.e. ["basename": [data]]
-                                                artifact.insert(basename, data)
-                                            }
-                                        } // end find.each
-
-                                        // Submit each request to the Artifactory server
-                                        artifact.data.each { blob ->
-                                            def bi_temp = server.upload spec: blob.value
-
-                                            // Define retention scheme
-                                            // Defaults: see DataConfig.groovy
-                                            bi_temp.retention \
-                                                maxBuilds: artifact.keep_builds, \
-                                                maxDays: artifact.keep_days, \
-                                                deleteBuildArtifacts: !artifact.keep_data
-
-                                            buildInfo.append bi_temp
-                                        }
-
-                                    } // end for-loop
-
-                                    server.publishBuildInfo buildInfo
-
-                                } // end stage Artifactory
                             } // end test_configs check
 
                             process_test_report(myconfig, index)
