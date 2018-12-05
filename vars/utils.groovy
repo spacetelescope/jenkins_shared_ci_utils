@@ -474,37 +474,7 @@ def run(configs, concurrent = true) {
                                 } // end stage Artifactory
                             } // end test_configs check
 
-
                             process_test_report(myconfig, index)
-                            // If a non-JUnit format .xml file exists in the
-                            // root of the workspace, the XUnitBuilder report
-                            // ingestion will fail.
-                            //report_exists = sh(script: "test -e *.xml", returnStatus: true)
-                            //def thresh_summary = "failedUnstableThresh: ${myconfig.failedUnstableThresh}\n" +
-                            //    "failedFailureThresh: ${myconfig.failedFailureThresh}\n" +
-                            //    "skippedUnstableThresh: ${myconfig.skippedUnstableThresh}\n" +
-                            //    "skippedFailureThresh: ${myconfig.skippedFailureThresh}"
-                            //println(thresh_summary)
-                            //if (report_exists == 0) {
-                            //    step([$class: 'XUnitBuilder',
-                            //        thresholds: [
-                            //        [$class: 'SkippedThreshold', unstableThreshold: "${myconfig.skippedUnstableThresh}"],
-                            //        [$class: 'SkippedThreshold', failureThreshold: "${myconfig.skippedFailureThresh}"],
-                            //        [$class: 'FailedThreshold', unstableThreshold: "${myconfig.failedUnstableThresh}"],
-                            //        [$class: 'FailedThreshold', failureThreshold: "${myconfig.failedFailureThresh}"]],
-                            //        tools: [[$class: 'JUnitType', pattern: '*.xml']]])
-
-                            //} else {
-                            //    println("No .xml files found in workspace. Test report ingestion skipped.")
-                            //}
-                            //writeFile file: "${index}.name", text: config_name, encoding: "UTF-8"
-                            //def stashname = "${index}.name"
-                            //// TODO: Define results file name centrally and reference here.
-                            //if (fileExists('results.xml')) {
-                            //    stash includes: '*.name', name: stashname, useDefaultExcludes: false
-                            //    stashname = "${index}.report"
-                            //    stash includes: '*.xml', name: stashname, useDefaultExcludes: false
-                            //}
                             
                         } // end test test_cmd finally clause
                     } // end stage test_cmd
