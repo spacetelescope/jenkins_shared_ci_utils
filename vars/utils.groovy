@@ -317,14 +317,14 @@ def build_and_test(config, config_idx, runtime) {
     withEnv(runtime) {
         stage("Build (${config.name})") {
             unstash "source_tree"
-            for (cmd in myconfig.build_cmds) {
+            for (cmd in config.build_cmds) {
                 sh(script: cmd)
             }
         }
-        if (myconfig.test_cmds.size() > 0) {
+        if (config.test_cmds.size() > 0) {
             try {
                 stage("Test (${config.name})") {
-                    for (cmd in myconfig.test_cmds) {
+                    for (cmd in config.test_cmds) {
                         // Ignore status code from all commands in
                         // test_cmds so Jenkins will always make it
                         // to the post-build stage.
@@ -337,13 +337,13 @@ def build_and_test(config, config_idx, runtime) {
             }
             finally {
                 // Perform Artifactory upload if required
-                if (myconfig.test_configs.size() > 0) {
+                if (config.test_configs.size() > 0) {
 
                     stage_artifactory(config)
 
                 } // end test_configs check
 
-                process_test_report(myconfig, config_idx)
+                process_test_report(config, config_idx)
 
             } // end test test_cmd finally clause
         } // end stage test_cmd
