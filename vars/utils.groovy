@@ -463,7 +463,7 @@ def run(configs, concurrent = true) {
                 def runtime = []
 
 
-                process_conda_pkgs(config)
+                process_conda_pkgs(myconfig, index)
 
                 ////// If conda packages were specified, create an environment containing
                 ////// them and then 'activate' it. If a specific python version is
