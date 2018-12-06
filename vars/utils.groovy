@@ -315,6 +315,7 @@ def stage_artifactory(config) {
 
 
 def build_and_test(config, config_idx, runtime) {
+    println("build_and_test")
     withEnv(runtime) {
         stage("Build (${config.name})") {
             unstash "source_tree"
@@ -357,6 +358,8 @@ def process_conda_pkgs(config, config_idx) {
     // them and then 'activate' it. If a specific python version is
     // desired, it must be specified as a package, i.e. 'python=3.6'
     // in the list config.conda_packages.
+    def conda_exe = null
+    def conda_inst_dir = null
     println("process_conda_pkgs")
     if (config.conda_packages.size() > 0) {
         // Test for presence of conda. If not available, install it in
@@ -488,8 +491,8 @@ def run(configs, concurrent = true) {
             }
         }
 
-        def conda_exe = null
-        def conda_inst_dir = null
+        //def conda_exe = null
+        //def conda_inst_dir = null
 
         // For containerized CI builds, code defined within 'tasks' is eventually executed
         // on a separate node. Parallel builds on the RT system each get assigned a new
