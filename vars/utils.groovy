@@ -366,7 +366,7 @@ def process_conda_pkgs(config, config_idx) {
         // a prefix unique to this build configuration.
         if (!conda_present()) {
             println('Conda not found. Installing.')
-            conda_inst_dir = "${env.WORKSPACE}/miniconda-bconf${config_idx}"
+            conda_inst_dir = "${env.WORKSPACE}/miniconda"
             println("conda_inst_dir = ${conda_inst_dir}")
             install_conda(config.conda_ver, conda_inst_dir)
             conda_exe = "${conda_inst_dir}/bin/conda"
@@ -448,6 +448,24 @@ def expand_env_vars(config) {
 }
 
 
+def abortOnGstrings(config) {
+    // Test for GStrings (double quoted). These perform string interpolation
+    // immediately and may not what the user intends to do when defining
+    // environment variables to use in the build. Disallow them here.
+    config.env_vars.each { evar ->
+        println(evar)
+        if (evar.getClass() == org.codehaus.groovy.runtime.GStringImpl) {
+            msg = "Immediate interpolation of variables in the 'env_vars'" +
+                  " list is not supported and will probably not do what" +
+                  " you expect. Please change the double quotes (\") to " +
+                  "single quotes (') in each value of the 'env_vars' list."
+            println(msg)
+            error('Abort the build.')
+        }
+    }
+}
+
+
 // Execute build/test task(s) based on passed-in configuration(s).
 // Each task is defined by a BuildConfig object.
 // A list of such objects is iterated over to process all configurations.
@@ -479,23 +497,21 @@ def run(configs, concurrent = true) {
         def config_name = ""
         config_name = config.name
 
-        // Test for GStrings (double quoted). These perform string interpolation
-        // immediately and may not what the user intends to do when defining
-        // environment variables to use in the build. Disallow them here.
-        config.env_vars.each { evar ->
-            println(evar)
-            if (evar.getClass() == org.codehaus.groovy.runtime.GStringImpl) {
-                msg = "Immediate interpolation of variables in the 'env_vars'" +
-                      " list is not supported and will probably not do what" +
-                      " you expect. Please change the double quotes (\") to " +
-                      "single quotes (') in each value of the 'env_vars' list."
-                println(msg)
-                error('Abort the build.')
-            }
-        }
-
-        //def conda_exe = null
-        //def conda_inst_dir = null
+        abortOnGstrings(config)
+        //// Test for GStrings (double quoted). These perform string interpolation
+        //// immediately and may not what the user intends to do when defining
+        //// environment variables to use in the build. Disallow them here.
+        //config.env_vars.each { evar ->
+        //    println(evar)
+        //    if (evar.getClass() == org.codehaus.groovy.runtime.GStringImpl) {
+        //        msg = "Immediate interpolation of variables in the 'env_vars'" +
+        //              " list is not supported and will probably not do what" +
+        //              " you expect. Please change the double quotes (\") to " +
+        //              "single quotes (') in each value of the 'env_vars' list."
+        //        println(msg)
+        //        error('Abort the build.')
+        //    }
+        //}
 
         // For containerized CI builds, code defined within 'tasks' is eventually executed
         // on a separate node. Parallel builds on the RT system each get assigned a new
@@ -504,46 +520,11 @@ def run(configs, concurrent = true) {
         tasks["${myconfig.nodetype}/${config_name}"] = {
             node(myconfig.nodetype) {
                 deleteDir()
-                //def runtime = []
 
-                println("env_vars before: ${myconfig.env_vars}")
                 myconfig = process_conda_pkgs(myconfig, index)
-                println("env_vars after : ${myconfig.env_vars}")
 
                 myconfig = expand_env_vars(myconfig)
-                ////// Expand environment variable specifications by using the shell
-                ////// to dereference any var references and then render the entire
-                ////// value as a canonical path.
-                ////for (var in myconfig.env_vars) {
-                ////    // Process each var in an environment defined by all the prior vars.
-                ////    withEnv(runtime) {
-                ////        def varName = var.tokenize("=")[0].trim()
-                ////        def varValue = var.tokenize("=")[1].trim()
-                ////        // examine var value, if it contains var refs, expand them.
-                ////        def expansion = varValue
-                ////        if (varValue.contains("\$")) {
-                ////            expansion = sh(script: "echo \"${varValue}\"", returnStdout: true)
-                ////        }
 
-                ////        // Change values of '.' and './' to the node's WORKSPACE.
-                ////        // Replace a leading './' with the node's WORKSPACE.
-                ////        if (expansion == '.' || expansion == './') {
-                ////            expansion = env.WORKSPACE
-                ////        } else if(expansion.size() > 2 && expansion[0..1] == './') {
-                ////            expansion = "${env.WORKSPACE}/${expansion[2..-1]}"
-                ////        }
-
-                ////        // Replace all ':.' combinations with the node's WORKSPACE.
-                ////        expansion = expansion.replaceAll(':\\.', ":${env.WORKSPACE}")
-
-                ////        // Convert var value to canonical based on a WORKSPACE base directory.
-                ////        if (expansion.contains('..')) {
-                ////            expansion = new File(expansion).getCanonicalPath()
-                ////        }
-                ////        expansion = expansion.trim()
-                ////        runtime.add("${varName}=${expansion}")
-                ////    } // end withEnv
-                ////}
                 for (var in myconfig.env_vars_raw) {
                     //runtime.add(var)
                     myconfig.runtime.add(var)
