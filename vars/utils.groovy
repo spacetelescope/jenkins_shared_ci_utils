@@ -439,6 +439,7 @@ def expand_env_vars(config, runtime) {
                 expansion = new File(expansion).getCanonicalPath()
             }
             expansion = expansion.trim()
+            println("Adding var to runtime ${varName}=${expansion}")
             runtime.add("${varName}=${expansion}")
         } // end withEnv
     }
