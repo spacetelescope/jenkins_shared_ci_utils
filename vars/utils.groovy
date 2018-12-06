@@ -314,9 +314,9 @@ def stage_artifactory(config) {
 
 
 
-def build_and_test(config, config_idx, runtime) {
+def build_and_test(config, config_idx) {
     println("build_and_test")
-    withEnv(runtime) {
+    withEnv(config.runtime) {
         stage("Build (${config.name})") {
             unstash "source_tree"
             for (cmd in config.build_cmds) {
@@ -405,16 +405,17 @@ def process_conda_pkgs(config, config_idx) {
         def conda_path = "PATH=${conda_prefix}/bin:$PATH"
         config.env_vars.add(0, conda_path)
     }
+    return config
 }
 
 
-def expand_env_vars(config, runtime) {
+def expand_env_vars(config) {
     // Expand environment variable specifications by using the shell
     // to dereference any var references and then render the entire
     // value as a canonical path.
     for (var in config.env_vars) {
         // Process each var in an environment defined by all the prior vars.
-        withEnv(runtime) {
+        withEnv(config.runtime) {
             def varName = var.tokenize("=")[0].trim()
             def varValue = var.tokenize("=")[1].trim()
             // examine var value, if it contains var refs, expand them.
@@ -440,9 +441,10 @@ def expand_env_vars(config, runtime) {
             }
             expansion = expansion.trim()
             println("Adding var to runtime ${varName}=${expansion}")
-            runtime.add("${varName}=${expansion}")
+            config.runtime.add("${varName}=${expansion}")
         } // end withEnv
     }
+    return config
 }
 
 
@@ -502,11 +504,11 @@ def run(configs, concurrent = true) {
         tasks["${myconfig.nodetype}/${config_name}"] = {
             node(myconfig.nodetype) {
                 deleteDir()
-                def runtime = []
+                //def runtime = []
 
-                process_conda_pkgs(myconfig, index)
+                myconfig = process_conda_pkgs(myconfig, index)
 
-                expand_env_vars(config, runtime)
+                myconfig = expand_env_vars(config, runtime)
                 ////// Expand environment variable specifications by using the shell
                 ////// to dereference any var references and then render the entire
                 ////// value as a canonical path.
@@ -541,10 +543,11 @@ def run(configs, concurrent = true) {
                 ////    } // end withEnv
                 ////}
                 for (var in myconfig.env_vars_raw) {
-                    runtime.add(var)
+                    //runtime.add(var)
+                    myconfig.runtime.add(var)
                 }
 
-                build_and_test(myconfig, index, runtime)
+                build_and_test(myconfig, index)
 
             } // end node
         } //end tasks
