@@ -11,13 +11,14 @@ import org.kohsuke.github.GitHub
 
 
 @NonCPS
-def github(reponame, username, password, subject, message) {
+def post_github_issue(reponame, username, password, subject, message) {
     def github = GitHub.connectUsingPassword("${username}", "${password}")
     def repo = github.getRepository(reponame)
     def ibuilder = repo.createIssue(subject)
     ibuilder.body(message)
     ibuilder.create()
 }
+
 
 // Clone the source repository and examine the most recent commit message.
 // If a '[ci skip]' or '[skip ci]' directive is present, immediately
@@ -46,6 +47,7 @@ def scm_checkout(args = ['skip_disable':false]) {
     }
     return skip_job
 }
+
 
 // Returns true if the conda exe is somewhere in the $PATH, false otherwise.
 def conda_present() {
@@ -204,7 +206,7 @@ def test_summary_notify(single_issue) {
                     // Locally bound vars here to keep Jenkins happy.
                     def username = USERNAME
                     def password = PASSWORD
-                    github(reponame, username, password, subject, message)
+                    post_github_issue(reponame, username, password, subject, message)
             }
         } else {
             println("Posting all RT summaries in separate issues is not yet implemented.")
@@ -214,7 +216,6 @@ def test_summary_notify(single_issue) {
         }
     } //endif (send_notification)
 }
-
 
 
 // If a non-JUnit format .xml file exists in the
@@ -351,8 +352,6 @@ def build_and_test(config, config_idx, runtime) {
 }
 
 
-
-
 def process_conda_pkgs(config, config_idx) {
     // If conda packages were specified, create an environment containing
     // them and then 'activate' it. If a specific python version is
@@ -405,6 +404,43 @@ def process_conda_pkgs(config, config_idx) {
 }
 
 
+def expand_env_vars(config, runtime) {
+    // Expand environment variable specifications by using the shell
+    // to dereference any var references and then render the entire
+    // value as a canonical path.
+    for (var in myconfig.env_vars) {
+        // Process each var in an environment defined by all the prior vars.
+        withEnv(runtime) {
+            def varName = var.tokenize("=")[0].trim()
+            def varValue = var.tokenize("=")[1].trim()
+            // examine var value, if it contains var refs, expand them.
+            def expansion = varValue
+            if (varValue.contains("\$")) {
+                expansion = sh(script: "echo \"${varValue}\"", returnStdout: true)
+            }
+
+            // Change values of '.' and './' to the node's WORKSPACE.
+            // Replace a leading './' with the node's WORKSPACE.
+            if (expansion == '.' || expansion == './') {
+                expansion = env.WORKSPACE
+            } else if(expansion.size() > 2 && expansion[0..1] == './') {
+                expansion = "${env.WORKSPACE}/${expansion[2..-1]}"
+            }
+
+            // Replace all ':.' combinations with the node's WORKSPACE.
+            expansion = expansion.replaceAll(':\\.', ":${env.WORKSPACE}")
+
+            // Convert var value to canonical based on a WORKSPACE base directory.
+            if (expansion.contains('..')) {
+                expansion = new File(expansion).getCanonicalPath()
+            }
+            expansion = expansion.trim()
+            runtime.add("${varName}=${expansion}")
+        } // end withEnv
+    }
+}
+
+
 // Execute build/test task(s) based on passed-in configuration(s).
 // Each task is defined by a BuildConfig object.
 // A list of such objects is iterated over to process all configurations.
@@ -421,12 +457,13 @@ def run(configs, concurrent = true) {
     // Create JobConfig with default values.
     def ljobconfig = new JobConfig()
 
+    // Loop over config objects passed in handling each accordingly.
     def tasks = [:]
     configs.eachWithIndex { config, index ->
 
         // Extract a JobConfig object if one is found.
         if (config.getClass() == JobConfig) {
-            ljobconfig = config
+            ljobconfig = config // TODO: Try clone here to make a new instance
             return  // effectively a 'continue' from within a closure.
         }
 
@@ -462,90 +499,43 @@ def run(configs, concurrent = true) {
                 deleteDir()
                 def runtime = []
 
-
                 process_conda_pkgs(myconfig, index)
 
-                ////// If conda packages were specified, create an environment containing
-                ////// them and then 'activate' it. If a specific python version is
-                ////// desired, it must be specified as a package, i.e. 'python=3.6'
-                ////// in the list config.conda_packages.
-                ////if (myconfig.conda_packages.size() > 0) {
-                ////    // Test for presence of conda. If not available, install it in
-                ////    // a prefix unique to this build configuration.
-                ////    if (!conda_present()) {
-                ////        println('Conda not found. Installing.')
-                ////        conda_inst_dir = "${env.WORKSPACE}/miniconda-bconf${index}"
-                ////        println("conda_inst_dir = ${conda_inst_dir}")
-                ////        install_conda(myconfig.conda_ver, conda_inst_dir)
-                ////        conda_exe = "${conda_inst_dir}/bin/conda"
-                ////        println("conda_exe = ${conda_exe}")
-                ////    } else {
-                ////        conda_exe = sh(script: "which conda", returnStdout: true).trim()
-                ////        println("Found conda exe at ${conda_exe}.")
-                ////    }
-                ////    def conda_root = conda_exe.replace("/bin/conda", "").trim()
-                ////    def env_name = "tmp_env${index}"
-                ////    def conda_prefix = "${conda_root}/envs/${env_name}".trim()
-                ////    def packages = ""
-                ////    for (pkg in myconfig.conda_packages) {
-                ////        packages = "${packages} '${pkg}'"
-                ////    }
-                ////    // Override removes the implicit 'defaults' channel from the channels
-                ////    // to be used, The conda_channels list is then used verbatim (in
-                ////    // priority order) by conda.
-                ////    def override = ""
-                ////    if (myconfig.conda_override_channels.toString() == 'true') {
-                ////        override = "--override-channels"
-                ////    }
-                ////    def chans = ""
-                ////    for (chan in myconfig.conda_channels) {
-                ////        chans = "${chans} -c ${chan}"
-                ////    }
-                ////    sh(script: "${conda_exe} create -q -y -n ${env_name} ${override} ${chans} ${packages}")
-                ////    // Configure job to use this conda environment.
-                ////    myconfig.env_vars.add(0, "CONDA_SHLVL=1")
-                ////    myconfig.env_vars.add(0, "CONDA_PROMPT_MODIFIER=${env_name}")
-                ////    myconfig.env_vars.add(0, "CONDA_EXE=${conda_exe}")
-                ////    myconfig.env_vars.add(0, "CONDA_PREFIX=${conda_prefix}")
-                ////    myconfig.env_vars.add(0, "CONDA_PYTHON_EXE=${conda_prefix}/bin/python")
-                ////    myconfig.env_vars.add(0, "CONDA_DEFAULT_ENV=${env_name}")
-                ////    // Prepend the PATH var adjustment to the list that gets processed below.
-                ////    def conda_path = "PATH=${conda_prefix}/bin:$PATH"
-                ////    myconfig.env_vars.add(0, conda_path)
+
+                expand_env_vars(config, runtime)
+                ////// Expand environment variable specifications by using the shell
+                ////// to dereference any var references and then render the entire
+                ////// value as a canonical path.
+                ////for (var in myconfig.env_vars) {
+                ////    // Process each var in an environment defined by all the prior vars.
+                ////    withEnv(runtime) {
+                ////        def varName = var.tokenize("=")[0].trim()
+                ////        def varValue = var.tokenize("=")[1].trim()
+                ////        // examine var value, if it contains var refs, expand them.
+                ////        def expansion = varValue
+                ////        if (varValue.contains("\$")) {
+                ////            expansion = sh(script: "echo \"${varValue}\"", returnStdout: true)
+                ////        }
+
+                ////        // Change values of '.' and './' to the node's WORKSPACE.
+                ////        // Replace a leading './' with the node's WORKSPACE.
+                ////        if (expansion == '.' || expansion == './') {
+                ////            expansion = env.WORKSPACE
+                ////        } else if(expansion.size() > 2 && expansion[0..1] == './') {
+                ////            expansion = "${env.WORKSPACE}/${expansion[2..-1]}"
+                ////        }
+
+                ////        // Replace all ':.' combinations with the node's WORKSPACE.
+                ////        expansion = expansion.replaceAll(':\\.', ":${env.WORKSPACE}")
+
+                ////        // Convert var value to canonical based on a WORKSPACE base directory.
+                ////        if (expansion.contains('..')) {
+                ////            expansion = new File(expansion).getCanonicalPath()
+                ////        }
+                ////        expansion = expansion.trim()
+                ////        runtime.add("${varName}=${expansion}")
+                ////    } // end withEnv
                 ////}
-                // Expand environment variable specifications by using the shell
-                // to dereference any var references and then render the entire
-                // value as a canonical path.
-                for (var in myconfig.env_vars) {
-                    // Process each var in an environment defined by all the prior vars.
-                    withEnv(runtime) {
-                        def varName = var.tokenize("=")[0].trim()
-                        def varValue = var.tokenize("=")[1].trim()
-                        // examine var value, if it contains var refs, expand them.
-                        def expansion = varValue
-                        if (varValue.contains("\$")) {
-                            expansion = sh(script: "echo \"${varValue}\"", returnStdout: true)
-                        }
-
-                        // Change values of '.' and './' to the node's WORKSPACE.
-                        // Replace a leading './' with the node's WORKSPACE.
-                        if (expansion == '.' || expansion == './') {
-                            expansion = env.WORKSPACE
-                        } else if(expansion.size() > 2 && expansion[0..1] == './') {
-                            expansion = "${env.WORKSPACE}/${expansion[2..-1]}"
-                        }
-
-                        // Replace all ':.' combinations with the node's WORKSPACE.
-                        expansion = expansion.replaceAll(':\\.', ":${env.WORKSPACE}")
-
-                        // Convert var value to canonical based on a WORKSPACE base directory.
-                        if (expansion.contains('..')) {
-                            expansion = new File(expansion).getCanonicalPath()
-                        }
-                        expansion = expansion.trim()
-                        runtime.add("${varName}=${expansion}")
-                    } // end withEnv
-                }
                 for (var in myconfig.env_vars_raw) {
                     runtime.add(var)
                 }
