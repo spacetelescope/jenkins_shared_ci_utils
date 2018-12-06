@@ -508,7 +508,7 @@ def run(configs, concurrent = true) {
 
                 myconfig = process_conda_pkgs(myconfig, index)
 
-                myconfig = expand_env_vars(config, runtime)
+                myconfig = expand_env_vars(config)
                 ////// Expand environment variable specifications by using the shell
                 ////// to dereference any var references and then render the entire
                 ////// value as a canonical path.
