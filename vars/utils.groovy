@@ -409,7 +409,7 @@ def expand_env_vars(config, runtime) {
     // Expand environment variable specifications by using the shell
     // to dereference any var references and then render the entire
     // value as a canonical path.
-    for (var in myconfig.env_vars) {
+    for (var in config.env_vars) {
         // Process each var in an environment defined by all the prior vars.
         withEnv(runtime) {
             def varName = var.tokenize("=")[0].trim()
