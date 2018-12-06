@@ -506,7 +506,9 @@ def run(configs, concurrent = true) {
                 deleteDir()
                 //def runtime = []
 
+                println("env_vars before: ${myconfig.env_vars}")
                 myconfig = process_conda_pkgs(myconfig, index)
+                println("env_vars after : ${myconfig.env_vars}")
 
                 myconfig = expand_env_vars(config)
                 ////// Expand environment variable specifications by using the shell
