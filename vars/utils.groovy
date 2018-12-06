@@ -357,6 +357,7 @@ def process_conda_pkgs(config, config_idx) {
     // them and then 'activate' it. If a specific python version is
     // desired, it must be specified as a package, i.e. 'python=3.6'
     // in the list config.conda_packages.
+    println("process_conda_pkgs")
     if (config.conda_packages.size() > 0) {
         // Test for presence of conda. If not available, install it in
         // a prefix unique to this build configuration.
@@ -500,7 +501,6 @@ def run(configs, concurrent = true) {
                 def runtime = []
 
                 process_conda_pkgs(myconfig, index)
-
 
                 expand_env_vars(config, runtime)
                 ////// Expand environment variable specifications by using the shell
