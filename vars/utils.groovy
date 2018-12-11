@@ -11,7 +11,7 @@ import org.kohsuke.github.GitHub
 
 
 @NonCPS
-def post_github_issue(reponame, username, password, subject, message) {
+def postGithubIssue(reponame, username, password, subject, message) {
     def github = GitHub.connectUsingPassword("${username}", "${password}")
     def repo = github.getRepository(reponame)
     def ibuilder = repo.createIssue(subject)
@@ -50,7 +50,7 @@ def scm_checkout(args = ['skip_disable':false]) {
 
 
 // Returns true if the conda exe is somewhere in the $PATH, false otherwise.
-def conda_present() {
+def condaPresent() {
     def success = sh(script: "conda --version", returnStatus: true)
     if (success == 0) {
         return true
@@ -64,7 +64,7 @@ def conda_present() {
 // installer and then installing conda at the specified version.
 //  A version argument of 'null' will result in the latest available conda
 //  version being installed.
-def install_conda(version, install_dir) {
+def installConda(version, install_dir) {
 
     installer_ver = '4.5.4'
     default_conda_version = '4.5.4'
@@ -126,7 +126,7 @@ def install_conda(version, install_dir) {
 //
 // Testing summary notifier
 //
-def test_summary_notify(single_issue) {
+def testSummaryNotify(single_issue) {
     // Unstash all test reports produced by all possible agents.
     // Iterate over all unique files to compose the testing summary.
     def confname = ''
@@ -206,7 +206,7 @@ def test_summary_notify(single_issue) {
                     // Locally bound vars here to keep Jenkins happy.
                     def username = USERNAME
                     def password = PASSWORD
-                    post_github_issue(reponame, username, password, subject, message)
+                    postGithubIssue(reponame, username, password, subject, message)
             }
         } else {
             println("Posting all RT summaries in separate issues is not yet implemented.")
@@ -221,7 +221,7 @@ def test_summary_notify(single_issue) {
 // If a non-JUnit format .xml file exists in the
 // root of the workspace, the XUnitBuilder report
 // ingestion will fail.
-def process_test_report(config, index) {
+def processTestReport(config, index) {
     def config_name = config.name
     report_exists = sh(script: "test -e *.xml", returnStatus: true)
     def thresh_summary = "failedUnstableThresh: ${config.failedUnstableThresh}\n" +
@@ -252,7 +252,7 @@ def process_test_report(config, index) {
 }
 
 
-def stage_artifactory(config) {
+def stageArtifactory(config) {
     stage("Artifactory (${config.name})") {
         def buildInfo = Artifactory.newBuildInfo()
 
@@ -314,8 +314,18 @@ def stage_artifactory(config) {
 
 
 
-def build_and_test(config, config_idx) {
-    println("build_and_test")
+// Unstash the source tree stashed in the pre-build stage.
+// In a shell envrionment defined by the variables held in the
+// config.runtime list, run the build_cmds items in sequence
+// Then do the same for any test_cmds items present.
+// If any test_configs were defined, run the Artifactory
+// interaction steps for those.
+// Then, handle test report ingestion and stashing.
+//
+// @param config      BuildConfig object
+// @param config_idx  int - unique index of BuildConfig passed in as config.
+def buildAndTest(config, config_idx) {
+    println("buildAndTest")
     withEnv(config.runtime) {
         stage("Build (${config.name})") {
             unstash "source_tree"
@@ -341,11 +351,11 @@ def build_and_test(config, config_idx) {
                 // Perform Artifactory upload if required
                 if (config.test_configs.size() > 0) {
 
-                    stage_artifactory(config)
+                    stageArtifactory(config)
 
                 } // end test_configs check
 
-                process_test_report(config, config_idx)
+                processTestReport(config, config_idx)
 
             } // end test test_cmd finally clause
         } // end stage test_cmd
@@ -353,22 +363,27 @@ def build_and_test(config, config_idx) {
 }
 
 
-def process_conda_pkgs(config, config_idx) {
-    // If conda packages were specified, create an environment containing
-    // them and then 'activate' it. If a specific python version is
-    // desired, it must be specified as a package, i.e. 'python=3.6'
-    // in the list config.conda_packages.
+// If conda packages were specified, create an environment containing
+// them and then 'activate' it by setting key environment variables that
+// influence conda's behavior. . If a specific python version is
+// desired, it must be specified as a package, i.e. 'python=3.6'
+// in the list config.conda_packages.
+//
+// @param config  BuildConfig object
+//
+// @return config
+def processCondaPkgs(config, config_idx) {
     def conda_exe = null
     def conda_inst_dir = null
-    println("process_conda_pkgs")
+    println("processCondaPkgs")
     if (config.conda_packages.size() > 0) {
         // Test for presence of conda. If not available, install it in
         // a prefix unique to this build configuration.
-        if (!conda_present()) {
+        if (!condaPresent()) {
             println('Conda not found. Installing.')
             conda_inst_dir = "${env.WORKSPACE}/miniconda"
             println("conda_inst_dir = ${conda_inst_dir}")
-            install_conda(config.conda_ver, conda_inst_dir)
+            installConda(config.conda_ver, conda_inst_dir)
             conda_exe = "${conda_inst_dir}/bin/conda"
             println("conda_exe = ${conda_exe}")
         } else {
@@ -409,7 +424,13 @@ def process_conda_pkgs(config, config_idx) {
 }
 
 
-def expand_env_vars(config) {
+// Expand each environment variable in the config object's env_vars list
+// using a shell invocation to perform the substitutions.
+//
+// @param config  BuildConfig object
+//
+// @return config
+def expandEnvVars(config) {
     // Expand environment variable specifications by using the shell
     // to dereference any var references and then render the entire
     // value as a canonical path.
@@ -448,10 +469,12 @@ def expand_env_vars(config) {
 }
 
 
+// Test for GStrings (double quoted). These perform string interpolation
+// immediately and may not do what the user intends to do when defining
+// environment variables to use in the build. Disallow them here.
+//
+// @param config  BuildConfig object
 def abortOnGstrings(config) {
-    // Test for GStrings (double quoted). These perform string interpolation
-    // immediately and may not what the user intends to do when defining
-    // environment variables to use in the build. Disallow them here.
     config.env_vars.each { evar ->
         println(evar)
         if (evar.getClass() == org.codehaus.groovy.runtime.GStringImpl) {
@@ -469,14 +492,14 @@ def abortOnGstrings(config) {
 // Execute build/test task(s) based on passed-in configuration(s).
 // Each task is defined by a BuildConfig object.
 // A list of such objects is iterated over to process all configurations.
-//   Arguments:
-//             configs    - list of BuildConfig objects
-// (optional)  concurrent - boolean, whether or not to run all build
-//                          configurations in parallel. The default is
-//                          true when no value is provided.
 //
 // Optionally accept a jobConfig object as part of the incoming list.
 //   Test for type of list object and parse attributes accordingly.
+// @param configs     list of BuildConfig (and JobConfig) objects
+// @param concurrent  boolean
+//                      whether or not to run all build
+//                      configurations in parallel. The default is
+//                      true when no value is provided.
 def run(configs, concurrent = true) {
 
     // Create JobConfig with default values.
@@ -521,16 +544,16 @@ def run(configs, concurrent = true) {
             node(myconfig.nodetype) {
                 deleteDir()
 
-                myconfig = process_conda_pkgs(myconfig, index)
+                myconfig = processCondaPkgs(myconfig, index)
 
-                myconfig = expand_env_vars(myconfig)
+                myconfig = expandEnvVars(myconfig)
 
                 for (var in myconfig.env_vars_raw) {
                     //runtime.add(var)
                     myconfig.runtime.add(var)
                 }
 
-                build_and_test(myconfig, index)
+                buildAndTest(myconfig, index)
 
             } // end node
         } //end tasks
@@ -557,7 +580,7 @@ def run(configs, concurrent = true) {
     node("on-master") {
         stage("Post-build") {
             if (ljobconfig.post_test_summary) {
-                test_summary_notify(ljobconfig.all_posts_in_same_issue)
+                testSummaryNotify(ljobconfig.all_posts_in_same_issue)
             }
         } //end stage
     } //end node
