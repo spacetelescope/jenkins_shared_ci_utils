@@ -313,6 +313,20 @@ def stageArtifactory(config) {
 }
 
 
+// Like the Setup stage, this runs on the master node and allows for
+// aggregation and analysis of results produced in the build configurations
+// processed prior.
+def stagePostbuild() {
+    node("on-master") {
+        stage("Post-build") {
+            if (ljobconfig.post_test_summary) {
+                testSummaryNotify(ljobconfig.all_posts_in_same_issue)
+            }
+            println("Post-build stage completed.")
+        } //end stage
+    } //end node
+}
+
 
 // Unstash the source tree stashed in the pre-build stage.
 // In a shell envrionment defined by the variables held in the
@@ -521,20 +535,6 @@ def run(configs, concurrent = true) {
         config_name = config.name
 
         abortOnGstrings(config)
-        //// Test for GStrings (double quoted). These perform string interpolation
-        //// immediately and may not what the user intends to do when defining
-        //// environment variables to use in the build. Disallow them here.
-        //config.env_vars.each { evar ->
-        //    println(evar)
-        //    if (evar.getClass() == org.codehaus.groovy.runtime.GStringImpl) {
-        //        msg = "Immediate interpolation of variables in the 'env_vars'" +
-        //              " list is not supported and will probably not do what" +
-        //              " you expect. Please change the double quotes (\") to " +
-        //              "single quotes (') in each value of the 'env_vars' list."
-        //        println(msg)
-        //        error('Abort the build.')
-        //    }
-        //}
 
         // For containerized CI builds, code defined within 'tasks' is eventually executed
         // on a separate node. Parallel builds on the RT system each get assigned a new
@@ -577,13 +577,15 @@ def run(configs, concurrent = true) {
         }
     }
 
-    node("on-master") {
-        stage("Post-build") {
-            if (ljobconfig.post_test_summary) {
-                testSummaryNotify(ljobconfig.all_posts_in_same_issue)
-            }
-        } //end stage
-    } //end node
+    stagePostBuild()
+    //node("on-master") {
+    //    stage("Post-build") {
+    //        if (ljobconfig.post_test_summary) {
+    //            testSummaryNotify(ljobconfig.all_posts_in_same_issue)
+    //        }
+    //        println("Post-build stage completed.")
+    //    } //end stage
+    //} //end node
 }
 
 
