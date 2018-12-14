@@ -475,7 +475,6 @@ def expandEnvVars(config) {
                 expansion = new File(expansion).getCanonicalPath()
             }
             expansion = expansion.trim()
-            println("Adding var to runtime ${varName}=${expansion}")
             config.runtime.add("${varName}=${expansion}")
         } // end withEnv
     }
@@ -499,6 +498,20 @@ def abortOnGstrings(config) {
             println(msg)
             error('Abort the build.')
         }
+    }
+}
+
+
+def sequentialTasks(tasks) {
+    // Run tasks sequentially. Any failure halts the sequence.
+    def iter = 0
+    for (task in tasks) {
+        def localtask = [:]
+        localtask[task.key] = task.value
+        stage("Serial-${iter}") {
+            parallel(localtask)
+        }
+        iter++
     }
 }
 
@@ -534,51 +547,46 @@ def run(configs, concurrent = true) {
 
         def BuildConfig myconfig = new BuildConfig() // MUST be inside eachWith loop.
         myconfig = SerializationUtils.clone(config)
-        def config_name = ""
-        config_name = config.name
 
+        // Test for problematic string interpolations requested in
+        // environment variable definitions.
         abortOnGstrings(config)
 
         // For containerized CI builds, code defined within 'tasks' is eventually executed
         // on a separate node. Parallel builds on the RT system each get assigned a new
         // workspace directory by Jenkins. i.e. workspace, workspace@2, etc.
         // 'tasks' is a java.util.LinkedHashMap, which preserves insertion order.
-        //tasks["${myconfig.nodetype}/${config_name}"] = {
         tasks["${myconfig.nodetype}/${myconfig.name}"] = {
             node(myconfig.nodetype) {
                 deleteDir()
-
                 myconfig = processCondaPkgs(myconfig, index)
-
                 myconfig = expandEnvVars(myconfig)
-
                 for (var in myconfig.env_vars_raw) {
-                    //runtime.add(var)
                     myconfig.runtime.add(var)
                 }
-
                 buildAndTest(myconfig, index)
-
             } // end node
-        } //end tasks
+        }
 
     } //end closure configs.eachWithIndex 
+
 
     if (concurrent == true) {
         stage("Matrix") {
             parallel(tasks)
         }
     } else {
-        // Run tasks sequentially. Any failure halts the sequence.
-        def iter = 0
-        for (task in tasks) {
-            def localtask = [:]
-            localtask[task.key] = task.value
-            stage("Serial-${iter}") {
-                parallel(localtask)
-            }
-            iter++
-        }
+        sequentialTasks(tasks)
+        //// Run tasks sequentially. Any failure halts the sequence.
+        //def iter = 0
+        //for (task in tasks) {
+        //    def localtask = [:]
+        //    localtask[task.key] = task.value
+        //    stage("Serial-${iter}") {
+        //        parallel(localtask)
+        //    }
+        //    iter++
+        //}
     }
 
     stagePostBuild(jobconfig)
