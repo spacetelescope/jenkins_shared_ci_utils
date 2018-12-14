@@ -25,6 +25,8 @@ def postGithubIssue(reponame, username, password, subject, message) {
 // terminate the job with a success code.
 // If no skip directive is found, or skip_disable is true, stash all the
 // source files for efficient retrieval by subsequent nodes.
+//
+// @param args  Map containing entries for control of Setup stage.
 def scm_checkout(args = ['skip_disable':false]) {
     skip_job = 0
     node("on-master") {
@@ -62,8 +64,12 @@ def condaPresent() {
 
 // Install a particular version of conda by downloading and running the miniconda
 // installer and then installing conda at the specified version.
-//  A version argument of 'null' will result in the latest available conda
-//  version being installed.
+//
+// @param version      string holding version of conda to install
+//                      A version argument of 'null' will result in the latest
+//                      available conda version being installed.
+// @param install_dir  directory relative to the current working directory
+//                     where conda should be installed.
 def installConda(version, install_dir) {
 
     installer_ver = '4.5.4'
@@ -123,9 +129,14 @@ def installConda(version, install_dir) {
 }
 
 
+// Compose a testing summary message from the junit test report files
+// collected from each build configuration execution and post this message
+// as an issue on the the project's Github page.
 //
-// Testing summary notifier
-//
+// @param single_issue  Boolean determining whether new summary messages are
+//                      posted under one aggregate issue (true) or as separate
+//                      issues. Only 'false' is currently honored. A single
+//                      aggregation issue is not yet supported.
 def testSummaryNotify(single_issue) {
     // Unstash all test reports produced by all possible agents.
     // Iterate over all unique files to compose the testing summary.
@@ -221,6 +232,9 @@ def testSummaryNotify(single_issue) {
 // If a non-JUnit format .xml file exists in the
 // root of the workspace, the XUnitBuilder report
 // ingestion will fail.
+//
+// @param config      BuildConfig object
+// @param index       int - unique index of BuildConfig passed in as config.
 def processTestReport(config, index) {
     def config_name = config.name
     report_exists = sh(script: "test -e *.xml", returnStatus: true)
@@ -252,6 +266,10 @@ def processTestReport(config, index) {
 }
 
 
+// Define actions executed in the 'Artifactory' stage.
+// Collect artifacts and push them to the artifactory server.
+//
+// @param config      BuildConfig object
 def stageArtifactory(config) {
     stage("Artifactory (${config.name})") {
         def buildInfo = Artifactory.newBuildInfo()
@@ -316,6 +334,9 @@ def stageArtifactory(config) {
 // Like the Setup stage, this runs on the master node and allows for
 // aggregation and analysis of results produced in the build configurations
 // processed prior.
+//
+// @param jobconfig   JobConfig object holding paramters that influence the
+//                    behavior of the entire Jenkins job.
 def stagePostBuild(jobconfig) {
     node("on-master") {
         stage("Post-build") {
@@ -337,8 +358,8 @@ def stagePostBuild(jobconfig) {
 // Then, handle test report ingestion and stashing.
 //
 // @param config      BuildConfig object
-// @param config_idx  int - unique index of BuildConfig passed in as config.
-def buildAndTest(config, config_idx) {
+// @param index       int - unique index of BuildConfig passed in as config.
+def buildAndTest(config, index) {
     println("buildAndTest")
     withEnv(config.runtime) {
         stage("Build (${config.name})") {
@@ -369,7 +390,7 @@ def buildAndTest(config, config_idx) {
 
                 } // end test_configs check
 
-                processTestReport(config, config_idx)
+                processTestReport(config, index)
 
             } // end test test_cmd finally clause
         } // end stage test_cmd
@@ -384,9 +405,10 @@ def buildAndTest(config, config_idx) {
 // in the list config.conda_packages.
 //
 // @param config  BuildConfig object
+// @param index   int - unique index of BuildConfig passed in as config.
 //
-// @return config
-def processCondaPkgs(config, config_idx) {
+// @return  Modified config
+def processCondaPkgs(config, index) {
     def conda_exe = null
     def conda_inst_dir = null
     println("processCondaPkgs")
@@ -405,7 +427,7 @@ def processCondaPkgs(config, config_idx) {
             println("Found conda exe at ${conda_exe}.")
         }
         def conda_root = conda_exe.replace("/bin/conda", "").trim()
-        def env_name = "tmp_env${config_idx}"
+        def env_name = "tmp_env${index}"
         def conda_prefix = "${conda_root}/envs/${env_name}".trim()
         def packages = ""
         for (pkg in config.conda_packages) {
@@ -443,7 +465,7 @@ def processCondaPkgs(config, config_idx) {
 //
 // @param config  BuildConfig object
 //
-// @return config
+// @return  Modified config
 def expandEnvVars(config) {
     // Expand environment variable specifications by using the shell
     // to dereference any var references and then render the entire
@@ -502,6 +524,9 @@ def abortOnGstrings(config) {
 }
 
 
+// Run tasks defined for the build nodes in sequential fashion.
+//
+// @param tasks  Map containing groovy code to execute on build nodes.
 def sequentialTasks(tasks) {
     // Run tasks sequentially. Any failure halts the sequence.
     def iter = 0
@@ -570,23 +595,12 @@ def run(configs, concurrent = true) {
 
     } //end closure configs.eachWithIndex 
 
-
     if (concurrent == true) {
         stage("Matrix") {
             parallel(tasks)
         }
     } else {
         sequentialTasks(tasks)
-        //// Run tasks sequentially. Any failure halts the sequence.
-        //def iter = 0
-        //for (task in tasks) {
-        //    def localtask = [:]
-        //    localtask[task.key] = task.value
-        //    stage("Serial-${iter}") {
-        //        parallel(localtask)
-        //    }
-        //    iter++
-        //}
     }
 
     stagePostBuild(jobconfig)
@@ -594,6 +608,10 @@ def run(configs, concurrent = true) {
 
 
 // Convenience function that performs a deep copy on the supplied object.
+//
+// @param obj  Java/Groovy object to copy
+//
+// @return  Deep copy of obj .
 def copy(obj) {
     return SerializationUtils.clone(obj)
 }
