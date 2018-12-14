@@ -316,7 +316,7 @@ def stageArtifactory(config) {
 // Like the Setup stage, this runs on the master node and allows for
 // aggregation and analysis of results produced in the build configurations
 // processed prior.
-def stagePostbuild() {
+def stagePostBuild() {
     node("on-master") {
         stage("Post-build") {
             if (ljobconfig.post_test_summary) {
