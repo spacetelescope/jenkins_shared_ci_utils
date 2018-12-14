@@ -316,11 +316,11 @@ def stageArtifactory(config) {
 // Like the Setup stage, this runs on the master node and allows for
 // aggregation and analysis of results produced in the build configurations
 // processed prior.
-def stagePostBuild() {
+def stagePostBuild(jobconfig) {
     node("on-master") {
         stage("Post-build") {
-            if (ljobconfig.post_test_summary) {
-                testSummaryNotify(ljobconfig.all_posts_in_same_issue)
+            if (jobconfig.post_test_summary) {
+                testSummaryNotify(jobconfig.all_posts_in_same_issue)
             }
             println("Post-build stage completed.")
         } //end stage
@@ -516,16 +516,19 @@ def abortOnGstrings(config) {
 //                      true when no value is provided.
 def run(configs, concurrent = true) {
 
+    // Map to hold code block definitions provided in the loop below for
+    // passing to the build nodes.
+    def tasks = [:]
+
     // Create JobConfig with default values.
-    def ljobconfig = new JobConfig()
+    def jobconfig = new JobConfig()
 
     // Loop over config objects passed in handling each accordingly.
-    def tasks = [:]
     configs.eachWithIndex { config, index ->
 
         // Extract a JobConfig object if one is found.
         if (config.getClass() == JobConfig) {
-            ljobconfig = config // TODO: Try clone here to make a new instance
+            jobconfig = config // TODO: Try clone here to make a new instance
             return  // effectively a 'continue' from within a closure.
         }
 
@@ -540,7 +543,8 @@ def run(configs, concurrent = true) {
         // on a separate node. Parallel builds on the RT system each get assigned a new
         // workspace directory by Jenkins. i.e. workspace, workspace@2, etc.
         // 'tasks' is a java.util.LinkedHashMap, which preserves insertion order.
-        tasks["${myconfig.nodetype}/${config_name}"] = {
+        //tasks["${myconfig.nodetype}/${config_name}"] = {
+        tasks["${myconfig.nodetype}/${myconfig.name}"] = {
             node(myconfig.nodetype) {
                 deleteDir()
 
@@ -577,15 +581,7 @@ def run(configs, concurrent = true) {
         }
     }
 
-    stagePostBuild()
-    //node("on-master") {
-    //    stage("Post-build") {
-    //        if (ljobconfig.post_test_summary) {
-    //            testSummaryNotify(ljobconfig.all_posts_in_same_issue)
-    //        }
-    //        println("Post-build stage completed.")
-    //    } //end stage
-    //} //end node
+    stagePostBuild(jobconfig)
 }
 
 
