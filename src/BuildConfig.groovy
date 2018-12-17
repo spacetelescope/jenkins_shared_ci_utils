@@ -10,7 +10,6 @@ class BuildConfig implements Serializable {
     def conda_channels = []
     def conda_ver = null
 
-    def runtime = []
     def env_vars = []
     def env_vars_raw = []
     def build_cmds = []
@@ -26,6 +25,9 @@ class BuildConfig implements Serializable {
     def skippedFailureThresh = ''
     def skippedUnstableNewThresh = ''
     def skippedUnstableThresh= ''
+
+    // Private. Not to be used directly by Jenkinsfile.
+    def runtime = []
 
     // Constructors
     BuildConfig() {
