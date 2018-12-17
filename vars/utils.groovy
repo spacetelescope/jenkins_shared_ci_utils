@@ -27,6 +27,9 @@ def postGithubIssue(reponame, username, password, subject, message) {
 // source files for efficient retrieval by subsequent nodes.
 //
 // @param args  Map containing entries for control of Setup stage.
+//
+// @return skip_job  int  Status of clone step, to be tested to determine
+//                        need to abort from Jenkinsfile. 
 def scm_checkout(args = ['skip_disable':false]) {
     skip_job = 0
     node("on-master") {
@@ -52,6 +55,7 @@ def scm_checkout(args = ['skip_disable':false]) {
 
 
 // Returns true if the conda exe is somewhere in the $PATH, false otherwise.
+// @return  boolean
 def condaPresent() {
     def success = sh(script: "conda --version", returnStatus: true)
     if (success == 0) {
@@ -70,6 +74,9 @@ def condaPresent() {
 //                      available conda version being installed.
 // @param install_dir  directory relative to the current working directory
 //                     where conda should be installed.
+//
+// @return boolean   true if conda could be downloaded and installed, false
+//                   otherwise
 def installConda(version, install_dir) {
 
     installer_ver = '4.5.4'
