@@ -26,6 +26,9 @@ class BuildConfig implements Serializable {
     def skippedUnstableNewThresh = ''
     def skippedUnstableThresh= ''
 
+    // Private. Not to be used directly by Jenkinsfile.
+    def runtime = []
+
     // Constructors
     BuildConfig() {
         this.nodetype = ""
