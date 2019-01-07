@@ -94,6 +94,8 @@ It has the following properties:
 #### Test Summary Issue Posts
 If test summaries are requested using the `post_test_summary` property of the JobConfig class as described above, each Jenkins job that produces one or more test errors or failures will result in a single new Github issue being posted to the project's repository.
 
+If the label `testing` has been defined in the Github repository and a test summary issue ends up being generated for a job run, the issue that results will have the `testing` label applied. If a label with the name `testing` has not been defined on the repository, then the issue will be created without a label.
+
 An example issue:
 ![issue_image](doc/test_summary_issue.png "Example issue")
 
