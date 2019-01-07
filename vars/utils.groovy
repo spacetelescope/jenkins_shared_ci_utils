@@ -14,8 +14,19 @@ import org.kohsuke.github.GitHub
 def postGithubIssue(reponame, username, password, subject, message) {
     def github = GitHub.connectUsingPassword("${username}", "${password}")
     def repo = github.getRepository(reponame)
+    // Determine if the 'testing' label exists in the repo. If it does,
+    // apply it to the new issue.
+    def labels = repo.listLabels()
+    def labelnames = []
+    for (label in labels) {
+        labelnames.add(label.getName())
+    }
+    def labelname = 'testing'
     def ibuilder = repo.createIssue(subject)
     ibuilder.body(message)
+    if (labelname in labelnames) {
+        ibuilder.label(labelname)
+    }
     ibuilder.create()
 }
 
