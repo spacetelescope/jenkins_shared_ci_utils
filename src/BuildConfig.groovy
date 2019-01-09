@@ -1,5 +1,5 @@
 // src/BuildConfig.groovy
-package BuildConfig;
+//package BuildConfig;
 
 class BuildConfig implements Serializable {
     def nodetype = ""

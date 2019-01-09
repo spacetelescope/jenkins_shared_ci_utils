@@ -1,5 +1,6 @@
 // Jenkinsfile support utilities
-import BuildConfig.BuildConfig
+//import BuildConfig.BuildConfig
+import BuildConfig
 import JobConfig
 import groovy.io.FileType
 import groovy.json.JsonOutput
