@@ -2,7 +2,7 @@ if (utils.scm_checkout(['skip_disable':true])) return
 
 def PYTEST = "pytest \
               -r s \
-              --basetemp=${PYTEST_BASETEMP} \
+              --basetemp=test_outputs \
               --junit-xml=results.xml"
 
 jobconfig = new JobConfig()
