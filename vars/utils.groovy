@@ -7,8 +7,8 @@ import groovy.json.JsonOutput
 import org.apache.commons.lang3.SerializationUtils
 import org.apache.commons.io.FilenameUtils
 
-@Grab(group='org.kohsuke', module='github-api', version='1.93')
-import org.kohsuke.github.GitHub
+//@Grab(group='org.kohsuke', module='github-api', version='1.93')
+//import org.kohsuke.github.GitHub
 
 
 @NonCPS
