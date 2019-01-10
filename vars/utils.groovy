@@ -44,7 +44,8 @@ def postGithubIssue(reponame, username, password, subject, message) {
 //                        need to abort from Jenkinsfile. 
 def scm_checkout(args = ['skip_disable':false]) {
     skip_job = 0
-    node("on-master") {
+    //node("on-master") {
+    node('master') {
         stage("Setup") {
 
             checkout(scm)
