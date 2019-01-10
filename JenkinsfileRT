@@ -1,0 +1,7 @@
+if (utils.scm_checkout(['skip_disable':true])) return
+
+jobconfig = new JobConfig()
+jobconfig.post_test_summary = true
+
+
+bc0 = new BuildConfig()
