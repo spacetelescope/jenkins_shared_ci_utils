@@ -358,7 +358,8 @@ def stageArtifactory(config) {
 // @param jobconfig   JobConfig object holding paramters that influence the
 //                    behavior of the entire Jenkins job.
 def stagePostBuild(jobconfig) {
-    node("on-master") {
+    //node("on-master") {
+    node('master') {
         stage("Post-build") {
             if (jobconfig.post_test_summary) {
                 testSummaryNotify(jobconfig.all_posts_in_same_issue)
