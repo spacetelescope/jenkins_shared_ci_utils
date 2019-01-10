@@ -1,5 +1,10 @@
 if (utils.scm_checkout(['skip_disable':true])) return
 
+def PYTEST = "pytest \
+              -r s \
+              --basetemp=${PYTEST_BASETEMP} \
+              --junit-xml=results.xml"
+
 jobconfig = new JobConfig()
 jobconfig.post_test_summary = true
 
@@ -7,7 +12,16 @@ jobconfig.post_test_summary = true
 bc0 = new BuildConfig()
 bc0.nodetype = 'master'
 bc0.name = 'First'
-bc0.conda_packages = ['python=3.6']
+bc0.conda_packages = ['python=3.6',
+                      'pytest=3.8.2']
 bc0.build_cmds = ["ls -al",
                   "date"]
+bc0.test_cmds = ["printenv | sort",
+                 "${PYTEST}"]
+
+bc1 = utils.copy(bc0)
+bc1.name = 'Second'
+bc1.env_vars = ['VAR_THREE=3',
+                'VAR_FOUR=4']
+
 utils.run([bc0])
