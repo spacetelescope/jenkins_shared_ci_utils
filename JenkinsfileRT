@@ -1,5 +1,5 @@
 //library "utilsnew@${env.BRANCH_NAME}"
-lib = library "utilsnew@restructure"
+lib = library("utilsnew@restructure")
 
 if (utils.scm_checkout(['skip_disable':true])) return
 
@@ -9,7 +9,7 @@ if (utils.scm_checkout(['skip_disable':true])) return
 //              --junit-xml=results.xml"
 
 //jobconfig = new JobConfig()
-jobconfig = lib.JobConfig()
+jobconfig = lib.JobConfig.JobConfig()
 jobconfig.post_test_summary = true
 
 
