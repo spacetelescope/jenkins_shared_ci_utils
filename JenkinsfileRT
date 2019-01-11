@@ -9,7 +9,8 @@ if (utils.scm_checkout(['skip_disable':true])) return
 //              --junit-xml=results.xml"
 
 //jobconfig = new JobConfig()
-jobconfig = lib.JobConfig.JobConfig()
+//jobconfig = lib.JobConfig.JobConfig()
+jobconfig = library("utilsnew@restructure").JobConfig.JobConfig()
 jobconfig.post_test_summary = true
 
 
