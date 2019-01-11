@@ -1,5 +1,4 @@
 // src/JobConfig.groovy
-//package JobConfig;
 
 class JobConfig implements Serializable {
 
