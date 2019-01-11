@@ -3,13 +3,13 @@ library "utilsnew@restructure"
 
 if (utils.scm_checkout(['skip_disable':true])) return
 
-def PYTEST = "pytest \
-              -r s \
-              --basetemp=test_outputs \
-              --junit-xml=results.xml"
+//def PYTEST = "pytest \
+//              -r s \
+//              --basetemp=test_outputs \
+//              --junit-xml=results.xml"
 
 //jobconfig = new JobConfig()
-jobconfig = library('utilsnew@restructure').JobConfig()
+jobconfig = library('utilsnew').JobConfig()
 jobconfig.post_test_summary = true
 
 
