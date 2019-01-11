@@ -1,6 +1,3 @@
-//library "utilsnew@${env.BRANCH_NAME}"
-//lib = library("utilsnew@restructure")
-
 if (utils.scm_checkout(['skip_disable':true])) return
 
 def PYTEST = "pytest \
@@ -27,4 +24,4 @@ bc1.name = 'Second'
 bc1.env_vars = ['VAR_THREE=3',
                 'VAR_FOUR=4']
 
-utils.run([bc0])
+utils.run([bc0, bc1])
