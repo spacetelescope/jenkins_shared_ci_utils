@@ -1,5 +1,5 @@
 //library "utilsnew@${env.BRANCH_NAME}"
-//lib = library("utilsnew@restructure")
+lib = library("utilsnew@restructure")
 
 if (utils.scm_checkout(['skip_disable':true])) return
 
@@ -15,7 +15,7 @@ jobconfig.post_test_summary = true
 
 
 bc0 = new BuildConfig()
-bc0 = library('utilsnew@restructure').BuildConfig()
+//bc0 = library('utilsnew@restructure').BuildConfig()
 bc0.nodetype = 'master'
 bc0.name = 'First'
 bc0.conda_packages = ['python=3.6',
