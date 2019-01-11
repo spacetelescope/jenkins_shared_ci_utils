@@ -1,4 +1,3 @@
-package DataConfig;
 import groovy.json.JsonOutput
 import org.apache.commons.io.FileUtils
 

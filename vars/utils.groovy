@@ -1,12 +1,10 @@
 // Jenkinsfile support utilities
-import BuildConfig.BuildConfig
-import JobConfig
+import BuildConfig
 import groovy.io.FileType
 import groovy.json.JsonOutput
 import org.apache.commons.lang3.SerializationUtils
 import org.apache.commons.io.FilenameUtils
 
-@Grab(group='org.kohsuke', module='github-api', version='1.93')
 import org.kohsuke.github.GitHub
 
 
@@ -43,7 +41,7 @@ def postGithubIssue(reponame, username, password, subject, message) {
 //                        need to abort from Jenkinsfile. 
 def scm_checkout(args = ['skip_disable':false]) {
     skip_job = 0
-    node("on-master") {
+    node('master') {
         stage("Setup") {
 
             checkout(scm)
@@ -356,7 +354,7 @@ def stageArtifactory(config) {
 // @param jobconfig   JobConfig object holding paramters that influence the
 //                    behavior of the entire Jenkins job.
 def stagePostBuild(jobconfig) {
-    node("on-master") {
+    node('master') {
         stage("Post-build") {
             if (jobconfig.post_test_summary) {
                 testSummaryNotify(jobconfig.all_posts_in_same_issue)
