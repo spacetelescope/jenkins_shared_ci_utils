@@ -1,5 +1,5 @@
 //library "utilsnew@${env.BRANCH_NAME}"
-library "utilsnew@restructure"
+//library "utilsnew@restructure"
 
 if (utils.scm_checkout(['skip_disable':true])) return
 
