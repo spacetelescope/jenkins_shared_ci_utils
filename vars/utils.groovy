@@ -259,6 +259,11 @@ def processTestReport(config, index) {
         "skippedUnstableThresh: ${config.skippedUnstableThresh}\n" +
         "skippedFailureThresh: ${config.skippedFailureThresh}"
     println(thresh_summary)
+
+    // Process the XML results file to include the build config name as a prefix
+    // on each test name to make it more obvious from where each result originates.
+    sh(script:"sed -i 's/ name=\"/ name=\"${config.name} /g' *.xml")
+
     if (report_exists == 0) {
         step([$class: 'XUnitBuilder',
             thresholds: [
