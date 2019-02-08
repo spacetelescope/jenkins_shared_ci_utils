@@ -88,8 +88,8 @@ def condaPresent() {
 //                   otherwise
 def installConda(version, install_dir) {
 
-    installer_ver = '4.5.4'
-    default_conda_version = '4.5.4'
+    installer_ver = '4.5.12'
+    default_conda_version = '4.5.12'
     default_dir = 'miniconda'
 
     if (version == null) {
