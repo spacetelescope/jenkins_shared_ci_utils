@@ -263,8 +263,9 @@ def processTestReport(config, index) {
     // Process the XML results file to include the build config name as a prefix
     // on each test name to make it more obvious from where each result originates.
     if (report_exists == 0) {
-        repfile = sh(script:"find *.xml", returnStdout: true)
-        sh(script:"cp ${repfile} ${repfile}.modified")
+        repfile = sh(script:"find *.xml", returnStdout: true).trim()
+        command = "cp ${repfile} ${repfile}.modified"
+        sh(script:command)
         sh(script:"sed -i 's/ name=\"/ name=\"[${config.name}] /g' *.xml.modified")
         step([$class: 'XUnitBuilder',
             thresholds: [
@@ -416,6 +417,8 @@ def buildAndTest(config, index) {
 
             } // end test test_cmd finally clause
         } // end if(config.test_cmds...)
+        // Dump the conda environment definition to a file.
+        sh(script: "${env.WORKSPACE}/miniconda/bin/conda list --explicit > env_dump_${index}.txt")
 
     } // end withEnv
 }
