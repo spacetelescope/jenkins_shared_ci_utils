@@ -254,24 +254,25 @@ def testSummaryNotify(single_issue) {
 def processTestReport(config, index) {
     def config_name = config.name
     report_exists = sh(script: "test -e *.xml", returnStatus: true)
-    def thresh_summary = "failedUnstableThresh: ${config.failedUnstableThresh}\n" +
+    def threshold_summary = "failedUnstableThresh: ${config.failedUnstableThresh}\n" +
         "failedFailureThresh: ${config.failedFailureThresh}\n" +
         "skippedUnstableThresh: ${config.skippedUnstableThresh}\n" +
         "skippedFailureThresh: ${config.skippedFailureThresh}"
-    println(thresh_summary)
+    println(threshold_summary)
 
     // Process the XML results file to include the build config name as a prefix
     // on each test name to make it more obvious from where each result originates.
-    sh(script:"sed -i 's/ name=\"/ name=\"[${config.name}] /g' *.xml")
-
     if (report_exists == 0) {
+        repfile = sh(script:"find *.xml", returnStdout: true)
+        sh(script:"cp ${repfile} ${repfile}.modified")
+        sh(script:"sed -i 's/ name=\"/ name=\"[${config.name}] /g' *.xml.modified")
         step([$class: 'XUnitBuilder',
             thresholds: [
             [$class: 'SkippedThreshold', unstableThreshold: "${config.skippedUnstableThresh}"],
             [$class: 'SkippedThreshold', failureThreshold: "${config.skippedFailureThresh}"],
             [$class: 'FailedThreshold', unstableThreshold: "${config.failedUnstableThresh}"],
             [$class: 'FailedThreshold', failureThreshold: "${config.failedFailureThresh}"]],
-            tools: [[$class: 'JUnitType', pattern: '*.xml']]])
+            tools: [[$class: 'JUnitType', pattern: '*.xml.modified']]])
     
     } else {
         println("No .xml files found in workspace. Test report ingestion skipped.")
@@ -414,7 +415,8 @@ def buildAndTest(config, index) {
                 processTestReport(config, index)
 
             } // end test test_cmd finally clause
-        } // end stage test_cmd
+        } // end if(config.test_cmds...)
+
     } // end withEnv
 }
 
