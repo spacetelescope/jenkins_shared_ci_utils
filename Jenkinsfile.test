@@ -1,3 +1,5 @@
+@Library('utils@master') _
+
 if (utils.scm_checkout(['skip_disable':true])) return
 
 def PYTEST = "pytest \
@@ -13,7 +15,7 @@ bc0 = new BuildConfig()
 bc0.nodetype = 'master'
 bc0.name = 'First'
 bc0.conda_packages = ['python=3.6',
-                      'pytest=3.8.2']
+                      'pytest']
 bc0.build_cmds = ["ls -al",
                   "date"]
 bc0.test_cmds = ["printenv | sort",
