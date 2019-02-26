@@ -459,7 +459,11 @@ def processCondaPkgs(config, index) {
         } else {
             conda_exe = sh(script: "which conda", returnStdout: true).trim()
             println("Found conda exe at ${conda_exe}.")
+            if (config.conda_ver != null) {
+               sh(script: "${conda_exe} install conda=${config.conda_ver} -q -y")
+            }
         }
+        sh(script: "${conda_exe} --version")
         def conda_root = conda_exe.replace("/bin/conda", "").trim()
         def env_name = "tmp_env${index}"
         def conda_prefix = "${conda_root}/envs/${env_name}".trim()
