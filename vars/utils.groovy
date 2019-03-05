@@ -9,6 +9,13 @@ import org.kohsuke.github.GitHub
 
 
 @NonCPS
+// Post an issue to a particular Github repository.
+//
+// @param reponame - str
+// @param username - str  username to use when authenticating to Github
+// @param password - str  password for the associated username
+// @param subject  - str  Subject/title text for the issue
+// @param message  - str  Body text for the issue
 def postGithubIssue(reponame, username, password, subject, message) {
     def github = GitHub.connectUsingPassword("${username}", "${password}")
     def repo = github.getRepository(reponame)
@@ -43,7 +50,7 @@ def scm_checkout(args = ['skip_disable':false]) {
     skip_job = 0
     node('master') {
         stage("Setup") {
-
+            deleteDir()
             checkout(scm)
             println("args['skip_disable'] = ${args['skip_disable']}")
             if (args['skip_disable'] == false) {
@@ -89,7 +96,7 @@ def condaPresent() {
 def installConda(version, install_dir) {
 
     installer_ver = '4.5.12'
-    default_conda_version = '4.6.7'
+    default_conda_version = '4.5.12'
     default_dir = 'miniconda'
 
     if (version == null) {
@@ -145,15 +152,7 @@ def installConda(version, install_dir) {
 }
 
 
-// Compose a testing summary message from the junit test report files
-// collected from each build configuration execution and post this message
-// as an issue on the the project's Github page.
-//
-// @param single_issue  Boolean determining whether new summary messages are
-//                      posted under one aggregate issue (true) or as separate
-//                      issues. Only 'false' is currently honored. A single
-//                      aggregation issue is not yet supported.
-def testSummaryNotify(single_issue) {
+def parseTestReports(buildconfigs) {
     // Unstash all test reports produced by all possible agents.
     // Iterate over all unique files to compose the testing summary.
     def confname = ''
@@ -161,62 +160,97 @@ def testSummaryNotify(single_issue) {
     def short_hdr = ''
     def raw_totals = ''
     def totals = [:]
-    def message = "Regression Testing (RT) Summary:\n\n"
-    def subject = ''
-    def send_notification = false
-    def stashcount = 0
-    println("Retrieving stashed test report files...")
-    while(true) {
+    def tinfo = new testInfo()
+    tinfo.subject = "[AUTO] Regression testing summary" 
+    tinfo.message = "Regression Testing (RT) Summary:\n\n"
+    for (config in buildconfigs) {
+       println("Unstashing test report for: ${config.name}")
        try {
-           unstash "${stashcount}.name"
-           unstash "${stashcount}.report" 
-       } catch(Exception) {
-           println("All test report stashes retrieved.")
-           break
-       }
-       confname = readFile "${stashcount}.name"
-       println("confname: ${confname}")
-       
-       report_hdr = sh(script:"grep 'testsuite errors' *.xml", 
-                         returnStdout: true)
-       short_hdr = report_hdr.findAll(/(?<=testsuite ).*/)[0]
-       short_hdr = short_hdr.split('><testcase')[0]
+           unstash "${config.name}.results"
+           results_hdr = sh(script:"grep 'testsuite errors' results.${config.name}.xml",
+                             returnStdout: true)
+           short_hdr = results_hdr.findAll(/(?<=testsuite ).*/)[0]
+           short_hdr = short_hdr.split('><testcase')[0]
 
-       raw_totals = short_hdr.split()
-       totals = [:]
+           raw_totals = short_hdr.split()
+           totals = [:]
 
-       for (total in raw_totals) {
-           expr = total.split('=')
-           expr[1] = expr[1].replace('"', '')
-           totals[expr[0]] = expr[1]
-           try {
-               totals[expr[0]] = expr[1].toInteger()
-           } catch(Exception NumberFormatException) {
-               continue
+           for (total in raw_totals) {
+               expr = total.split('=')
+               expr[1] = expr[1].replace('"', '')
+               totals[expr[0]] = expr[1]
+               try {
+                   totals[expr[0]] = expr[1].toInteger()
+               } catch(Exception NumberFormatException) {
+                   continue
+               }
            }
+
+           // Check for errors or failures
+           if (totals['errors'] != 0 || totals['failures'] != 0) {
+               tinfo.problems = true
+               tinfo.message = "${tinfo.message}Configuration: ${config.name}\n\n" +
+                             "| Total tests |  ${totals['tests']} |\n" +
+                             "|----|----|\n" +
+                             "| Errors      | ${totals['errors']} |\n" +
+                             "| Failures    | ${totals['failures']} |\n" +
+                             "| Skipped     | ${totals['skips']} |\n\n"
+           }
+       } catch(Exception ex) {
+           println("No results imported.")
        }
 
-       // Check for errors or failures
-       if (totals['errors'] != 0 || totals['failures'] != 0) {
-           send_notification = true
-           message = "${message}Configuration: ${confname}\n\n" +
-                         "| Total tests |  ${totals['tests']} |\n" +
-                         "|----|----|\n" +
-                         "| Errors      | ${totals['errors']} |\n" +
-                         "| Failures    | ${totals['failures']} |\n" +
-                         "| Skipped     | ${totals['skips']} |\n\n"
-       }
-       stashcount++
+    } // end for(config in buildconfigs)
+    return tinfo
+}
 
-    } //end while(true) over stashes//
+
+// Accept a file name pattern and push all files directly in the workspace
+// directory matching that spec to the artifactory repository provided.
+def pushToArtifactory(file_spec, repo) {
+
+    data_config = new DataConfig()
+    data_config.server_id = 'bytesalad'
+
+    def buildInfo = Artifactory.newBuildInfo()
+    buildInfo.env.capture = true
+    buildInfo.env.collect()
+    def server = Artifactory.server data_config.server_id
+
+upload_spec = """
+{
+  "files": [
+    {
+      "pattern": "${env.WORKSPACE}/${file_spec}",
+      "target": "${repo}"
+    }
+  ]
+}
+"""
+
+    data_config.insert('env_file', upload_spec)
+    def bi_temp = server.upload spec: data_config.data['env_file']
+    buildInfo.append bi_temp
+    server.publishBuildInfo buildInfo
+}
+
+
+// Compose a testing summary message from the junit test report files
+// collected from each build configuration execution and post this message
+// as an issue on the the project's Github page.
+//
+// @param jobconfig     JobConfig object 
+def testSummaryNotify(jobconfig, buildconfigs, test_info) {
+
+    //def test_info = parseTestReports(buildconfigs)
 
     // If there were any test errors or failures, send the summary to github.
-    if (send_notification) {
+    if (test_info.problems) {
         // Match digits between '/' chars at end of BUILD_URL (build number).
         def pattern = ~/\/\d+\/$/
         def report_url = env.BUILD_URL.replaceAll(pattern, '/test_results_analyzer/')
-        message = "${message}Report: ${report_url}"
-        subject = "[AUTO] Regression testing summary"
+        test_info.message = "${test_info.message}Report: ${report_url}"
+        test_info.subject = "[AUTO] Regression testing summary"
 
         def regpat = ~/https:\/\/github.com\//
         def reponame = scm.userRemoteConfigs[0].url.replaceAll(regpat, '')
@@ -225,15 +259,15 @@ def testSummaryNotify(single_issue) {
 
         println("Test failures and/or errors occurred.\n" +
                 "Posting summary to Github.\n" +
-                "  ${reponame} Issue subject: ${subject}")
-        if (single_issue) {
+                "  ${reponame} Issue subject: ${test_info.subject}")
+        if (jobconfig.all_posts_in_same_issue) {
             withCredentials([usernamePassword(credentialsId:'github_st-automaton-01',
                     usernameVariable: 'USERNAME',
                     passwordVariable: 'PASSWORD')]) {
                     // Locally bound vars here to keep Jenkins happy.
                     def username = USERNAME
                     def password = PASSWORD
-                    postGithubIssue(reponame, username, password, subject, message)
+                    postGithubIssue(reponame, username, password, test_info.subject, test_info.message)
             }
         } else {
             println("Posting all RT summaries in separate issues is not yet implemented.")
@@ -241,7 +275,28 @@ def testSummaryNotify(single_issue) {
             // If so, post message as a comment on that issue.
             // If not, post a new issue with message text.
         }
-    } //endif (send_notification)
+    }//endif(test_info.problems)
+}
+
+
+def publishCondaEnv(jobconfig, test_info) {
+
+    if (jobconfig.enable_env_publication) {
+        // Extract repo from standardized location
+        def testconf = readFile("setup.cfg")
+        def Properties prop = new Properties()
+        prop.load(new StringReader(testconf))
+        println("PROP->${prop.getProperty('results_root')}")
+        pub_repo = prop.getProperty('results_root')
+
+        if (jobconfig.publish_env_on_success_only) {
+            if (!test_info.problems) {
+                pushToArtifactory("conda_env_dump_*", pub_repo)
+            }
+        } else {
+            pushToArtifactory("conda_env_dump_*", pub_repo)
+        }
+    }
 }
 
 
@@ -250,8 +305,7 @@ def testSummaryNotify(single_issue) {
 // ingestion will fail.
 //
 // @param config      BuildConfig object
-// @param index       int - unique index of BuildConfig passed in as config.
-def processTestReport(config, index) {
+def processTestReport(config) {
     def config_name = config.name
     report_exists = sh(script: "test -e *.xml", returnStatus: true)
     def threshold_summary = "failedUnstableThresh: ${config.failedUnstableThresh}\n" +
@@ -278,13 +332,12 @@ def processTestReport(config, index) {
     } else {
         println("No .xml files found in workspace. Test report ingestion skipped.")
     }
-    writeFile file: "${index}.name", text: config_name, encoding: "UTF-8"
-    def stashname = "${index}.name"
     // TODO: Define results file name centrally and reference here.
     if (fileExists('results.xml')) {
-        stash includes: '*.name', name: stashname, useDefaultExcludes: false
-        stashname = "${index}.report"
-        stash includes: '*.xml', name: stashname, useDefaultExcludes: false
+        // Copy test report to a name unique to this build configuration.
+        sh("cp results.xml results.${config.name}.xml")
+        def stashname = "${config.name}.results"
+        stash includes: "results.${config.name}.xml", name: stashname, useDefaultExcludes: false
     }
 }
 
@@ -360,12 +413,21 @@ def stageArtifactory(config) {
 //
 // @param jobconfig   JobConfig object holding paramters that influence the
 //                    behavior of the entire Jenkins job.
-def stagePostBuild(jobconfig) {
+def stagePostBuild(jobconfig, buildconfigs) {
     node('master') {
         stage("Post-build") {
-            if (jobconfig.post_test_summary) {
-                testSummaryNotify(jobconfig.all_posts_in_same_issue)
+            for (config in buildconfigs) {
+                try {
+                    unstash "conda_env_dump_${config.name}"
+                } catch(Exception ex) {
+                    println("No conda env dump stash available for ${config.name}")
+                }
             }
+            def test_info = parseTestReports(buildconfigs)
+            if (jobconfig.post_test_summary) {
+                testSummaryNotify(jobconfig, buildconfigs, test_info)
+            }
+            publishCondaEnv(jobconfig, test_info)
             println("Post-build stage completed.")
         } //end stage
     } //end node
@@ -381,8 +443,7 @@ def stagePostBuild(jobconfig) {
 // Then, handle test report ingestion and stashing.
 //
 // @param config      BuildConfig object
-// @param index       int - unique index of BuildConfig passed in as config.
-def buildAndTest(config, index) {
+def buildAndTest(config) {
     println("buildAndTest")
     withEnv(config.runtime) {
         stage("Build (${config.name})") {
@@ -413,21 +474,34 @@ def buildAndTest(config, index) {
 
                 } // end test_configs check
 
-                processTestReport(config, index)
+                processTestReport(config)
 
             } // end test test_cmd finally clause
         } // end if(config.test_cmds...)
 
-        // Dump the conda environment definition to a file.
+        // If conda is present, dump the conda environment definition to a file.
         def conda_exe = ''
         local_conda = "${env.WORKSPACE}/miniconda/bin/conda"
-        if (fileExists(local_conda)) {
-            conda_exe = local_conda
-        } else {
-            conda_exe = sh(script:"which conda", returnStdout:true).trim()
-        }
-        sh(script: "${conda_exe} list --explicit > env_dump_${index}.txt")
+        //if (fileExists(local_conda)) {
+        //    conda_exe = local_conda
+        //} else {
+        //    conda_exe = sh(script:"which conda", returnStdout:true).trim()
+        //}
 
+        system_conda_present = sh(script:"which conda", returnStatus:true)
+        if (system_conda_present == 0) {
+            conda_exe = sh(script:"which conda", returnStdout:true).trim()
+        } else if (fileExists(local_conda)) {
+            conda_exe = local_conda
+        }
+        if (conda_exe != '') {
+            println("About to dump environment: conda_env_dump_${config.name}.txt")
+            sh(script: "${conda_exe} list --explicit > conda_env_dump_${config.name}.txt")
+
+            // Stash spec file for use on master node.
+            stash includes: '**/conda_env_dump*', name: "conda_env_dump_${config.name}", useDefaultExcludes: false
+        }
+ 
     } // end withEnv
 }
 
@@ -459,11 +533,7 @@ def processCondaPkgs(config, index) {
         } else {
             conda_exe = sh(script: "which conda", returnStdout: true).trim()
             println("Found conda exe at ${conda_exe}.")
-            if (config.conda_ver != null) {
-               sh(script: "${conda_exe} install conda=${config.conda_ver} -q -y")
-            }
         }
-        sh(script: "${conda_exe} --version")
         def conda_root = conda_exe.replace("/bin/conda", "").trim()
         def env_name = "tmp_env${index}"
         def conda_prefix = "${conda_root}/envs/${env_name}".trim()
@@ -599,14 +669,22 @@ def run(configs, concurrent = true) {
     // Create JobConfig with default values.
     def jobconfig = new JobConfig()
 
-    // Loop over config objects passed in handling each accordingly.
-    configs.eachWithIndex { config, index ->
+    def buildconfigs = []
+
+    // Separate jobconfig from buildconfig(s).
+    configs.eachWithIndex { config ->
 
         // Extract a JobConfig object if one is found.
         if (config.getClass() == JobConfig) {
             jobconfig = config // TODO: Try clone here to make a new instance
             return  // effectively a 'continue' from within a closure.
+        } else {
+            buildconfigs.add(config)
         }
+    }
+    
+    // Loop over config objects passed in handling each accordingly.
+    buildconfigs.eachWithIndex { config, index ->
 
         def BuildConfig myconfig = new BuildConfig() // MUST be inside eachWith loop.
         myconfig = SerializationUtils.clone(config)
@@ -627,7 +705,7 @@ def run(configs, concurrent = true) {
                 for (var in myconfig.env_vars_raw) {
                     myconfig.runtime.add(var)
                 }
-                buildAndTest(myconfig, index)
+                buildAndTest(myconfig)
             } // end node
         }
 
@@ -641,7 +719,7 @@ def run(configs, concurrent = true) {
         sequentialTasks(tasks)
     }
 
-    stagePostBuild(jobconfig)
+    stagePostBuild(jobconfig, buildconfigs)
 }
 
 
