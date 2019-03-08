@@ -33,3 +33,10 @@ class BuildConfig implements Serializable {
         this.nodetype = ""
     }
 }
+
+
+class testInfo implements Serializable {
+    def problems = false
+    def subject = ""
+    def message = ""
+}
