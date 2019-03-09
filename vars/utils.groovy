@@ -623,6 +623,24 @@ def run(configs, concurrent = true) {
 }
 
 
+// Condense version triplet and replace version specifier(s) with human-readable text
+//
+// @param    String s        string containing version specifiers
+// @return   String          string with converted version specifiers
+String convert_specifiers(String s) {
+    String result = s
+    result = result.replaceAll("\\.", "")  // No period
+                   .replaceAll(",", "")    // No comma
+                   .replaceAll("<", "L")   // Less than
+                   .replaceAll(">", "G")   // Greater than
+                   .replaceAll("~=", "C")  // Compatible (GE x.y && L x.*)
+                   .replaceAll("=", "E")   // Equal to (=, E | ==, EE)
+                   .replaceAll("\\!", "N") // Not equal to
+
+    return result
+}
+
+
 // Convenience function that performs a deep copy on the supplied object.
 //
 // @param obj  Java/Groovy object to copy
