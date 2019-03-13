@@ -167,7 +167,7 @@ def parseTestReports(buildconfigs) {
        println("Unstashing test report for: ${config.name}")
        try {
            unstash "${config.name}.results"
-           results_hdr = sh(script:"grep 'testsuite errors' results.${config.name}.xml",
+           results_hdr = sh(script:"grep 'testsuite errors' 'results.${config.name}.xml'",
                              returnStdout: true)
            short_hdr = results_hdr.findAll(/(?<=testsuite ).*/)[0]
            short_hdr = short_hdr.split('><testcase')[0]
