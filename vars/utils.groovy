@@ -167,7 +167,7 @@ def parseTestReports(buildconfigs) {
        println("Unstashing test report for: ${config.name}")
        try {
            unstash "${config.name}.results"
-           results_hdr = sh(script:"grep 'testsuite errors' results.${config.name}.xml",
+           results_hdr = sh(script:"grep 'testsuite errors' 'results.${config.name}.xml'",
                              returnStdout: true)
            short_hdr = results_hdr.findAll(/(?<=testsuite ).*/)[0]
            short_hdr = short_hdr.split('><testcase')[0]
@@ -318,7 +318,7 @@ def processTestReport(config) {
     // on each test name to make it more obvious from where each result originates.
     if (report_exists == 0) {
         repfile = sh(script:"find *.xml", returnStdout: true).trim()
-        command = "cp ${repfile} ${repfile}.modified"
+        command = "cp '${repfile}' '${repfile}.modified'"
         sh(script:command)
         sh(script:"sed -i 's/ name=\"/ name=\"[${config.name}] /g' *.xml.modified")
         step([$class: 'XUnitBuilder',
@@ -335,7 +335,7 @@ def processTestReport(config) {
     // TODO: Define results file name centrally and reference here.
     if (fileExists('results.xml')) {
         // Copy test report to a name unique to this build configuration.
-        sh("cp results.xml results.${config.name}.xml")
+        sh("cp 'results.xml' 'results.${config.name}.xml'")
         def stashname = "${config.name}.results"
         stash includes: "results.${config.name}.xml", name: stashname, useDefaultExcludes: false
     }
