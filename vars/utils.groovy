@@ -490,11 +490,6 @@ def buildAndTest(config) {
         // If conda is present, dump the conda environment definition to a file.
         def conda_exe = ''
         local_conda = "${env.WORKSPACE}/miniconda/bin/conda"
-        //if (fileExists(local_conda)) {
-        //    conda_exe = local_conda
-        //} else {
-        //    conda_exe = sh(script:"which conda", returnStdout:true).trim()
-        //}
 
         system_conda_present = sh(script:"which conda", returnStatus:true)
         if (system_conda_present == 0) {
@@ -503,8 +498,8 @@ def buildAndTest(config) {
             conda_exe = local_conda
         }
         if (conda_exe != '') {
-            println("About to dump environment: conda_env_dump_${config.name}.txt")
-            sh(script: "${conda_exe} list --explicit > conda_env_dump_${config.name}.txt")
+            println("About to dump environment: 'conda_env_dump_${config.name}.txt'")
+            sh(script: "${conda_exe} list --explicit > 'conda_env_dump_${config.name}.txt'")
 
             // Stash spec file for use on master node.
             stash includes: '**/conda_env_dump*', name: "conda_env_dump_${config.name}", useDefaultExcludes: false
@@ -569,7 +564,7 @@ def processCondaPkgs(config, index) {
         config.env_vars.add(0, "CONDA_PYTHON_EXE=${conda_prefix}/bin/python")
         config.env_vars.add(0, "CONDA_DEFAULT_ENV=${env_name}")
         // Prepend the PATH var adjustment to the list that gets processed below.
-        def conda_path = "PATH=${conda_prefix}/bin:$PATH"
+        def conda_path = "PATH=${conda_prefix}/bin:${conda_root}/bin:$PATH"
         config.env_vars.add(0, conda_path)
     }
     return config
