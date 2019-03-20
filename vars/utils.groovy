@@ -695,6 +695,8 @@ def run(configs, concurrent = true) {
             jobconfig.credentials.each { cred_id ->
               withCredentials([string(credentialsId: cred_id, variable: cred_id_val)]) {
                   config.env_vars.add("${cred_id}=${cred_id_val}")
+                }
+            }
         }
 
         def BuildConfig myconfig = new BuildConfig() // MUST be inside eachWith loop.
