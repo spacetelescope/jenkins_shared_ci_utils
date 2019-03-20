@@ -694,7 +694,7 @@ def run(configs, concurrent = true) {
         if (jobconfig.credentials != null) {
             jobconfig.credentials.each { cred_id ->
               withCredentials([string(credentialsId: cred_id, variable: 'cred_id_val')]) {
-                  config.env_vars.add("${cred_id}=${cred_id_val}")
+                  config.env_vars.add("${cred_id}=${cred_id_val}".toString())
                 }
             }
         }
