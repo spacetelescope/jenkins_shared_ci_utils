@@ -689,6 +689,14 @@ def run(configs, concurrent = true) {
     // Loop over config objects passed in handling each accordingly.
     buildconfigs.eachWithIndex { config, index ->
 
+        // Make any requested credentials available to all build configs
+        // in this job via environment variables.
+        if (jobconfig.credentials != null) {
+            jobconfig.credentials.each { cred_id ->
+              withCredentials([string(credentialsId: cred_id, variable: cred_id_val)]) {
+                  config.env_vars.add("${cred_id}=${cred_id_val}")
+        }
+
         def BuildConfig myconfig = new BuildConfig() // MUST be inside eachWith loop.
         myconfig = SerializationUtils.clone(config)
 
