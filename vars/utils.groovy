@@ -622,7 +622,6 @@ def expandEnvVars(config) {
 // @param config  BuildConfig object
 def abortOnGstrings(config) {
     config.env_vars.each { evar ->
-        println(evar)
         if (evar.getClass() == org.codehaus.groovy.runtime.GStringImpl) {
             msg = "Immediate interpolation of variables in the 'env_vars'" +
                   " list is not supported and will probably not do what" +
@@ -688,6 +687,16 @@ def run(configs, concurrent = true) {
     
     // Loop over config objects passed in handling each accordingly.
     buildconfigs.eachWithIndex { config, index ->
+
+        // Make any requested credentials available to all build configs
+        // in this job via environment variables.
+        if (jobconfig.credentials != null) {
+            jobconfig.credentials.each { cred_id ->
+              withCredentials([string(credentialsId: cred_id, variable: 'cred_id_val')]) {
+                  config.env_vars.add("${cred_id}=${cred_id_val}".toString())
+                }
+            }
+        }
 
         def BuildConfig myconfig = new BuildConfig() // MUST be inside eachWith loop.
         myconfig = SerializationUtils.clone(config)

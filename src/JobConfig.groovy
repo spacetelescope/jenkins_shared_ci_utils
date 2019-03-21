@@ -10,6 +10,8 @@ class JobConfig implements Serializable {
     def enable_env_publication = false
     def publish_env_on_success_only = true
 
+    def credentials = null
+
     // Build retention control
     def builds_to_keep = -1
 
