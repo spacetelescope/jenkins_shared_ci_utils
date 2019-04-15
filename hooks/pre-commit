@@ -1,0 +1,5 @@
+printf "[pre-commit hook] Updating branch reference in Jenkinsfile.test to allow self-testing... "
+branch=$(git rev-parse --abbrev-ref HEAD)
+sed -i "s/utils@.*'/utils@${branch}'/" Jenkinsfile
+git update-index --add Jenkinsfile
+printf "done.\n"
