@@ -1,1 +1,1 @@
-sed -i 's/#BRANCH#/branchy/' Jenkinsfile.test
+sed -i 's/#BRANCH#/master/' Jenkinsfile.test
