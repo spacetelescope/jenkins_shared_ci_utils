@@ -1,4 +1,4 @@
-script(readFileFromWorkspace('include'))
+load "./include"
 
 //@Library('utils@master') _
  
