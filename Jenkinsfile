@@ -28,7 +28,8 @@ data_config.match_prefix = '(.*)_result' // .json is appended automatically
 
 
 bc0 = new BuildConfig()
-bc0.nodetype = 'RHEL-6'
+//bc0.nodetype = 'RHEL-6'
+bc0.nodetype = 'linux'
 bc0.name = 'First buildconfig'
 bc0.env_vars = ['VAR_ONE=1',
                'VAR_TWO=2']
