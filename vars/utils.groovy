@@ -457,6 +457,7 @@ def buildAndTest(config) {
         stage("Build (${config.name})") {
             unstash "source_tree"
             for (cmd in config.build_cmds) {
+                println("CMD: ${cmd}")
                 sh(script: cmd)
             }
         }
