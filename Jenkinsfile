@@ -1,4 +1,3 @@
-@Library('utils@test-xml-validate') _
 
 // [skip ci] and [ci skip] have no effect here.
 if (utils.scm_checkout(['skip_disable':true])) return
