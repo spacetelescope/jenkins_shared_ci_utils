@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<invalid>
+</invalid>
+<testsuite errors="0" failures="0" invalid-param="" name="pytest" skipped="0" tests="5" time="0.042">
+  <testcase classname="tests.test_invalid" name="test_1" time="0.001"></testcase>
+  <testcase classname="tests.test_invalid" name="test_2" time="0.001">
+    <invalid-tag>
+    </invalid-tag>
+  </testcase>
+  <testcase invalid-testcase="" classname="tests.test_invalid" name="test_3" time="0.001"></testcase>
+  <testcase classname="tests.test_invalid" name="test_4" time="0.001"></testcase>
+  <testcase classname="tests.test_invalid" name="test_5" time="0.001"></testcase>
+</testsuite>
