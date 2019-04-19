@@ -149,12 +149,12 @@ def installConda(version, install_dir) {
     // Install miniconda
     sh "bash ./${conda_installer} -b -p ${install_dir}"
 
-    // Override conda version if specified and different from default.
-    def curr_ver = sh(script:"${conda_exe} --version", returnStdout: true)
-    curr_ver = curr_ver.tokenize()[1].trim()
-    if (curr_ver != version) {
-        sh "${conda_exe} install conda=${version}"
-    }
+    ////// Override conda version if specified and different from default.
+    ////def curr_ver = sh(script:"${conda_exe} --version", returnStdout: true)
+    ////curr_ver = curr_ver.tokenize()[1].trim()
+    ////if (curr_ver != version) {
+    ////    sh "${conda_exe} install conda=${version}"
+    ////}
 
     return true
 }
@@ -538,6 +538,14 @@ def processCondaPkgs(config, index) {
             conda_exe = sh(script: "which conda", returnStdout: true).trim()
             println("Found conda exe at ${conda_exe}.")
         }
+
+        // Override conda version if specified and different from default.
+        def curr_ver = sh(script:"${conda_exe} --version", returnStdout: true)
+        curr_ver = curr_ver.tokenize()[1].trim()
+        if (curr_ver != version) {
+            sh "${conda_exe} install conda=${version}"
+        }
+
         def conda_root = conda_exe.replace("/bin/conda", "").trim()
         def env_name = "tmp_env${index}"
         def conda_prefix = "${conda_root}/envs/${env_name}".trim()
