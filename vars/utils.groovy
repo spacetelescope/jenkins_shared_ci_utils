@@ -7,6 +7,18 @@ import org.apache.commons.io.FilenameUtils
 
 import org.kohsuke.github.GitHub
 
+import java.util.Properties;
+
+import org.xml.sax.SAXException;
+
+import javax.xml.XMLConstants;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.Source;
+import javax.xml.transform.stream.StreamSource;
+import javax.xml.validation.Schema;
+import javax.xml.validation.SchemaFactory;
+import javax.xml.validation.Validator;
+
 
 @NonCPS
 // Post an issue to a particular Github repository.
@@ -45,7 +57,7 @@ def postGithubIssue(reponame, username, password, subject, message) {
 // @param args  Map containing entries for control of Setup stage.
 //
 // @return skip_job  int  Status of clone step, to be tested to determine
-//                        need to abort from Jenkinsfile. 
+//                        need to abort from Jenkinsfile.
 def scm_checkout(args = ['skip_disable':false]) {
     skip_job = 0
     node('master') {
@@ -169,7 +181,7 @@ def parseTestReports(buildconfigs) {
     def raw_totals = ''
     def totals = [:]
     def tinfo = new testInfo()
-    tinfo.subject = "[AUTO] Regression testing summary" 
+    tinfo.subject = "[AUTO] Regression testing summary"
     tinfo.message = "Regression Testing (RT) Summary:\n\n"
     for (config in buildconfigs) {
        println("Unstashing test report for: ${config.name}")
@@ -247,7 +259,7 @@ upload_spec = """
 // collected from each build configuration execution and post this message
 // as an issue on the the project's Github page.
 //
-// @param jobconfig     JobConfig object 
+// @param jobconfig     JobConfig object
 def testSummaryNotify(jobconfig, buildconfigs, test_info) {
 
     //def test_info = parseTestReports(buildconfigs)
@@ -308,6 +320,35 @@ def publishCondaEnv(jobconfig, test_info) {
 }
 
 
+// Validates an XML file against xunit schema
+// Returns true if valid, false otherwise
+//
+// @param xmlFilePath     string path of xml file
+def validateXML(xmlFilePath) {
+  URL schemaFile = new URL("https://github.com/jenkinsci/xunit-plugin/raw/master/src/main/resources/org/jenkinsci/plugins/xunit/types/model/xsd/junit-10.xsd");
+
+  // create a Source for the xml document to be validated
+  Source xmlFile = new StreamSource(new File(xmlFilePath));
+
+  // Create a SchemaFactory capable of understanding WXS schemas
+  SchemaFactory factory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
+  Schema schema = factory.newSchema(schemaFile);
+
+  // Create a Validator instance, which can be used to validate an instance document
+  Validator validator = schema.newValidator();
+
+  // Validate the xml document
+  try {
+      validator.validate(xmlFile);
+  } catch (SAXException e) {
+      println(e)
+      // instance document is invalid!
+      return false;
+  }
+  return true;
+}
+
+
 // If a non-JUnit format .xml file exists in the
 // root of the workspace, the XUnitBuilder report
 // ingestion will fail.
@@ -336,7 +377,7 @@ def processTestReport(config) {
             [$class: 'FailedThreshold', unstableThreshold: "${config.failedUnstableThresh}"],
             [$class: 'FailedThreshold', failureThreshold: "${config.failedFailureThresh}"]],
             tools: [[$class: 'JUnitType', pattern: '*.xml.modified']]])
-    
+
     } else {
         println("No .xml files found in workspace. Test report ingestion skipped.")
     }
@@ -504,7 +545,7 @@ def buildAndTest(config) {
             // Stash spec file for use on master node.
             stash includes: '**/conda_env_dump*', name: "conda_env_dump_${config.name}", useDefaultExcludes: false
         }
- 
+
     } // end withEnv
 }
 
@@ -684,7 +725,7 @@ def run(configs, concurrent = true) {
             buildconfigs.add(config)
         }
     }
-    
+
     // Loop over config objects passed in handling each accordingly.
     buildconfigs.eachWithIndex { config, index ->
 
@@ -721,7 +762,7 @@ def run(configs, concurrent = true) {
             } // end node
         }
 
-    } //end closure configs.eachWithIndex 
+    } //end closure configs.eachWithIndex
 
     if (concurrent == true) {
         stage("Matrix") {
