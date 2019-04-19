@@ -543,7 +543,7 @@ def processCondaPkgs(config, index) {
         def curr_ver = sh(script:"${conda_exe} --version", returnStdout: true)
         curr_ver = curr_ver.tokenize()[1].trim()
         if (curr_ver != config.conda_ver) {
-            sh "${conda_exe} install conda=${version}"
+            sh "${conda_exe} install conda=${config.conda_ver}"
         }
 
         def conda_root = conda_exe.replace("/bin/conda", "").trim()
