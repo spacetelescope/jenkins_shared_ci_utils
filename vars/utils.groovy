@@ -542,7 +542,7 @@ def processCondaPkgs(config, index) {
         // Override conda version if specified and different from default.
         def curr_ver = sh(script:"${conda_exe} --version", returnStdout: true)
         curr_ver = curr_ver.tokenize()[1].trim()
-        if (curr_ver != version) {
+        if (curr_ver != config.conda_ver) {
             sh "${conda_exe} install conda=${version}"
         }
 
