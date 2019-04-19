@@ -8,19 +8,6 @@ import org.apache.commons.io.FilenameUtils
 import org.kohsuke.github.GitHub
 
 
-import java.util.Properties;
-
-import org.xml.sax.SAXException;
-
-import javax.xml.XMLConstants;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.Source;
-import javax.xml.transform.stream.StreamSource;
-import javax.xml.validation.Schema;
-import javax.xml.validation.SchemaFactory;
-import javax.xml.validation.Validator;
-
-
 @NonCPS
 // Post an issue to a particular Github repository.
 //
@@ -318,36 +305,6 @@ def publishCondaEnv(jobconfig, test_info) {
             pushToArtifactory("conda_env_dump_*", pub_repo)
         }
     }
-}
-
-
-// Validates an XML file against xunit schema
-// Returns true if valid, false otherwise.
-// Validates against Junit10 schema.
-//
-// @param xmlFilePath     string path of xml file
-def validateXML(xmlFilePath) {
-  URL schemaFile = new URL("https://github.com/jenkinsci/xunit-plugin/raw/master/src/main/resources/org/jenkinsci/plugins/xunit/types/model/xsd/junit-10.xsd");
-
-  // create a Source for the xml document to be validated
-  Source xmlFile = new StreamSource(new File(xmlFilePath));
-
-  // Create a SchemaFactory capable of understanding WXS schemas
-  SchemaFactory factory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
-  Schema schema = factory.newSchema(schemaFile);
-
-  // Create a Validator instance, which can be used to validate an instance document
-  Validator validator = schema.newValidator();
-
-  // Validate the xml document
-  try {
-      validator.validate(xmlFile);
-  } catch (SAXException e) {
-      println(e)
-      // instance document is invalid!
-      return false;
-  }
-  return true;
 }
 
 
