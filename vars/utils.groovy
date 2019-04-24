@@ -690,7 +690,7 @@ def run(configs, concurrent = true) {
             jobconfig = config // TODO: Try clone here to make a new instance
             return  // effectively a 'continue' from within a closure.
         } else {
-            buildconfigs.add(config)
+            buildconfigs.add(SerializationUtils.clone(config))
         }
     }
     
