@@ -33,12 +33,12 @@ bc0.env_vars = ['VAR_ONE=1',
                'VAR_TWO=2']
 bc0.conda_ver = '4.6.4'
 bc0.conda_packages = ['python=3.6',
-                     'pytest=3.8.2']
+                     'pytest']
 bc0.build_cmds = ["date",
                   "./access_env_var.sh",
                   "which python",
                   "conda install ipython"]
-bc0.test_cmds = ["${PYTEST} test_75pass.py"]
+bc0.test_cmds = ["${PYTEST} tests/test_75pass.py"]
 bc0.test_configs = [data_config]
 
 
@@ -46,7 +46,7 @@ bc1 = utils.copy(bc0)
 bc1.name = 'Second'
 bc1.env_vars = ['VAR_THREE=3',
                'VAR_FOUR=4']
-bc1.test_cmds[1] = "${PYTEST} test_25pass.py"
+bc1.test_cmds[1] = "${PYTEST} tests/test_25pass.py"
 
 
 bc2 = utils.copy(bc0)

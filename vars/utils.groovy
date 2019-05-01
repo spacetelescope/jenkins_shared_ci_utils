@@ -45,7 +45,7 @@ def postGithubIssue(reponame, username, password, subject, message) {
 // @param args  Map containing entries for control of Setup stage.
 //
 // @return skip_job  int  Status of clone step, to be tested to determine
-//                        need to abort from Jenkinsfile. 
+//                        need to abort from Jenkinsfile.
 def scm_checkout(args = ['skip_disable':false]) {
     skip_job = 0
     node('master') {
@@ -169,7 +169,7 @@ def parseTestReports(buildconfigs) {
     def raw_totals = ''
     def totals = [:]
     def tinfo = new testInfo()
-    tinfo.subject = "[AUTO] Regression testing summary" 
+    tinfo.subject = "[AUTO] Regression testing summary"
     tinfo.message = "Regression Testing (RT) Summary:\n\n"
     for (config in buildconfigs) {
        println("Unstashing test report for: ${config.name}")
@@ -247,7 +247,7 @@ upload_spec = """
 // collected from each build configuration execution and post this message
 // as an issue on the the project's Github page.
 //
-// @param jobconfig     JobConfig object 
+// @param jobconfig     JobConfig object
 def testSummaryNotify(jobconfig, buildconfigs, test_info) {
 
     //def test_info = parseTestReports(buildconfigs)
@@ -315,19 +315,23 @@ def publishCondaEnv(jobconfig, test_info) {
 // @param config      BuildConfig object
 def processTestReport(config) {
     def config_name = config.name
-    report_exists = sh(script: "test -e *.xml", returnStatus: true)
+    report_exists = sh(script: "find *.xml", returnStatus: true)
     def threshold_summary = "failedUnstableThresh: ${config.failedUnstableThresh}\n" +
         "failedFailureThresh: ${config.failedFailureThresh}\n" +
         "skippedUnstableThresh: ${config.skippedUnstableThresh}\n" +
         "skippedFailureThresh: ${config.skippedFailureThresh}"
     println(threshold_summary)
 
-    // Process the XML results file to include the build config name as a prefix
+    // Process the XML results files to include the build config name as a prefix
     // on each test name to make it more obvious from where each result originates.
     if (report_exists == 0) {
-        repfile = sh(script:"find *.xml", returnStdout: true).trim()
-        command = "cp '${repfile}' '${repfile}.modified'"
-        sh(script:command)
+        // get all .xml files in root
+        repfiles = sh(script:"find \$(pwd) -name '*.xml' -maxdepth 1", returnStdout: true).split("\n")
+        for (String repfile : repfiles) {
+            // loop through files
+            command = "cp '${repfile}' '${repfile}.modified'"
+            sh(script:command)
+        }
         sh(script:"sed -i 's/ name=\"/ name=\"[${config.name}] /g' *.xml.modified")
         step([$class: 'XUnitBuilder',
             thresholds: [
@@ -336,7 +340,6 @@ def processTestReport(config) {
             [$class: 'FailedThreshold', unstableThreshold: "${config.failedUnstableThresh}"],
             [$class: 'FailedThreshold', failureThreshold: "${config.failedFailureThresh}"]],
             tools: [[$class: 'JUnitType', pattern: '*.xml.modified']]])
-    
     } else {
         println("No .xml files found in workspace. Test report ingestion skipped.")
     }
@@ -504,7 +507,7 @@ def buildAndTest(config) {
             // Stash spec file for use on master node.
             stash includes: '**/conda_env_dump*', name: "conda_env_dump_${config.name}", useDefaultExcludes: false
         }
- 
+
     } // end withEnv
 }
 
@@ -684,7 +687,7 @@ def run(configs, concurrent = true) {
             buildconfigs.add(config)
         }
     }
-    
+
     // Loop over config objects passed in handling each accordingly.
     buildconfigs.eachWithIndex { config, index ->
 
@@ -721,7 +724,7 @@ def run(configs, concurrent = true) {
             } // end node
         }
 
-    } //end closure configs.eachWithIndex 
+    } //end closure configs.eachWithIndex
 
     if (concurrent == true) {
         stage("Matrix") {
