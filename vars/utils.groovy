@@ -501,11 +501,33 @@ def buildAndTest(config) {
             conda_exe = local_conda
         }
         if (conda_exe != '') {
-            println("About to dump environment: 'conda_env_dump_${config.name}.txt'")
-            sh(script: "${conda_exe} list --explicit > 'conda_env_dump_${config.name}.txt'")
+            dump_name = "conda_env_dump_${config.name}.txt"
+            println("About to dump environment: ${dump_name}")
+            sh(script: "${conda_exe} list --explicit > '${dump_name}'")
+
+            dump_name = "conda_env_dump_${config.name}.yml"
+            println("About to dump environment: ${dump_name}")
+            sh(script: "${conda_exe} env export > '${dump_name}'")
+            remote_out = sh(script: "git remote -v | head -1", returnStdout: true).trim()
+            remote_repo = remote_out.tokenize()[1]
+	    //commit = sh(script: "git rev-parse head", returnStdout: true).trim()
+	    commit = sh(script: "git show --oneline", returnStdout: true).trim().tokenize()[0]
+            // Remove 'prefix' line as it isn't needed and complicates the
+            // addition of the 'pip' section.
+            sh(script: "sed -i '/prefix/d' ${dump_name}")
+            pip_section = sh(script: "grep 'pip:' ${dump_name}", returnStatus: true)
+            if (pip_section != 0) {
+                sh "echo '  - pip:' >> ${dump_name}"
+            }
+            // Add git+https line in pip section to install the commit
+            // used for the target project of this job.
+            extra_yml_1 = "    - ${remote_repo}@${commit}"
+            sh "echo '${extra_yml_1}' >> ${dump_name}"
 
             // Stash spec file for use on master node.
-            stash includes: '**/conda_env_dump*', name: "conda_env_dump_${config.name}", useDefaultExcludes: false
+            stash includes: '**/conda_env_dump*',
+                  name: "conda_env_dump_${config.name}",
+                  useDefaultExcludes: false
         }
 
     } // end withEnv
