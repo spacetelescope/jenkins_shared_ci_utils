@@ -525,8 +525,6 @@ def buildAndTest(config) {
             extra_yml_1 = "    - ${remote_repo}@${commit}"
             sh "echo '${extra_yml_1}' >> ${dump_name}"
 
-            sh "more ${dump_name}"
-
             // Stash spec file for use on master node.
             stash includes: '**/conda_env_dump*',
                   name: "conda_env_dump_${config.name}",
