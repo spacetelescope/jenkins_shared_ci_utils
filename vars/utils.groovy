@@ -511,7 +511,8 @@ def buildAndTest(config) {
             remote_out = sh(script: "git remote -v | head -1", returnStdout: true).trim()
             remote_repo = remote_out.tokenize()[1]
 	    //commit = sh(script: "git rev-parse head", returnStdout: true).trim()
-	    commit = sh(script: "git show --oneline", returnStdout: true).trim().tokenize()[0]
+	    //commit = sh(script: "git show --oneline", returnStdout: true).trim().tokenize()[0]
+            commit = sh(script: "git rev-parse HEAD", returnStdout: true).trim()
             // Remove 'prefix' line as it isn't needed and complicates the
             // addition of the 'pip' section.
             sh(script: "sed -i '/prefix/d' ${dump_name}")
