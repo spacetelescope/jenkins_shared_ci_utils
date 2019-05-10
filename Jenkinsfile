@@ -52,7 +52,7 @@ bc1.test_cmds[1] = "${PYTEST} tests/test_25pass.py"
 
 bc2 = utils.copy(bc0)
 bc2.name = 'Third build config'
-bc2.conda_packages = []
+bc2.conda_packages = ['python=3.6']
 bc2.build_cmds = ["which python"]
 bc2.test_cmds = ["ls -al"]
 bc2.test_configs = []
