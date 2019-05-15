@@ -492,7 +492,7 @@ def buildAndTest(config) {
 
         // If conda is present, dump the conda environment definition to a file.
         def conda_exe = ''
-        local_conda = "${env.WORKSPACE}/miniconda/bin/conda"
+        def local_conda = "${env.WORKSPACE}/miniconda/bin/conda"
 
         system_conda_present = sh(script:"which conda", returnStatus:true)
         if (system_conda_present == 0) {
@@ -501,26 +501,28 @@ def buildAndTest(config) {
             conda_exe = local_conda
         }
         if (conda_exe != '') {
-            dump_name = "conda_env_dump_${config.name}.txt"
+            // 'def' _required_ here to prevent use of values from one build
+            // config leaking into others.
+            def dump_name = "conda_env_dump_${config.name}.txt"
             println("About to dump environment: ${dump_name}")
             sh(script: "${conda_exe} list --explicit > '${dump_name}'")
 
             dump_name = "conda_env_dump_${config.name}.yml"
             println("About to dump environment: ${dump_name}")
             sh(script: "${conda_exe} env export > '${dump_name}'")
-            remote_out = sh(script: "git remote -v | head -1", returnStdout: true).trim()
-            remote_repo = remote_out.tokenize()[1]
+            def remote_out = sh(script: "git remote -v | head -1", returnStdout: true).trim()
+            def remote_repo = remote_out.tokenize()[1]
             commit = sh(script: "git rev-parse HEAD", returnStdout: true).trim()
             // Remove 'prefix' line as it isn't needed and complicates the
             // addition of the 'pip' section.
             sh(script: "sed -i '/prefix/d' '${dump_name}'")
-            pip_section = sh(script: "grep 'pip:' '${dump_name}'", returnStatus: true)
+            def pip_section = sh(script: "grep 'pip:' '${dump_name}'", returnStatus: true)
             if (pip_section != 0) {
                 sh "echo '  - pip:' >> '${dump_name}'"
             }
             // Add git+https line in pip section to install the commit
             // used for the target project of this job.
-            extra_yml_1 = "    - ${remote_repo}@${commit}"
+            def extra_yml_1 = "    - ${remote_repo}@${commit}"
             sh "echo '${extra_yml_1}' >> '${dump_name}'"
 
             // Stash spec file for use on master node.
