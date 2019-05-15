@@ -501,7 +501,7 @@ def buildAndTest(config) {
             conda_exe = local_conda
         }
         if (conda_exe != '') {
-            dump_name = "conda_env_dump_${config.name}.txt"
+            def dump_name = "conda_env_dump_${config.name}.txt"
             println("About to dump environment: ${dump_name}")
             sh(script: "${conda_exe} list --explicit > '${dump_name}'")
 
