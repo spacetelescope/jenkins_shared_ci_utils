@@ -501,6 +501,8 @@ def buildAndTest(config) {
             conda_exe = local_conda
         }
         if (conda_exe != '') {
+            // 'def' _required_ here to prevent use of values from one build
+            // config leaking into others.
             def dump_name = "conda_env_dump_${config.name}.txt"
             println("About to dump environment: ${dump_name}")
             sh(script: "${conda_exe} list --explicit > '${dump_name}'")
@@ -513,7 +515,6 @@ def buildAndTest(config) {
             commit = sh(script: "git rev-parse HEAD", returnStdout: true).trim()
             // Remove 'prefix' line as it isn't needed and complicates the
             // addition of the 'pip' section.
-            println("_*_*_*_*_*_*_*_*_*_* ${dump_name}")
             sh(script: "sed -i '/prefix/d' '${dump_name}'")
             pip_section = sh(script: "grep 'pip:' '${dump_name}'", returnStatus: true)
             if (pip_section != 0) {
