@@ -513,6 +513,7 @@ def buildAndTest(config) {
             commit = sh(script: "git rev-parse HEAD", returnStdout: true).trim()
             // Remove 'prefix' line as it isn't needed and complicates the
             // addition of the 'pip' section.
+            println("_*_*_*_*_*_*_*_*_*_* ${dump_name}")
             sh(script: "sed -i '/prefix/d' '${dump_name}'")
             pip_section = sh(script: "grep 'pip:' '${dump_name}'", returnStatus: true)
             if (pip_section != 0) {
