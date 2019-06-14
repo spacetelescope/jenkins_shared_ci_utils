@@ -52,7 +52,9 @@ def scm_checkout(args = ['skip_disable':false]) {
         stage("Setup") {
             deleteDir()
             dir('clone') {
-                checkout(scm, workspace='clone')
+                scmvars = checkout(scm)
+                println(scmvars.workspace)
+                
                 println("args['skip_disable'] = ${args['skip_disable']}")
                 if (args['skip_disable'] == false) {
                     // Obtain the last commit message and examine it for skip directives.
