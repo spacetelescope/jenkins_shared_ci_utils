@@ -52,8 +52,8 @@ def scm_checkout(args = ['skip_disable':false]) {
         stage("Setup") {
             deleteDir()
             dir('clone') {
-                scmvars = checkout(scm)
-                println(scmvars.workspace)
+                //scmvars = checkout(scm)
+                checkoutToSubdirectory(scm, 'clone')
                 
                 println("args['skip_disable'] = ${args['skip_disable']}")
                 if (args['skip_disable'] == false) {
