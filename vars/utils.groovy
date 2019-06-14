@@ -57,9 +57,9 @@ def scm_checkout(args = ['skip_disable':false]) {
             def workspace_val = WORKSPACE
             def clonedir = "${WORKSPACE}/clone"
             //WORKSPACE = clonedir
-            //checkout(scm)
+            checkout(scm)
             sh "mkdir clone"
-            //stat = sh(script: "mv * clone", returnStatus: true)
+            stat = sh(script: "mv * clone", returnStatus: true)
             //WORKSPACE = workspace_val
             
                 //checkoutToSubdirectory('clone')
