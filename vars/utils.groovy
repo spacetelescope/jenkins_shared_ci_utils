@@ -51,14 +51,17 @@ def scm_checkout(args = ['skip_disable':false]) {
     node('master') {
         stage("Setup") {
             deleteDir()
+            // Perform repo checkout, which for some reason clobbers everything
+            // in the workspace. Then, create a project subdir, and move all
+            // files into it. Then continue as usual.
             sh "mkdir CLONE"
             sh "touch NEWFILENEWFILENEWFILE"
             def workspace_val = WORKSPACE
             def clonedir = "${WORKSPACE}/clone"
             //WORKSPACE = clonedir
             checkout(scm)
-            sh "mkdir CLONE2"
-            sh "touch 22222222"
+            sh "mkdir clone"
+            sh(script: "mv * clone", returnStatus: true)
             //WORKSPACE = workspace_val
           
             
