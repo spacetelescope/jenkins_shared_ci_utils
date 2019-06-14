@@ -51,7 +51,8 @@ def scm_checkout(args = ['skip_disable':false]) {
     node('master') {
         stage("Setup") {
             deleteDir()
-            //dir('clone') {
+            dir('clone') {
+            }
                 //scmvars = checkout(scm)
                 checkoutToSubdirectory('clone')
                 
