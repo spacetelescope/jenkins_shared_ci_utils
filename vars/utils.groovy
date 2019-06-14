@@ -52,9 +52,13 @@ def scm_checkout(args = ['skip_disable':false]) {
         stage("Setup") {
             deleteDir()
             sh "mkdir clone"
-            //dir('clone') {
-            //}
-                //scmvars = checkout(scm)
+            def workspace_val = WORKSPACE
+            def clonedir = "${WORKSPACE}/clone"
+            WORKSPACE = clonedir
+                scmvars = checkout(scm)
+            WORKSPACE = workspace_val
+          
+            
                 checkoutToSubdirectory('clone')
                 
                 println("args['skip_disable'] = ${args['skip_disable']}")
