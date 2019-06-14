@@ -53,7 +53,7 @@ def scm_checkout(args = ['skip_disable':false]) {
             deleteDir()
             dir('clone') {
                 //scmvars = checkout(scm)
-                checkoutToSubdirectory(scm, 'clone')
+                checkoutToSubdirectory('clone')
                 
                 println("args['skip_disable'] = ${args['skip_disable']}")
                 if (args['skip_disable'] == false) {
