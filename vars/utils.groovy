@@ -51,7 +51,12 @@ def scm_checkout(args = ['skip_disable':false]) {
     node('master') {
         stage("Setup") {
             deleteDir()
+            // Perform repo checkout, which for some reason clobbers everything
+            // in the workspace. Then, create a project subdir, and move all
+            // files into it. Then continue as usual.
             checkout(scm)
+            sh "mkdir clone"
+            stat = sh(script: "mv * clone", returnStatus: true)
             println("args['skip_disable'] = ${args['skip_disable']}")
             if (args['skip_disable'] == false) {
                 // Obtain the last commit message and examine it for skip directives.
@@ -455,40 +460,42 @@ def stagePostBuild(jobconfig, buildconfigs) {
 //
 // @param config      BuildConfig object
 def buildAndTest(config) {
-    println("buildAndTest")
     withEnv(config.runtime) {
+    unstash "source_tree"
+    dir('clone') {
         stage("Build (${config.name})") {
-            unstash "source_tree"
             for (cmd in config.build_cmds) {
                 sh(script: cmd)
             }
         }
-        if (config.test_cmds.size() > 0) {
-            try {
-                stage("Test (${config.name})") {
-                    for (cmd in config.test_cmds) {
-                        // Ignore status code from all commands in
-                        // test_cmds so Jenkins will always make it
-                        // to the post-build stage.
-                        // This accommodates tools like pytest returning
-                        // !0 codes when a test fails which would
-                        // abort the job too early.
-                        sh(script: "${cmd} || true")
+        stage("Test (${config.name})") {
+            if (config.test_cmds.size() > 0) {
+                try {
+                    stage("Test (${config.name})") {
+                        for (cmd in config.test_cmds) {
+                            // Ignore status code from all commands in
+                            // test_cmds so Jenkins will always make it
+                            // to the post-build stage.
+                            // This accommodates tools like pytest returning
+                            // !0 codes when a test fails which would
+                            // abort the job too early.
+                            sh(script: "${cmd} || true")
+                        }
                     }
                 }
-            }
-            finally {
-                // Perform Artifactory upload if required
-                if (config.test_configs.size() > 0) {
+                finally {
+                    // Perform Artifactory upload if required
+                    if (config.test_configs.size() > 0) {
 
-                    stageArtifactory(config)
+                        stageArtifactory(config)
 
-                } // end test_configs check
+                    } // end test_configs check
 
-                processTestReport(config)
+                    processTestReport(config)
 
-            } // end test test_cmd finally clause
-        } // end if(config.test_cmds...)
+                } // end test test_cmd finally clause
+            } // end if(config.test_cmds...)
+        } // end stage("Test
 
         // If conda is present, dump the conda environment definition to a file.
         def conda_exe = ''
@@ -532,6 +539,7 @@ def buildAndTest(config) {
         }
 
     } // end withEnv
+    } // end dir(
 }
 
 
