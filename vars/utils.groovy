@@ -473,6 +473,7 @@ def stagePostBuild(jobconfig, buildconfigs) {
 def buildAndTest(config) {
     println("buildAndTest")
     withEnv(config.runtime) {
+    dir('clone') {
         stage("Build (${config.name})") {
             unstash "source_tree"
             for (cmd in config.build_cmds) {
@@ -548,6 +549,7 @@ def buildAndTest(config) {
         }
 
     } // end withEnv
+    } // end dir(
 }
 
 
