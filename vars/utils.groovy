@@ -296,6 +296,7 @@ def publishCondaEnv(jobconfig, test_info) {
 
     if (jobconfig.enable_env_publication) {
         // Extract repo from standardized location
+        dir testconf = null
         dir('clone') {
             def testconf = readFile("setup.cfg")
         }
