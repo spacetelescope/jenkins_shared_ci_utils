@@ -56,7 +56,7 @@ def scm_checkout(args = ['skip_disable':false]) {
             // files into it. Then continue as usual.
             checkout(scm)
             sh "mkdir clone"
-            stat = sh(script: "mv * clone", returnStatus: true)
+            stat = sh(script: "shopt -s dotglob; mv * clone", returnStatus: true)
             println("args['skip_disable'] = ${args['skip_disable']}")
             if (args['skip_disable'] == false) {
                 // Obtain the last commit message and examine it for skip directives.
@@ -296,18 +296,20 @@ def publishCondaEnv(jobconfig, test_info) {
 
     if (jobconfig.enable_env_publication) {
         // Extract repo from standardized location
-        def testconf = readFile("setup.cfg")
-        def Properties prop = new Properties()
-        prop.load(new StringReader(testconf))
-        println("PROP->${prop.getProperty('results_root')}")
-        pub_repo = prop.getProperty('results_root')
+        dir('clone') {
+            def testconf = readFile("setup.cfg")
+            def Properties prop = new Properties()
+            prop.load(new StringReader(testconf))
+            println("PROP->${prop.getProperty('results_root')}")
+            pub_repo = prop.getProperty('results_root')
 
-        if (jobconfig.publish_env_on_success_only) {
-            if (!test_info.problems) {
+            if (jobconfig.publish_env_on_success_only) {
+                if (!test_info.problems) {
+                    pushToArtifactory("conda_env_dump_*", pub_repo)
+                }
+            } else {
                 pushToArtifactory("conda_env_dump_*", pub_repo)
             }
-        } else {
-            pushToArtifactory("conda_env_dump_*", pub_repo)
         }
     }
 }
