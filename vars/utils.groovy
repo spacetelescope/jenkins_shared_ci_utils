@@ -56,8 +56,7 @@ def scm_checkout(args = ['skip_disable':false]) {
             // files into it. Then continue as usual.
             checkout(scm)
             sh "mkdir clone"
-            //stat = sh(script: "shopt -s dotglob; mv * clone", returnStatus: true)
-            stat = sh(script: "mv * clone", returnStatus: true)
+            stat = sh(script: "shopt -s dotglob; mv * clone", returnStatus: true)
             println("args['skip_disable'] = ${args['skip_disable']}")
             if (args['skip_disable'] == false) {
                 // Obtain the last commit message and examine it for skip directives.
