@@ -296,7 +296,9 @@ def publishCondaEnv(jobconfig, test_info) {
 
     if (jobconfig.enable_env_publication) {
         // Extract repo from standardized location
-        //dir('clone') {
+        dir('clone') {
+            sh "pwd"
+            sh "ls -al"
             def testconf = readFile("setup.cfg")
             def Properties prop = new Properties()
             prop.load(new StringReader(testconf))
@@ -310,7 +312,7 @@ def publishCondaEnv(jobconfig, test_info) {
             } else {
                 pushToArtifactory("conda_env_dump_*", pub_repo)
             }
-        //}
+        }
     }
 }
 
