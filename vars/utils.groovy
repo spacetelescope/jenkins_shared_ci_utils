@@ -54,9 +54,14 @@ def scm_checkout(args = ['skip_disable':false]) {
             // Perform repo checkout, which for some reason clobbers everything
             // in the workspace. Then, create a project subdir, and move all
             // files into it. Then continue as usual.
-            checkout(scm) {
-                relativeTargetDir: 'clone'
-            }
+        checkout([$class: 'GitSCM', 
+            branches: [[name: '*/master']], 
+            doGenerateSubmoduleConfigurations: false, 
+            extensions: [[$class: 'RelativeTargetDirectory', 
+                relativeTargetDir: 'checkout-directory']], 
+            submoduleCfg: []) //,
+            //userRemoteConfigs: [[url: 'https://github.com/luxengine/math.git']]])
+            //checkout(scm)
             //sh "mkdir clone"
             //stat = sh(script: "mv * clone", returnStatus: true)
             sh "ls -al"
