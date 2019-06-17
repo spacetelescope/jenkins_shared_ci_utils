@@ -54,9 +54,10 @@ def scm_checkout(args = ['skip_disable':false]) {
             // Perform repo checkout, which for some reason clobbers everything
             // in the workspace. Then, create a project subdir, and move all
             // files into it. Then continue as usual.
-            checkout(scm)
-            sh "mkdir clone"
-            stat = sh(script: "mv * clone", returnStatus: true)
+            checkout(scm, +'clone')
+            //sh "mkdir clone"
+            //stat = sh(script: "mv * clone", returnStatus: true)
+            sh "ls -al"
             println("args['skip_disable'] = ${args['skip_disable']}")
             if (args['skip_disable'] == false) {
                 // Obtain the last commit message and examine it for skip directives.
@@ -296,7 +297,9 @@ def publishCondaEnv(jobconfig, test_info) {
 
     if (jobconfig.enable_env_publication) {
         // Extract repo from standardized location
-        def testconf = readFile("setup.cfg")
+        dir('clone') {
+            def testconf = readFile("setup.cfg")
+        }
         def Properties prop = new Properties()
         prop.load(new StringReader(testconf))
         println("PROP->${prop.getProperty('results_root')}")
