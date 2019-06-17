@@ -69,7 +69,7 @@ def scm_checkout(args = ['skip_disable':false]) {
                         return skip_job
                     }
                 }
-            } //end dir(
+            } //end dir(...
             stash includes: '**/*', name: 'source_tree', useDefaultExcludes: false
         }
     }
@@ -312,7 +312,7 @@ def publishCondaEnv(jobconfig, test_info) {
             } else {
                 pushToArtifactory("conda_env_dump_*", pub_repo)
             }
-        }
+        } // end dir(...
     }
 }
 
