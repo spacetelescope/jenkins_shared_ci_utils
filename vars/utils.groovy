@@ -58,16 +58,18 @@ def scm_checkout(args = ['skip_disable':false]) {
             sh "mkdir clone"
             stat = sh(script: "shopt -s dotglob; mv * clone", returnStatus: true)
             println("args['skip_disable'] = ${args['skip_disable']}")
-            if (args['skip_disable'] == false) {
-                // Obtain the last commit message and examine it for skip directives.
-                logoutput = sh(script:"git log -1 --pretty=%B", returnStdout: true).trim()
-                if (logoutput.contains("[ci skip]") || logoutput.contains("[skip ci]")) {
-                    skip_job = 1
-                    currentBuild.result = 'SUCCESS'
-                    println("\nBuild skipped due to commit message directive.\n")
-                    return skip_job
+            dir('clone') {
+                if (args['skip_disable'] == false) {
+                    // Obtain the last commit message and examine it for skip directives.
+                    logoutput = sh(script:"git log -1 --pretty=%B", returnStdout: true).trim()
+                    if (logoutput.contains("[ci skip]") || logoutput.contains("[skip ci]")) {
+                        skip_job = 1
+                        currentBuild.result = 'SUCCESS'
+                        println("\nBuild skipped due to commit message directive.\n")
+                        return skip_job
+                    }
                 }
-            }
+            } //end dir(...
             stash includes: '**/*', name: 'source_tree', useDefaultExcludes: false
         }
     }
@@ -310,7 +312,7 @@ def publishCondaEnv(jobconfig, test_info) {
             } else {
                 pushToArtifactory("conda_env_dump_*", pub_repo)
             }
-        }
+        } // end dir(...
     }
 }
 
