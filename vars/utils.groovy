@@ -59,7 +59,7 @@ def scm_checkout(args = ['skip_disable':false]) {
             doGenerateSubmoduleConfigurations: false, 
             extensions: [[$class: 'RelativeTargetDirectory', 
                 relativeTargetDir: 'checkout-directory']], 
-            submoduleCfg: []) //,
+            submoduleCfg: []]) //,
             //userRemoteConfigs: [[url: 'https://github.com/luxengine/math.git']]])
             //checkout(scm)
             //sh "mkdir clone"
