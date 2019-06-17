@@ -296,22 +296,21 @@ def publishCondaEnv(jobconfig, test_info) {
 
     if (jobconfig.enable_env_publication) {
         // Extract repo from standardized location
-        dir testconf = null
-        dir('clone') {
+        //dir('clone') {
             def testconf = readFile("setup.cfg")
-        }
-        def Properties prop = new Properties()
-        prop.load(new StringReader(testconf))
-        println("PROP->${prop.getProperty('results_root')}")
-        pub_repo = prop.getProperty('results_root')
+            def Properties prop = new Properties()
+            prop.load(new StringReader(testconf))
+            println("PROP->${prop.getProperty('results_root')}")
+            pub_repo = prop.getProperty('results_root')
 
-        if (jobconfig.publish_env_on_success_only) {
-            if (!test_info.problems) {
+            if (jobconfig.publish_env_on_success_only) {
+                if (!test_info.problems) {
+                    pushToArtifactory("conda_env_dump_*", pub_repo)
+                }
+            } else {
                 pushToArtifactory("conda_env_dump_*", pub_repo)
             }
-        } else {
-            pushToArtifactory("conda_env_dump_*", pub_repo)
-        }
+        //}
     }
 }
 
