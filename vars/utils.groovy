@@ -527,13 +527,16 @@ def buildAndTest(config) {
             // Remove 'prefix' line as it isn't needed and complicates the
             // addition of the 'pip' section.
             sh(script: "sed -i '/prefix/d' '${dump_name}'")
+            // Remove any blank lines
+            sh(script: "sed -i '/^ *\$/d' '${dump_name}'")
             def pip_section = sh(script: "grep 'pip:' '${dump_name}'", returnStatus: true)
+            // Add 'pip' section if one is not already present.
             if (pip_section != 0) {
                 sh "echo '  - pip:' >> '${dump_name}'"
             }
             // Add git+https line in pip section to install the commit
             // used for the target project of this job.
-            def extra_yml_1 = "    - ${remote_repo}@${commit}"
+            def extra_yml_1 = "    - git+${remote_repo}@${commit}"
             sh "echo '${extra_yml_1}' >> '${dump_name}'"
 
             // Stash spec file for use on master node.
