@@ -528,7 +528,7 @@ def buildAndTest(config) {
             // addition of the 'pip' section.
             sh(script: "sed -i '/prefix/d' '${dump_name}'")
             // Remove any blank lines
-            sh(script: "sed -i '/^ *$/d' '${dump_name}'")
+            sh(script: "sed -i '/^ *\$/d' '${dump_name}'")
             def pip_section = sh(script: "grep 'pip:' '${dump_name}'", returnStatus: true)
             // Add 'pip' section if one is not already present.
             if (pip_section != 0) {
