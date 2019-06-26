@@ -35,8 +35,8 @@ bc0.env_vars = ['VAR_ONE=1',
 bc0.conda_ver = '4.6.4'
 bc0.conda_packages = ['python=3.6',
                      'pytest']
-bc0.build_cmds = ["date",
-                  "env",
+bc0.build_cmds = ["env",
+                  "ls -al,
                   "conda config --show",
                   "./access_env_var.sh",
                   "which python",
