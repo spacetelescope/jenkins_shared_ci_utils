@@ -622,6 +622,10 @@ def expandEnvVars(config) {
     // Expand environment variable specifications by using the shell
     // to dereference any var references and then render the entire
     // value as a canonical path.
+    
+    // Override the HOME dir to be the job workspace.
+    config.env_vars.add("HOME=${env.WORKSPACE}")
+
     for (var in config.env_vars) {
         // Process each var in an environment defined by all the prior vars.
         withEnv(config.runtime) {
