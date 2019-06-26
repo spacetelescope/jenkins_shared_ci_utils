@@ -1,4 +1,4 @@
-//@Library('utils@homedir') _
+@Library('utils@homedir') _
 
 // [skip ci] and [ci skip] have no effect here.
 if (utils.scm_checkout(['skip_disable':true])) return
@@ -36,6 +36,8 @@ bc0.conda_ver = '4.6.4'
 bc0.conda_packages = ['python=3.6',
                      'pytest']
 bc0.build_cmds = ["date",
+                  "env",
+                  "conda config --show",
                   "./access_env_var.sh",
                   "which python",
                   "conda install ipython"]
@@ -53,7 +55,8 @@ bc1.test_cmds[1] = "${PYTEST} tests/test_25pass.py"
 bc2 = utils.copy(bc0)
 bc2.name = 'Third build config'
 bc2.conda_packages = ['python=3.6']
-bc2.build_cmds = ["which python"]
+bc2.build_cmds = ["env",
+                  "which python"]
 bc2.test_cmds = ["ls -al"]
 bc2.test_configs = []
 
