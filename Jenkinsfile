@@ -36,7 +36,7 @@ bc0.conda_ver = '4.6.4'
 bc0.conda_packages = ['python=3.6',
                      'pytest']
 bc0.build_cmds = ["env",
-                  "ls -al,
+                  "ls -al",
                   "conda config --show",
                   "./access_env_var.sh",
                   "which python",
