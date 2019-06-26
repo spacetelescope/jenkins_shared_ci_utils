@@ -36,7 +36,8 @@ bc0.conda_ver = '4.6.4'
 bc0.conda_packages = ['python=3.6',
                      'pytest']
 bc0.build_cmds = ["env",
-                  "ls -al",
+                  "ls -al ..", // Workspace root.
+                  "ls -al",    // Project clone dir.
                   "conda config --show",
                   "./access_env_var.sh",
                   "which python",
@@ -57,7 +58,8 @@ bc2.name = 'Third build config'
 bc2.conda_packages = ['python=3.6']
 bc2.build_cmds = ["env",
                   "which python"]
-bc2.test_cmds = ["ls -al"]
+bc2.test_cmds = ["ls -al ..", // Workspace root.
+                 "ls -al"]    // Project clone dir.
 bc2.test_configs = []
 
 
