@@ -4,6 +4,8 @@ import groovy.io.FileType
 import groovy.json.JsonOutput
 import org.apache.commons.lang3.SerializationUtils
 import org.apache.commons.io.FilenameUtils
+import java.util.Calendar
+import java.text.SimpleDateFormat
 
 import org.kohsuke.github.GitHub
 
@@ -256,8 +258,6 @@ upload_spec = """
 //
 // @param jobconfig     JobConfig object
 def testSummaryNotify(jobconfig, buildconfigs, test_info) {
-
-    //def test_info = parseTestReports(buildconfigs)
 
     // If there were any test errors or failures, send the summary to github.
     if (test_info.problems) {
@@ -721,10 +721,29 @@ def run(configs, concurrent = true) {
     // Separate jobconfig from buildconfig(s).
     configs.eachWithIndex { config ->
 
-        // Extract a JobConfig object if one is found.
+        dowMap = ["sun":1, "mon":2, "tue":3, "wed":4, "thu":5, "fri":6, "sat":7]
+        def date = new Date()
+        Calendar c = Calendar.getInstance()
+        c.setTime(date)
+        int dayOfWeek = c.get(Calendar.DAY_OF_WEEK)
+
+
+        // Extract a JobConfig object if one is found
         if (config.getClass() == JobConfig) {
             jobconfig = config // TODO: Try clone here to make a new instance
             return  // effectively a 'continue' from within a closure.
+        }
+
+        days = []
+        for (day in config.run_on_days) {
+            days.add(dowMap[day.toLowerCase()])
+        }
+
+        // Remove any JobConfig with a day-of-week request that does not match
+        // today.
+        if (!(dayOfWeek in days)) {
+            println("Skipping build of [${config.name}] due to 'run_on_days' stipulation.")
+            return
         } else {
             buildconfigs.add(config)
         }
