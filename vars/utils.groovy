@@ -122,6 +122,7 @@ def installConda(version, install_dir) {
     if (uname == "Darwin") {
         OSname = "MacOSX"
         println("OSname=${OSname}")
+        env.PATH = "/sw/bin:$PATH"
     }
     if (uname == "Linux") {
         OSname = uname
@@ -341,7 +342,7 @@ def processTestReport(config) {
             command = "cp '${repfile}' '${repfile}.modified'"
             sh(script:command)
         }
-        sh(script:"sed -i 's/ name=\"/ name=\"[${config.name}] /g' *.xml.modified")
+        sh(script: "sed -i 's/ name=\"/ name=\"[${config.name}] /g' *.xml.modified")
         step([$class: 'XUnitBuilder',
             thresholds: [
             [$class: 'SkippedThreshold', unstableThreshold: "${config.skippedUnstableThresh}"],
