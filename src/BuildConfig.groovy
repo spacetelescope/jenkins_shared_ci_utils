@@ -25,8 +25,9 @@ class BuildConfig implements Serializable {
     def skippedUnstableNewThresh = ''
     def skippedUnstableThresh= ''
 
-    // Scheduling
-    def run_on_days = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri']
+    // Scheduling - default behavior is to not restrict run schedule based on
+    // the day of the week.
+    def run_on_days = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat']
 
     // Private. Not to be used directly by Jenkinsfile.
     def runtime = []
