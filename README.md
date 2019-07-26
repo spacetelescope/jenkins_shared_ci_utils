@@ -25,6 +25,11 @@ if (utils.scm_checkout()) return
 // these settings to the job's execution.
 jobconfig = new JobConfig()
 jobconfig.post_test_summary = true
+// 'credentials' example
+//    To make an environment variable
+//    NOTE: This requires server-side configuration on the Jenkins instance hosting the builds.
+//          Contact a Jenkins administrator to add secrets to the credentials store.
+jobconfig.credentials = ['SECRET_VALUE_AS_ENV_VAR']
 
 
 // Config data to share between builds.
