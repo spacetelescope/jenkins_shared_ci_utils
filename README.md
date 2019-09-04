@@ -149,7 +149,15 @@ This is a brief description of the job execution sequence to aid in understandin
 
 1. A repository in https://github.com/spacetelescope has a Jenkinsfile added to one or more branches or PRs. The Jenkinsfile describes the build and test activities to take place upon a git push event.
 2. A git push event takes place on a branch containing a Jenkinsfile.
-3. Jenkins initiates a clone of the repository where the push event occurred.
+3. Jenkins initiates a clone of the repository where the push event occurred INTO A SUBDIRECTORY of the job workspace called 'clone'. If you wish to modify the PATH variable, for instance to refer to some path in the source tree or a directory generated from the configuration or build process, bear this in mind. The CI job tree looks like:
+
+```
+ <WORKSPACE_ROOT>
+     +-  clone (project source tree)
+           +- <project_source_root>
+     +-  miniconda (if conda was requested)
+```
+
 4. Source check out
    a. When the   `if (utils.scm_checkout()) return`   construct is used, the commit message is examined and the build is immediately terminated with a SUCCESS status if the string `[skip ci]` or `[ci skip]` appears in the latest commit message. If no such string is found, job execution continues.
    b. Jenkins creates a "stash" of all the files that were retrieved by the git clone and distributes them internally ("unstashes" them) to each build host that is spawned later in this sequence. This is done to minimize network calls to external resources.
