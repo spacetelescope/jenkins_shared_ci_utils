@@ -537,9 +537,11 @@ def buildAndTest(config) {
             devlines = devlines.tokenize('\n')
             for (devline in devlines) {
                 def dname = devline.tokenize('==')[0].trim()
+                def remote = ''
+                def hash = ''
                 dir('src/${dname}') {
-                    def hash = sh(script:'git rev-parse HEAD', returnStdout:true).trim()
-                    def remote = sh(script:'git remote -v | head -1', returnStdout:true).trim().tokenize()[1]
+                    hash = sh(script:'git rev-parse HEAD', returnStdout:true).trim()
+                    remote = sh(script:'git remote -v | head -1', returnStdout:true).trim().tokenize()[1]
                 }
                 def repl = "-e git+${remote}@${hash}#egg=${dname}"
                 sh(script: "sed -i '/${dname}=/c\\${repl}' ${output_reqs}")
