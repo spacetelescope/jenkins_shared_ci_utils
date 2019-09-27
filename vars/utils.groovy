@@ -521,7 +521,7 @@ def buildAndTest(config) {
             sh(script: "pip freeze --isolated > freeze.txt")
             // Get list of git-cloned development packages
             devlines = sh(script: "grep 'git+' requirements-sdp.txt", returnStdout:true).trim()
-            devlines = devlines.tokenize()
+            devlines = devlines.tokenize('\n')
             println(devlines)
             for (devline in devlines) {
                dname = devline.tokenize('@')[0].trim()
