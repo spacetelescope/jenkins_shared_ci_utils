@@ -533,19 +533,19 @@ def buildAndTest(config) {
             // '-e git+https://URL@<HASH>#egg=<name>'
             def output_reqs = "reqs_${config.name}.txt"
             sh(script: "pip freeze --isolated > ${output_reqs}")
-            //def devlines = sh(script: "grep '.dev' ${output_reqs}", returnStdout:true).trim()
-            //devlines = devlines.tokenize('\n')
-            //for (devline in devlines) {
-            //    def dname = devline.tokenize('==')[0].trim()
-            //    def remote = ''
-            //    def hash = ''
-            //    dir("src/${dname}") {
-            //        hash = sh(script:'git rev-parse HEAD', returnStdout:true).trim()
-            //        remote = sh(script:'git remote -v | head -1', returnStdout:true).trim().tokenize()[1]
-            //    }
-            //    def repl = "-e git+${remote}@${hash}#egg=${dname}"
-            //    sh(script: "sed -i '/${dname}=/c\\${repl}' ${output_reqs}")
-            //}
+            def devlines = sh(script: "grep '.dev' ${output_reqs}", returnStdout:true).trim()
+            devlines = devlines.tokenize('\n')
+            for (devline in devlines) {
+                def dname = devline.tokenize('==')[0].trim()
+                def remote = ''
+                def hash = ''
+                dir("src/${dname}") {
+                    hash = sh(script:'git rev-parse HEAD', returnStdout:true).trim()
+                    remote = sh(script:'git remote -v | head -1', returnStdout:true).trim().tokenize()[1]
+                }
+                def repl = "-e git+${remote}@${hash}#egg=${dname}"
+                sh(script: "sed -i '/${dname}=/c\\${repl}' ${output_reqs}")
+            }
         }
 
         if (conda_exe != '') {
