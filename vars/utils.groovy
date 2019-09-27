@@ -163,7 +163,7 @@ def installConda(version, install_dir) {
     def curr_ver = sh(script:"${conda_exe} --version", returnStdout: true)
     curr_ver = curr_ver.tokenize()[1].trim()
     if (curr_ver != version) {
-        sh "${conda_exe} install conda=${version}"
+        sh "${conda_exe} install -q conda=${version}"
     }
 
     return true
@@ -512,6 +512,38 @@ def buildAndTest(config) {
         } else if (fileExists(local_conda)) {
             conda_exe = local_conda
         }
+
+        pip_exe = sh(script:"which pip", returnStdout:true).trim()
+        if (pip_exe != '') {
+            def output_reqs = "reqs_${config.name}.txt"
+            sh(script: "${pip_exe} freeze > '${output_reqs}'")
+            // If requirements file used to populate the environment used the
+            // <pkg_name> @ git+https://URL@<commit_hash> syntax, modify each
+            // 'dev' package line found in the output freeze file, to take the form:
+            // '-e git+https://URL@<HASH>#egg=<name>'
+            def reqlines = readFile(output_reqs).trim().tokenize('\n')
+            def devlines = []
+            for (line in reqlines) {
+               if (line.contains('.dev')) {
+                   devlines.add(line)
+               }
+            }
+            for (devline in devlines) {
+                println(devline)
+                def dname = devline.tokenize('==')[0].trim()
+                def remote = ''
+                def hash = ''
+                dir("src/${dname}") {
+                    hash = sh(script:'git rev-parse HEAD', returnStdout:true).trim()
+                    remote = sh(script:'git remote -v | head -1', returnStdout:true).trim().tokenize()[1]
+                }
+                def repl = "-e git+${remote}@${hash}#egg=${dname}"
+                sh(script: "sed -i '/${dname}=/c\\${repl}' ${output_reqs}")
+            }
+        } else {
+            println('"pip" not found. Unable to generate "freeze" environment snapshot.')
+        }
+
         if (conda_exe != '') {
             // 'def' _required_ here to prevent use of values from one build
             // config leaking into others.
