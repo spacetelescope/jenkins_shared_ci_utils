@@ -515,24 +515,23 @@ def buildAndTest(config) {
 
         pip_exe = sh(script:"which pip", returnStdout:true).trim()
         if (pip_exe != '') {
-            // config leaking into others.
+            def input_reqs = 'requirements-sdp.txt'
+            def output_reqs = 'reqs_${config.name}.txt'
             // Produce a `pip freeze` environment dump
             // Modify it to include any development package installation targets
-            sh(script: "pip freeze --isolated > freeze.txt")
+            sh(script: "pip freeze --isolated > ${output_reqs}")
             // Get list of git-cloned development packages
-            devlines = sh(script: "grep 'git+' requirements-sdp.txt", returnStdout:true).trim()
+            def devlines = sh(script: "grep 'git+' ${input_reqs}", returnStdout:true).trim()
             devlines = devlines.tokenize('\n')
-            println(devlines)
             for (devline in devlines) {
-               dname = devline.tokenize('@')[0].trim()
-               print(dname)
+               def dname = devline.tokenize('@')[0].trim()
                sh(script: "sed -i '/${dname}=/c\\${devline}' freeze.txt")
             }
         }
 
         if (conda_exe != '') {
             // 'def' _required_ here to prevent use of values from one build
-
+            // config leaking into others.
             def dump_name = "conda_env_dump_${config.name}.txt"
             println("About to dump environment: ${dump_name}")
             sh(script: "${conda_exe} list --explicit > '${dump_name}'")
