@@ -514,18 +514,35 @@ def buildAndTest(config) {
         }
 
         pip_exe = sh(script:"which pip", returnStdout:true).trim()
+        //if (pip_exe != '') {
+        //    def input_reqs = 'requirements-sdp.txt'
+        //    def output_reqs = 'reqs_${config.name}.txt'
+        //    // Produce a `pip freeze` environment dump
+        //    // Modify it to include any development package installation targets
+        //    sh(script: "pip freeze --isolated > ${output_reqs}")
+        //    // Get list of git-cloned development packages
+        //    def devlines = sh(script: "grep 'git+' ${input_reqs}", returnStdout:true).trim()
+        //    devlines = devlines.tokenize('\n')
+        //    for (devline in devlines) {
+        //       def dname = devline.tokenize('@')[0].trim()
+        //       sh(script: "sed -i '/${dname}=/c\\${devline}' freeze.txt")
+        //    }
+        //}
         if (pip_exe != '') {
-            def input_reqs = 'requirements-sdp.txt'
+            // Modify each 'dev' package line in the freeze file, to take the form:
+            // '-e git+https://URL@<HASH>#egg=<name>'
             def output_reqs = 'reqs_${config.name}.txt'
-            // Produce a `pip freeze` environment dump
-            // Modify it to include any development package installation targets
             sh(script: "pip freeze --isolated > ${output_reqs}")
-            // Get list of git-cloned development packages
-            def devlines = sh(script: "grep 'git+' ${input_reqs}", returnStdout:true).trim()
+            def devlines = sh(script: "grep '.dev' ${output_reqs}", returnStdout:true).trim()
             devlines = devlines.tokenize('\n')
             for (devline in devlines) {
-               def dname = devline.tokenize('@')[0].trim()
-               sh(script: "sed -i '/${dname}=/c\\${devline}' freeze.txt")
+                def dname = devline.tokenize('==')[0].trim()
+                dir('src/${dname}') {
+                    def hash = sh('git rev-parse HEAD', returnStdout:true).trim()
+                    def remote = sh('git remote -v | head -1', returnStdout:true).trim().tokenize()[1]
+                }
+                def repl = "-e git+${remote}@${hash}#egg=${dname}"
+                sh(script: "sed -i '/${dname}=/c\\${repl}' ${output_reqs}")
             }
         }
 
