@@ -539,7 +539,7 @@ def buildAndTest(config) {
                 def dname = devline.tokenize('==')[0].trim()
                 def remote = ''
                 def hash = ''
-                dir('src/${dname}') {
+                dir("src/${dname}") {
                     hash = sh(script:'git rev-parse HEAD', returnStdout:true).trim()
                     remote = sh(script:'git remote -v | head -1', returnStdout:true).trim().tokenize()[1]
                 }
