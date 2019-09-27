@@ -163,7 +163,7 @@ def installConda(version, install_dir) {
     def curr_ver = sh(script:"${conda_exe} --version", returnStdout: true)
     curr_ver = curr_ver.tokenize()[1].trim()
     if (curr_ver != version) {
-        sh "${conda_exe} install conda=${version}"
+        sh "${conda_exe} install -q conda=${version}"
     }
 
     return true
@@ -520,8 +520,13 @@ def buildAndTest(config) {
             // Modify it to include any development package installation targets
             sh(script: "pip freeze --isolated > freeze.txt")
             // Get list of git-cloned development packages
-            devpkgs = sh(script: "grep 'git+' requirements-sdp.txt", returnStdout:true).trim()
-            println(devpkgs)
+            devlines = sh(script: "grep 'git+' requirements-sdp.txt", returnStdout:true).trim()
+            devlines = devpkgs.tokenize()
+            println(devlines)
+            for (devline in devlines) {
+               dname = devline.tokenize('@')[0].trim()
+               print(dname)
+            }
         }
 
         if (conda_exe != '') {
