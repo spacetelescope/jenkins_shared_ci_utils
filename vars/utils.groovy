@@ -526,7 +526,7 @@ def buildAndTest(config) {
             for (devline in devlines) {
                dname = devline.tokenize('@')[0].trim()
                print(dname)
-               sh(script: "sed -i '/${dname}=/c\${devline}' freeze.txt")
+               sh(script: "sed -i '/${dname}=/c\\${devline}' freeze.txt")
             }
         }
 
