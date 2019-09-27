@@ -512,9 +512,21 @@ def buildAndTest(config) {
         } else if (fileExists(local_conda)) {
             conda_exe = local_conda
         }
+
+        pip_exe = sh(script:"which pip", returnStdout:true).trim()
+        if (pip_exe != '') {
+            // config leaking into others.
+            // Produce a `pip freeze` environment dump
+            // Modify it to include any development package installation targets
+            sh(script: "pip freeze --isolated > freeze.txt")
+            // Get list of git-cloned development packages
+            devpkgs = sh(script: "grep 'git+' requirements-sdp.txt", returnStdout:true).trim()
+            println(devpkgs)
+        }
+
         if (conda_exe != '') {
             // 'def' _required_ here to prevent use of values from one build
-            // config leaking into others.
+
             def dump_name = "conda_env_dump_${config.name}.txt"
             println("About to dump environment: ${dump_name}")
             sh(script: "${conda_exe} list --explicit > '${dump_name}'")
