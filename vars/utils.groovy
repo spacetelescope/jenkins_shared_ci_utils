@@ -514,6 +514,7 @@ def buildAndTest(config) {
         }
 
         pip_exe = sh(script:"which pip", returnStdout:true).trim()
+        println(pip_exe)
         if (pip_exe != '') {
             // Modify each 'dev' package line in the freeze file, to take the form:
             // '-e git+https://URL@<HASH>#egg=<name>'
