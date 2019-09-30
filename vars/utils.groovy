@@ -520,7 +520,7 @@ def buildAndTest(config) {
             // '-e git+https://URL@<HASH>#egg=<name>'
             def output_reqs = "reqs_${config.name}.txt"
             println("output_reqs: ${output_reqs}")
-            sh(script: "pip freeze --isolated > ${output_reqs}")
+            sh(script: "${pip_exe} freeze --isolated > ${output_reqs}")
             def devlines = sh(script: "grep '.dev' ${output_reqs}", returnStdout:true).trim()
             devlines = devlines.tokenize('\n')
             print("devlines: ${devlines}")
