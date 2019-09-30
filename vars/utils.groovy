@@ -514,20 +514,6 @@ def buildAndTest(config) {
         }
 
         pip_exe = sh(script:"which pip", returnStdout:true).trim()
-        //if (pip_exe != '') {
-        //    def input_reqs = 'requirements-sdp.txt'
-        //    def output_reqs = 'reqs_${config.name}.txt'
-        //    // Produce a `pip freeze` environment dump
-        //    // Modify it to include any development package installation targets
-        //    sh(script: "pip freeze --isolated > ${output_reqs}")
-        //    // Get list of git-cloned development packages
-        //    def devlines = sh(script: "grep 'git+' ${input_reqs}", returnStdout:true).trim()
-        //    devlines = devlines.tokenize('\n')
-        //    for (devline in devlines) {
-        //       def dname = devline.tokenize('@')[0].trim()
-        //       sh(script: "sed -i '/${dname}=/c\\${devline}' freeze.txt")
-        //    }
-        //}
         if (pip_exe != '') {
             // Modify each 'dev' package line in the freeze file, to take the form:
             // '-e git+https://URL@<HASH>#egg=<name>'
@@ -546,6 +532,8 @@ def buildAndTest(config) {
                 def repl = "-e git+${remote}@${hash}#egg=${dname}"
                 sh(script: "sed -i '/${dname}=/c\\${repl}' ${output_reqs}")
             }
+        } else {
+            println('"pip" not found. Unable to generate "freeze" environment snapshot.')
         }
 
         if (conda_exe != '') {
