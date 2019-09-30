@@ -521,7 +521,9 @@ def buildAndTest(config) {
             sh(script: "pip freeze --isolated > ${output_reqs}")
             def devlines = sh(script: "grep '.dev' ${output_reqs}", returnStdout:true).trim()
             devlines = devlines.tokenize('\n')
+            print("devlines: ${devlines}")
             for (devline in devlines) {
+                println(devline)
                 def dname = devline.tokenize('==')[0].trim()
                 def remote = ''
                 def hash = ''
