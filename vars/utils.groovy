@@ -518,6 +518,7 @@ def buildAndTest(config) {
             // Modify each 'dev' package line in the freeze file, to take the form:
             // '-e git+https://URL@<HASH>#egg=<name>'
             def output_reqs = "reqs_${config.name}.txt"
+            println("output_reqs: ${output_reqs}")
             sh(script: "pip freeze --isolated > ${output_reqs}")
             def devlines = sh(script: "grep '.dev' ${output_reqs}", returnStdout:true).trim()
             devlines = devlines.tokenize('\n')
