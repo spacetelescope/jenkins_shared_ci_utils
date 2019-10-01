@@ -522,8 +522,15 @@ def buildAndTest(config) {
             sh(script: "${pip_exe} freeze > '${output_reqs}'")
             // If input requirements file syntax changes to `non -e` style, this can
             // produce the correct output requirements file syntax.
-            def devlines = sh(script: "grep '.dev' ${output_reqs}", returnStdout:true).trim()
-            devlines = devlines.tokenize('\n')
+            //def devlines = sh(script: "grep '.dev' ${output_reqs}", returnStdout:true).trim()
+            def reqlines = readFile(output_reqs).trim().tokenize('\n')
+            def devlines = []
+            for (line in reqlines) {
+               if (line.contains('.dev')) {
+                   devlines.append(line)
+               }
+            }
+            //devlines = devlines.tokenize('\n')
             print("devlines: ${devlines}")
             for (devline in devlines) {
                 println(devline)
