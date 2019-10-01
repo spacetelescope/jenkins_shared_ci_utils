@@ -531,7 +531,7 @@ def buildAndTest(config) {
                }
             }
             //devlines = devlines.tokenize('\n')
-            print("devlines: ${devlines}")
+            println("devlines: ${devlines}")
             for (devline in devlines) {
                 println(devline)
                 def dname = devline.tokenize('==')[0].trim()
