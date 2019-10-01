@@ -528,7 +528,7 @@ def buildAndTest(config) {
             def devlines = []
             for (line in reqlines) {
                if (line.contains('.dev')) {
-                   devlines.append(line)
+                   devlines.add(line)
                }
             }
             //devlines = devlines.tokenize('\n')
