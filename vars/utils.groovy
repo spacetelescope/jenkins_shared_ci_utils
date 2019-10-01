@@ -521,10 +521,10 @@ def buildAndTest(config) {
             def output_reqs = "reqs_${config.name}.txt"
             println("output_reqs: ${output_reqs}")
             //sh(script: "${pip_exe} freeze --isolated > ${output_reqs}")
-            def freezelist = sh(script: "${pip_exe} freeze --isolated", returnStdout:true).trim()
-            println(freezelist)
+            //def freezelist = sh(script: "${pip_exe} freeze --isolated", returnStdout:true).trim()
+            sh(script: "${pip_exe} freeze --isolated > '${output_reqs}'")
             //writeFile(output_reqs, freezelist)
-            sh(script:"echo '${freezelist}' > ${output_reqs}")
+            //sh(script:"echo '${freezelist}' > ${output_reqs}")
             //def devlines = sh(script: "grep '.dev' ${output_reqs}", returnStdout:true).trim()
             //devlines = devlines.tokenize('\n')
             //print("devlines: ${devlines}")
