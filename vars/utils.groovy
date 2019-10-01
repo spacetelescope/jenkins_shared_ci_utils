@@ -524,7 +524,7 @@ def buildAndTest(config) {
             def freezelist = sh(script: "${pip_exe} freeze --isolated", returnStdout:true).trim()
             println(freezelist)
             //writeFile(output_reqs, freezelist)
-            sh(script:"echo ${freezelist} > ${output_reqs}")
+            sh(script:"echo '${freezelist}' > ${output_reqs}")
             def devlines = sh(script: "grep '.dev' ${output_reqs}", returnStdout:true).trim()
             devlines = devlines.tokenize('\n')
             print("devlines: ${devlines}")
