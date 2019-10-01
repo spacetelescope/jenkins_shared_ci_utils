@@ -525,21 +525,21 @@ def buildAndTest(config) {
             println(freezelist)
             //writeFile(output_reqs, freezelist)
             sh(script:"echo '${freezelist}' > ${output_reqs}")
-            def devlines = sh(script: "grep '.dev' ${output_reqs}", returnStdout:true).trim()
-            devlines = devlines.tokenize('\n')
-            print("devlines: ${devlines}")
-            for (devline in devlines) {
-                println(devline)
-                def dname = devline.tokenize('==')[0].trim()
-                def remote = ''
-                def hash = ''
-                dir("src/${dname}") {
-                    hash = sh(script:'git rev-parse HEAD', returnStdout:true).trim()
-                    remote = sh(script:'git remote -v | head -1', returnStdout:true).trim().tokenize()[1]
-                }
-                def repl = "-e git+${remote}@${hash}#egg=${dname}"
-                sh(script: "sed -i '/${dname}=/c\\${repl}' ${output_reqs}")
-            }
+            //def devlines = sh(script: "grep '.dev' ${output_reqs}", returnStdout:true).trim()
+            //devlines = devlines.tokenize('\n')
+            //print("devlines: ${devlines}")
+            //for (devline in devlines) {
+            //    println(devline)
+            //    def dname = devline.tokenize('==')[0].trim()
+            //    def remote = ''
+            //    def hash = ''
+            //    dir("src/${dname}") {
+            //        hash = sh(script:'git rev-parse HEAD', returnStdout:true).trim()
+            //        remote = sh(script:'git remote -v | head -1', returnStdout:true).trim().tokenize()[1]
+            //    }
+            //    def repl = "-e git+${remote}@${hash}#egg=${dname}"
+            //    sh(script: "sed -i '/${dname}=/c\\${repl}' ${output_reqs}")
+            //}
         } else {
             println('"pip" not found. Unable to generate "freeze" environment snapshot.')
         }
