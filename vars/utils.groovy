@@ -514,32 +514,29 @@ def buildAndTest(config) {
         }
 
         pip_exe = sh(script:"which pip", returnStdout:true).trim()
-        println(pip_exe)
         if (pip_exe != '') {
             // Modify each 'dev' package line in the freeze file, to take the form:
             // '-e git+https://URL@<HASH>#egg=<name>'
             def output_reqs = "reqs_${config.name}.txt"
             println("output_reqs: ${output_reqs}")
-            //sh(script: "${pip_exe} freeze --isolated > ${output_reqs}")
-            //def freezelist = sh(script: "${pip_exe} freeze --isolated", returnStdout:true).trim()
             sh(script: "${pip_exe} freeze > '${output_reqs}'")
-            //writeFile(output_reqs, freezelist)
-            //sh(script:"echo '${freezelist}' > ${output_reqs}")
-            //def devlines = sh(script: "grep '.dev' ${output_reqs}", returnStdout:true).trim()
-            //devlines = devlines.tokenize('\n')
-            //print("devlines: ${devlines}")
-            //for (devline in devlines) {
-            //    println(devline)
-            //    def dname = devline.tokenize('==')[0].trim()
-            //    def remote = ''
-            //    def hash = ''
-            //    dir("src/${dname}") {
-            //        hash = sh(script:'git rev-parse HEAD', returnStdout:true).trim()
-            //        remote = sh(script:'git remote -v | head -1', returnStdout:true).trim().tokenize()[1]
-            //    }
-            //    def repl = "-e git+${remote}@${hash}#egg=${dname}"
-            //    sh(script: "sed -i '/${dname}=/c\\${repl}' ${output_reqs}")
-            //}
+            // If input requirements file syntax changes to `non -e` style, this can
+            // produce the correct output requirements file syntax.
+            def devlines = sh(script: "grep '.dev' ${output_reqs}", returnStdout:true).trim()
+            devlines = devlines.tokenize('\n')
+            print("devlines: ${devlines}")
+            for (devline in devlines) {
+                println(devline)
+                def dname = devline.tokenize('==')[0].trim()
+                def remote = ''
+                def hash = ''
+                dir("src/${dname}") {
+                    hash = sh(script:'git rev-parse HEAD', returnStdout:true).trim()
+                    remote = sh(script:'git remote -v | head -1', returnStdout:true).trim().tokenize()[1]
+                }
+                def repl = "-e git+${remote}@${hash}#egg=${dname}"
+                sh(script: "sed -i '/${dname}=/c\\${repl}' ${output_reqs}")
+            }
         } else {
             println('"pip" not found. Unable to generate "freeze" environment snapshot.')
         }
