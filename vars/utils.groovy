@@ -523,6 +523,7 @@ def buildAndTest(config) {
             //sh(script: "${pip_exe} freeze --isolated > ${output_reqs}")
             //def freezelist = sh(script: "${pip_exe} freeze --isolated", returnStdout:true).trim()
             sh(script: "${pip_exe} freeze > '${output_reqs}'")
+            sh(script: "echo ${output_reqs} > FILEFILE")
             //writeFile(output_reqs, freezelist)
             //sh(script:"echo '${freezelist}' > ${output_reqs}")
             //def devlines = sh(script: "grep '.dev' ${output_reqs}", returnStdout:true).trim()
