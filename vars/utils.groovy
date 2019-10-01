@@ -524,6 +524,7 @@ def buildAndTest(config) {
             // produce the correct output requirements file syntax.
             //def devlines = sh(script: "grep '.dev' ${output_reqs}", returnStdout:true).trim()
             def reqlines = readFile(output_reqs).trim().tokenize('\n')
+            println("reqlines: ${reqlines}")
             def devlines = []
             for (line in reqlines) {
                if (line.contains('.dev')) {
