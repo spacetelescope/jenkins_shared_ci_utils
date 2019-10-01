@@ -515,24 +515,19 @@ def buildAndTest(config) {
 
         pip_exe = sh(script:"which pip", returnStdout:true).trim()
         if (pip_exe != '') {
-            // Modify each 'dev' package line in the freeze file, to take the form:
-            // '-e git+https://URL@<HASH>#egg=<name>'
             def output_reqs = "reqs_${config.name}.txt"
-            println("output_reqs: ${output_reqs}")
             sh(script: "${pip_exe} freeze > '${output_reqs}'")
-            // If input requirements file syntax changes to `non -e` style, this can
-            // produce the correct output requirements file syntax.
-            //def devlines = sh(script: "grep '.dev' ${output_reqs}", returnStdout:true).trim()
+            // If requirements file used to populate the environment used the
+            // <pkg_name> @ git+https://URL@<commit_hash> syntax, modify each
+            // 'dev' package line found in the output freeze file, to take the form:
+            // '-e git+https://URL@<HASH>#egg=<name>'
             def reqlines = readFile(output_reqs).trim().tokenize('\n')
-            println("reqlines: ${reqlines}")
             def devlines = []
             for (line in reqlines) {
                if (line.contains('.dev')) {
                    devlines.add(line)
                }
             }
-            //devlines = devlines.tokenize('\n')
-            println("devlines: ${devlines}")
             for (devline in devlines) {
                 println(devline)
                 def dname = devline.tokenize('==')[0].trim()
