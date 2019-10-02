@@ -29,12 +29,11 @@ data_unmanaged = new DataConfig()
 data_unmanaged.server_id = 'bytesalad'
 data_unmanaged.managed = false
 data_unmanaged.insert("pytest_result",
-    [
-        "files": [
-            [
-                "pattern": "${env.WORKSPACE}/results(.*).xml",
-                "target": "datb-generic"
-            ]
+    ["files":
+        [[
+            "pattern": "${env.WORKSPACE}/results(.*).xml",
+            "target": "datb-generic"
+        ]]
     ]
 )
 
