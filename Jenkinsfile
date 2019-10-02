@@ -31,7 +31,7 @@ data_unmanaged.managed = false
 data_unmanaged.insert("pytest_result",
     ["files":
         [[
-            "pattern": "${env.WORKSPACE}/results(.*).xml",
+            "pattern": "results(.*).xml",
             "target": "datb-generic"
         ]]
     ]
