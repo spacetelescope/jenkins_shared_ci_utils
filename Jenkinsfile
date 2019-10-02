@@ -25,6 +25,19 @@ data_config.server_id = 'bytesalad'
 data_config.root = '${PYTEST_BASETEMP}'
 data_config.match_prefix = '(.*)_result' // .json is appended automatically
 
+data_unmanaged = new DataConfig()
+data_unmanaged.server_id = 'bytesalad'
+data_unmanaged.managed = false
+data_unmanaged.insert("pytest_result",
+    [
+        "files": [
+            [
+                "pattern": "${env.WORKSPACE}/results(.*).xml",
+                "target": "datb-generic"
+            ]
+    ]
+)
+
 
 bc0 = new BuildConfig()
 //bc0.nodetype = 'RHEL-6'
@@ -63,4 +76,9 @@ bc2.test_cmds = ["ls -al ..", // Workspace root.
 bc2.test_configs = []
 
 
-utils.run([bc0, bc1, bc2, jobconfig])
+bc3 = utils.copy(bc0)
+bc3.name = "Fourth build config"
+bc3.test_configs = [data_unmanaged]
+
+
+utils.run([bc0, bc1, bc2, bc3, jobconfig])
