@@ -14,10 +14,10 @@ class DataConfig implements Serializable {
 
     DataConfig(String direction = "upload") {
         this.direction = direction.toLowerCase()
-        if (!this.isUpload() && !this.isDownload()) {
-            throw new Exception("DataConfig.direction argument must be 'upload'"
-                                + "or 'download' (got: ${this.direction})")
-        }
+        //if (!this.isUpload() && !this.isDownload()) {
+        //    throw new Exception("DataConfig.direction argument must be 'upload'"
+        //                        + "or 'download' (got: ${this.direction})")
+        //}
     }
 
     def isUpload() {
