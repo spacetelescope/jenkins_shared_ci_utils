@@ -309,9 +309,11 @@ def publishCondaEnv(jobconfig, test_info) {
             if (jobconfig.publish_env_on_success_only) {
                 if (!test_info.problems) {
                     pushToArtifactory("conda_env_dump_*", pub_repo)
+                    pushToArtifactory("reqs_*", pub_repo)
                 }
             } else {
                 pushToArtifactory("conda_env_dump_*", pub_repo)
+                pushToArtifactory("reqs_*", pub_repo)
             }
         } // end dir(...
     }
@@ -443,6 +445,11 @@ def stagePostBuild(jobconfig, buildconfigs) {
                 } catch(Exception ex) {
                     println("No conda env dump stash available for ${config.name}")
                 }
+                try {
+                    unstash "reqs_${config.name}"
+                } catch(Exception ex) {
+                    println("No pip requirements stash available for ${config.name}")
+                }
             }
             def test_info = parseTestReports(buildconfigs)
             if (jobconfig.post_test_summary) {
@@ -540,6 +547,10 @@ def buildAndTest(config) {
                 def repl = "-e git+${remote}@${hash}#egg=${dname}"
                 sh(script: "sed -i '/${dname}=/c\\${repl}' ${output_reqs}")
             }
+            // Stash requirements file for use on master node.
+            stash includes: '**/reqs_*.txt',
+                  name: "reqs_${config.name}",
+                  useDefaultExcludes: false
         } else {
             println('"pip" not found. Unable to generate "freeze" environment snapshot.')
         }
