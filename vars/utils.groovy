@@ -522,6 +522,12 @@ def buildAndTest(config) {
 
         pip_exe = sh(script:"which pip", returnStdout:true).trim()
         if (pip_exe != '') {
+            // For each dependency in pip freeze output from this env,
+            // if dep has a version value without a 'dev' string
+            //     check if is available from PyPI, if so, leave it alone
+            //     if it's not available, that means it is unpublished but pulled from a VCS tag
+            // version has a 'dev' string, which means it came from a VCS
+            //     
             def output_reqs = "reqs_${config.name}.txt"
             sh(script: "${pip_exe} freeze > '${output_reqs}'")
             // If requirements file used to populate the environment used the
@@ -653,6 +659,18 @@ def processCondaPkgs(config, index) {
         config.env_vars.add(0, conda_path)
     }
     return config
+}
+
+
+// If one or more pip requirements files were specified, process them to
+// add the packages to the available python environment.
+//
+// @param config  BuildConfig object
+//
+def processReqsFiles(config) {
+    for (reqf in config.pip_reqs_files) {
+        sh(script: "pip install -r ${reqf} --src=../src")
+    }
 }
 
 
@@ -821,6 +839,7 @@ def run(configs, concurrent = true) {
             node(myconfig.nodetype) {
                 deleteDir()
                 myconfig = processCondaPkgs(myconfig, index)
+		myconfig = processReqsFiles(myconfig)
                 myconfig = expandEnvVars(myconfig)
                 for (var in myconfig.env_vars_raw) {
                     myconfig.runtime.add(var)
