@@ -475,6 +475,7 @@ def buildAndTest(config) {
     withEnv(config.runtime) {
     unstash "source_tree"
     dir('clone') {
+	processReqsFiles(config)
         stage("Build (${config.name})") {
             for (cmd in config.build_cmds) {
                 sh(script: cmd)
@@ -839,7 +840,6 @@ def run(configs, concurrent = true) {
             node(myconfig.nodetype) {
                 deleteDir()
                 myconfig = processCondaPkgs(myconfig, index)
-		myconfig = processReqsFiles(myconfig)
                 myconfig = expandEnvVars(myconfig)
                 for (var in myconfig.env_vars_raw) {
                     myconfig.runtime.add(var)
