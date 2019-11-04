@@ -523,41 +523,52 @@ def buildAndTest(config) {
 
         pip_exe = sh(script:"which pip", returnStdout:true).trim()
         if (pip_exe != '') {
-            // For each dependency in pip freeze output from this env,
-            // if dep has a version value without a 'dev' string
-            //     check if is available from PyPI, if so, leave it alone
-            //     if it's not available, that means it is unpublished but pulled from a VCS tag
-            // version has a 'dev' string, which means it came from a VCS
-            //     
+            // - Extract all git dependency spec lines from all requirements files save them in a map.
+            // - Generate pip freeze list.
+            // - Replace all VCS dependencies in pip freeze list with the full git+http dependency
+            //   specs collected earlier.
+            // 
+            // - Generate conda export file.
+            // - Replace all VCS dependencies in export file with the full git+http dependency
+            //   specs collected earlier.
             def output_reqs = "reqs_${config.name}.txt"
-            sh(script: "${pip_exe} freeze > '${output_reqs}'")
-            // If requirements file used to populate the environment used the
-            // <pkg_name> @ git+https://URL@<commit_hash> syntax, modify each
-            // 'dev' package line found in the output freeze file, to take the form:
-            // '-e git+https://URL@<HASH>#egg=<name>'
-            def reqlines = readFile(output_reqs).trim().tokenize('\n')
-            def devlines = []
-            for (line in reqlines) {
-               if (line.contains('.dev')) {
-                   devlines.add(line)
-               }
-            }
-            for (devline in devlines) {
-                println(devline)
-                def dname = devline.tokenize('==')[0].trim()
-                def remote = ''
-                def hash = ''
-                dir("src/${dname}") {
-                    hash = sh(script:'git rev-parse HEAD', returnStdout:true).trim()
-                    remote = sh(script:'git remote -v | head -1', returnStdout:true).trim().tokenize()[1]
+            for (rfile in config.pip_reqs_files) {
+                rflines = readFile(rfile).trim().tokenize('\n')
+                for (line in rflines) {
+                    println(line)
                 }
-                def repl = "-e git+${remote}@${hash}#egg=${dname}"
-                sh(script: "sed -i '/${dname}=/c\\${repl}' ${output_reqs}")
             }
+
+
+            //def output_reqs = "reqs_${config.name}.txt"
+            //sh(script: "${pip_exe} freeze > '${output_reqs}'")
+            //// If requirements file used to populate the environment used the
+            //// <pkg_name> @ git+https://URL@<commit_hash> syntax, modify each
+            //// 'dev' package line found in the output freeze file, to take the form:
+            //// '-e git+https://URL@<HASH>#egg=<name>'
+            //def reqlines = readFile(output_reqs).trim().tokenize('\n')
+            //def devlines = []
+            //for (line in reqlines) {
+            //   if (line.contains('.dev')) {
+            //       devlines.add(line)
+            //   }
+            //}
+            //for (devline in devlines) {
+            //    println(devline)
+            //    def dname = devline.tokenize('==')[0].trim()
+            //    def remote = ''
+            //    def hash = ''
+            //    dir("src/${dname}") {
+            //        hash = sh(script:'git rev-parse HEAD', returnStdout:true).trim()
+            //        remote = sh(script:'git remote -v | head -1', returnStdout:true).trim().tokenize()[1]
+            //    }
+            //    def repl = "-e git+${remote}@${hash}#egg=${dname}"
+            //    sh(script: "sed -i '/${dname}=/c\\${repl}' ${output_reqs}")
+            //}
             // Stash requirements file for use on master node.
-            stash includes: '**/reqs_*.txt',
-                  name: "reqs_${config.name}",
-                  useDefaultExcludes: false
+            ////stash includes: '**/reqs_*.txt',
+            ////      name: "reqs_${config.name}",
+            ////      useDefaultExcludes: false
         } else {
             println('"pip" not found. Unable to generate "freeze" environment snapshot.')
         }
@@ -569,7 +580,8 @@ def buildAndTest(config) {
             println("About to dump environment: ${dump_name}")
             sh(script: "${conda_exe} list --explicit > '${dump_name}'")
 
-            dump_name = "conda_env_dump_${config.name}.yml"
+            //dump_name = "conda_env_dump_${config.name}.yml"
+            dump_name = "conda_python_${config.name}.yml"
             println("About to dump environment: ${dump_name}")
             sh(script: "${conda_exe} env export > '${dump_name}'")
             def remote_out = sh(script: "git remote -v | head -1", returnStdout: true).trim()
@@ -585,6 +597,8 @@ def buildAndTest(config) {
             if (pip_section != 0) {
                 sh "echo '  - pip:' >> '${dump_name}'"
             }
+            // Replace any VCS dependencies with the full git+https specification.
+            
             // Add git+https line in pip section to install the commit
             // used for the target project of this job.
             def extra_yml_1 = "    - git+${remote_repo}@${commit}"
