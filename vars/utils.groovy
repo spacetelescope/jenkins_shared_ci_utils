@@ -535,7 +535,7 @@ def buildAndTest(config) {
             for (rfile in config.pip_reqs_files) {
                 rflines = readFile(rfile).trim().tokenize('\n')
                 for (line in rflines) {
-                    if line.replace(' ', '').contains('@git+') {
+                    if (line.replace(' ', '').contains('@git+')) {
                         println(line)
                     }
                 }
