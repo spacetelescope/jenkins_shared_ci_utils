@@ -308,11 +308,11 @@ def publishCondaEnv(jobconfig, test_info) {
 
             if (jobconfig.publish_env_on_success_only) {
                 if (!test_info.problems) {
-                    pushToArtifactory("conda_env_dump_*", pub_repo)
+                    pushToArtifactory("conda_python_*", pub_repo)
                     pushToArtifactory("reqs_*", pub_repo)
                 }
             } else {
-                pushToArtifactory("conda_env_dump_*", pub_repo)
+                pushToArtifactory("conda_python_*", pub_repo)
                 pushToArtifactory("reqs_*", pub_repo)
             }
         } // end dir(...
