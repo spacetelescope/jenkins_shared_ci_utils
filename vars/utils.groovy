@@ -580,7 +580,7 @@ def buildAndTest(config) {
             }
             println('FREEZE DATA')
             println(freeze_data)
-            writeFile(output_reqs, freeze_data)
+            writeFile(file: output_reqs, text: freeze_data)
             //// If requirements file used to populate the environment used the
             //// <pkg_name> @ git+https://URL@<commit_hash> syntax, modify each
             //// 'dev' package line found in the output freeze file, to take the form:
