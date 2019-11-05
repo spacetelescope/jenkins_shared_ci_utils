@@ -532,18 +532,34 @@ def buildAndTest(config) {
             // - Replace all VCS dependencies in export file with the full git+http dependency
             //   specs collected earlier.
             def output_reqs = "reqs_${config.name}.txt"
+            def vcs_specs = []
             for (rfile in config.pip_reqs_files) {
                 rflines = readFile(rfile).trim().tokenize('\n')
                 for (line in rflines) {
                     if (line.replace(' ', '').contains('@git+')) {
+                        vcs_specs.add(line)
                         println(line)
                     }
                 }
             }
 
 
-            //def output_reqs = "reqs_${config.name}.txt"
-            //sh(script: "${pip_exe} freeze > '${output_reqs}'")
+            def output_reqs = "reqs_${config.name}.txt.TEST"
+            freezelist = sh(script: "${pip_exe} freeze > '${output_reqs}'", returnStdout:true).trim().tokenize('/n')
+            def fpkg = ''
+            def vcspkg = ''
+            for (line in freezelist) {
+                if (line.contains('==')) {
+                    fpkg = line.tokenize('==')[0].trim()
+                    for (vcs_spec in vcs_specs) {
+		        vcspkg = vcs_spec.tokenize('@')[0].trim()
+                        if (fpkg == vcspkg) {
+                            println('vcspkg matches freeze package')
+                            println(line)
+                        }
+                    }
+                }
+            }
             //// If requirements file used to populate the environment used the
             //// <pkg_name> @ git+https://URL@<commit_hash> syntax, modify each
             //// 'dev' package line found in the output freeze file, to take the form:
