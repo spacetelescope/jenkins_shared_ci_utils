@@ -551,22 +551,26 @@ def buildAndTest(config) {
             def fpkg = ''
             def vcspkg = ''
             def freeze_data = ''
+            def modline = ''
             for (line in freezelist) {
                 if (line.contains('==')) {
                     fpkg = line.tokenize('==')[0].trim()
                     for (vcs_spec in vcs_specs) {
 		        vcspkg = vcs_spec.tokenize('@')[0].trim()
+                        modline = ''
                         if (fpkg == vcspkg) {
                             println('vcspkg matches freeze package')
                             println(vcs_spec)
-                            freeze_data = "${freeze_data}${vcs_spec}\n"
-                            break
-                        } else {
-                            freeze_data = "${freeze_data}${line}\n"
+                            modline = vcs_spec
                             break
                         }
                     }
-                } else {
+                    if (modline != '') {
+                        freeze_data = "${freeze_data}${modline}\n"
+                    } else {
+                        freeze_data = "${freeze_data}${line}\n"
+                    }
+                } else {  // Handle unexpected lines, comments, etc.
                     freeze_data = "${freeze_data}${line}\n"
                 }
             }
