@@ -531,7 +531,6 @@ def buildAndTest(config) {
             // - Generate conda export file.
             // - Replace all VCS dependencies in export file with the full git+http dependency
             //   specs collected earlier.
-            def output_reqs = "reqs_${config.name}.txt"
             def vcs_specs = []
             for (rfile in config.pip_reqs_files) {
                 rflines = readFile(rfile).trim().tokenize('\n')
