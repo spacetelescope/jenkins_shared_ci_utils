@@ -546,18 +546,14 @@ def buildAndTest(config) {
             println('=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=')
             println('=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=')
             def output_reqs = "reqs_${config.name}.txt.TEST"
-            //freezelist = sh(script: "${pip_exe} freeze > '${output_reqs}'", returnStdout:true).trim().tokenize('/n')
             freezelist = sh(script: "${pip_exe} freeze", returnStdout:true).trim().tokenize('\n')
-            def fpkg = ''
-            def vcspkg = ''
             def freeze_data = ''
-            def modline = ''
             for (line in freezelist) {
                 if (line.contains('==')) {
-                    fpkg = line.tokenize('==')[0].trim()
+                    def fpkg = line.tokenize('==')[0].trim()
                     for (vcs_spec in vcs_specs) {
-		        vcspkg = vcs_spec.tokenize('@')[0].trim()
-                        modline = ''
+		        def vcspkg = vcs_spec.tokenize('@')[0].trim()
+                        def modline = ''
                         if (fpkg == vcspkg) {
                             println('vcspkg matches freeze package')
                             println(vcs_spec)
@@ -582,7 +578,8 @@ def buildAndTest(config) {
                 }
             }
             println('FREEZE DATA')
-            println(freeze_data) 
+            println(freeze_data)
+            writeFile(output_reqs, freeze_data)
             //// If requirements file used to populate the environment used the
             //// <pkg_name> @ git+https://URL@<commit_hash> syntax, modify each
             //// 'dev' package line found in the output freeze file, to take the form:
@@ -617,12 +614,12 @@ def buildAndTest(config) {
         if (conda_exe != '') {
             // 'def' _required_ here to prevent use of values from one build
             // config leaking into others.
-            def dump_name = "conda_env_dump_${config.name}.txt"
+            def dump_name = "conda_python_${config.name}.txt.TEST"
             println("About to dump environment: ${dump_name}")
             sh(script: "${conda_exe} list --explicit > '${dump_name}'")
 
             //dump_name = "conda_env_dump_${config.name}.yml"
-            dump_name = "conda_python_${config.name}.yml"
+            dump_name = "conda_env_dump_${config.name}.yml.TEST"
             println("About to dump environment: ${dump_name}")
             sh(script: "${conda_exe} env export > '${dump_name}'")
             def remote_out = sh(script: "git remote -v | head -1", returnStdout: true).trim()
