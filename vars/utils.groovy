@@ -570,7 +570,14 @@ def buildAndTest(config) {
                     } else {
                         freeze_data = "${freeze_data}${line}\n"
                     }
-                } else {  // Handle unexpected lines, comments, etc.
+                } else if (line.contains('-e git+') {  // Editable install separate from the VCS installs.
+                    def convert = ''
+                    def nm = line.tokenize('=')[1]
+                    // strip off egg portion
+                    convert = line.replace('-e ', "${nm} @ ")
+                    convert = convert[0..convert.indexOf('#')-1]
+                    freeze_data = "${freeze_data}${convert}\n"
+                } else {  // Pass through all other lines unmodified.
                     freeze_data = "${freeze_data}${line}\n"
                 }
             }
