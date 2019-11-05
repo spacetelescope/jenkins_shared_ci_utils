@@ -618,7 +618,7 @@ def buildAndTest(config) {
 
             // Stash spec file for use on master node.
             stash includes: '**/conda_python*',
-                  name: "conda_env_dump_${config.name}",
+                  name: "conda_python_${config.name}",
                   useDefaultExcludes: false
         }
 
