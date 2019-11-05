@@ -543,6 +543,8 @@ def buildAndTest(config) {
             }
 
 
+            println('=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=')
+            println('=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=')
             def output_reqs = "reqs_${config.name}.txt.TEST"
             freezelist = sh(script: "${pip_exe} freeze > '${output_reqs}'", returnStdout:true).trim().tokenize('/n')
             def fpkg = ''
