@@ -550,6 +550,7 @@ def buildAndTest(config) {
             freezelist = sh(script: "${pip_exe} freeze", returnStdout:true).trim().tokenize('\n')
             def fpkg = ''
             def vcspkg = ''
+            def freeze_data = ''
             for (line in freezelist) {
                 if (line.contains('==')) {
                     fpkg = line.tokenize('==')[0].trim()
@@ -558,10 +559,16 @@ def buildAndTest(config) {
                         if (fpkg == vcspkg) {
                             println('vcspkg matches freeze package')
                             println(vcs_spec)
+                        } else {
+                            freeze_data = "${freeze_data}${line}\n"
                         }
                     }
+                } else {
+                    freeze_data = "${freeze_data}${line}\n"
                 }
             }
+            println('FREEZE DATA')
+            println(freeze_data) 
             //// If requirements file used to populate the environment used the
             //// <pkg_name> @ git+https://URL@<commit_hash> syntax, modify each
             //// 'dev' package line found in the output freeze file, to take the form:
