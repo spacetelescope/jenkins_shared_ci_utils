@@ -560,10 +560,10 @@ def buildAndTest(config) {
                             println('vcspkg matches freeze package')
                             println(vcs_spec)
                             freeze_data = "${freeze_data}${vcs_spec}\n"
-                            continue
+                            break
                         } else {
                             freeze_data = "${freeze_data}${line}\n"
-                            continue
+                            break
                         }
                     }
                 } else {
