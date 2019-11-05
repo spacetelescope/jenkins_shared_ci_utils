@@ -548,12 +548,13 @@ def buildAndTest(config) {
             def output_reqs = "reqs_${config.name}.txt.TEST"
             freezelist = sh(script: "${pip_exe} freeze", returnStdout:true).trim().tokenize('\n')
             def freeze_data = ''
+            def modline = ''
             for (line in freezelist) {
                 if (line.contains('==')) {
                     def fpkg = line.tokenize('==')[0].trim()
                     for (vcs_spec in vcs_specs) {
 		        def vcspkg = vcs_spec.tokenize('@')[0].trim()
-                        def modline = ''
+                        modline = ''
                         if (fpkg == vcspkg) {
                             println('vcspkg matches freeze package')
                             println(vcs_spec)
