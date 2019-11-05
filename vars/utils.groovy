@@ -537,7 +537,7 @@ def buildAndTest(config) {
                 for (line in rflines) {
                     if (line.replace(' ', '').contains('@git+')) {
                         vcs_specs.add(line)
-                        println(line)
+                        println("vcs spec line: ${line}")
                     }
                 }
             }
@@ -553,7 +553,7 @@ def buildAndTest(config) {
             for (line in freezelist) {
                 if (line.contains('==')) {
                     fpkg = line.tokenize('==')[0].trim()
-                    println(fpkg)
+                    println("Extracted from pipline: ${fpkg}")
                     for (vcs_spec in vcs_specs) {
 		        vcspkg = vcs_spec.tokenize('@')[0].trim()
                         print(vcspkg)
