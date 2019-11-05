@@ -550,8 +550,10 @@ def buildAndTest(config) {
             for (line in freezelist) {
                 if (line.contains('==')) {
                     fpkg = line.tokenize('==')[0].trim()
+                    println(fpkg)
                     for (vcs_spec in vcs_specs) {
 		        vcspkg = vcs_spec.tokenize('@')[0].trim()
+                        print(vcspkg)
                         if (fpkg == vcspkg) {
                             println('vcspkg matches freeze package')
                             println(line)
