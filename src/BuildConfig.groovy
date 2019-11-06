@@ -9,6 +9,8 @@ class BuildConfig implements Serializable {
     def conda_channels = []
     def conda_ver = null
 
+    def pip_reqs_files = []
+
     def env_vars = []
     def env_vars_raw = []
     def build_cmds = []
