@@ -321,7 +321,7 @@ def publishCondaEnv(jobconfig, test_info) {
             "    myJobConfig.publish_env_filter = \"${ident}\"\n" +
             "or override this check by setting the environment variable:\n" +
             "    JSCIU_ENV_PUBLISH_FORCE=1"
-        } else if (filter != "" && filter != ident) {
+        } else if (env.JSIU_ENV_PUBLISH_FORCE == null && (filter != "" && filter != ident)) {
             error_message = "JobConfig.publish_env_filter mismatch: \"${filter}\" != \"${ident}\""
         }
 
