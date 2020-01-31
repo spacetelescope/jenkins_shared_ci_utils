@@ -9,6 +9,8 @@ class JobConfig implements Serializable {
     // Conda environment specification file publication control
     def enable_env_publication = false
     def publish_env_on_success_only = true
+    // Filter format: "github_user_or_org_name/branch"
+    def publish_env_on_success_filter = ""
 
     def credentials = null
 

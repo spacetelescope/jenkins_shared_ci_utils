@@ -169,6 +169,21 @@ def installConda(version, install_dir) {
     return true
 }
 
+// Retrieve the current git branch
+//
+// @return string
+def gitCurrentBranch() {
+    return sh(script: "git rev-parse --abbrev-ref HEAD", returnStdout: true).trim()
+}
+
+
+// Retrieve the URL associated with "origin"
+//
+// @return string
+def gitCurrentOrigin() {
+    return sh(script: "git remote get-url origin", returnStdout: true).trim()
+}
+
 
 def parseTestReports(buildconfigs) {
     // Unstash all test reports produced by all possible agents.
@@ -298,6 +313,14 @@ def testSummaryNotify(jobconfig, buildconfigs, test_info) {
 def publishCondaEnv(jobconfig, test_info) {
 
     if (jobconfig.enable_env_publication) {
+        def ident = gitCurrentOrigin().tokenize("/")[-2] + "/" + gitCurrentBranch()
+        def filter = jobconfig.publish_env_on_success_filter
+
+        if (filter != "" && ident != filter) {
+            println("Environment publication halted: ${ident} != ${filter}")
+            return
+        }
+
         // Extract repo from standardized location
         dir('clone') {
             def testconf = readFile("setup.cfg")
