@@ -313,10 +313,20 @@ def publishCondaEnv(jobconfig, test_info) {
 
     if (jobconfig.enable_env_publication) {
         def ident = gitCurrentOrigin().tokenize("/")[-2] + "/" + gitCurrentBranch()
-        def filter = jobconfig.publish_env_filter
+        def filter = jobconfig.publish_env_filter.trim()
+        def error_message = ""
 
-        if (filter != "" && ident != filter) {
-            println("Environment publication halted: ${ident} != ${filter}")
+        if (env.JSCIU_ENV_PUBLISH_FORCE == null && filter == "") {
+            error_message = "To publish this environment configure your JobConfig:\n" +
+            "    myJobConfig.publish_env_filter = \"${ident}\"\n" +
+            "or override this check by setting the environment variable:\n" +
+            "    JSCIU_ENV_PUBLISH_FORCE=1"
+        } else if (filter != "" && filter != ident) {
+            error_message = "JobConfig.publish_env_filter mismatch: \"${filter}\" != \"${ident}\""
+        }
+
+        if (error_message != "") {
+            println("Environment publication halted:\n${error_message}")
             return
         }
 
