@@ -9,7 +9,6 @@ import java.text.SimpleDateFormat
 
 import org.kohsuke.github.GitHub
 
-
 @NonCPS
 // Post an issue to a particular Github repository.
 //
@@ -314,7 +313,7 @@ def publishCondaEnv(jobconfig, test_info) {
 
     if (jobconfig.enable_env_publication) {
         def ident = gitCurrentOrigin().tokenize("/")[-2] + "/" + gitCurrentBranch()
-        def filter = jobconfig.publish_env_on_success_filter
+        def filter = jobconfig.publish_env_filter
 
         if (filter != "" && ident != filter) {
             println("Environment publication halted: ${ident} != ${filter}")

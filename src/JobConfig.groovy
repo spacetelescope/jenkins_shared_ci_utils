@@ -10,7 +10,7 @@ class JobConfig implements Serializable {
     def enable_env_publication = false
     def publish_env_on_success_only = true
     // Filter format: "github_user_or_org_name/branch"
-    def publish_env_on_success_filter = ""
+    def publish_env_filter = ""
 
     def credentials = null
 
