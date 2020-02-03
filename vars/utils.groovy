@@ -9,7 +9,6 @@ import java.text.SimpleDateFormat
 
 import org.kohsuke.github.GitHub
 
-
 @NonCPS
 // Post an issue to a particular Github repository.
 //
@@ -169,6 +168,21 @@ def installConda(version, install_dir) {
     return true
 }
 
+// Retrieve the current git branch
+//
+// @return string
+def gitCurrentBranch() {
+    return sh(script: "git rev-parse --abbrev-ref HEAD", returnStdout: true).trim()
+}
+
+
+// Retrieve the URL associated with "origin"
+//
+// @return string
+def gitCurrentOrigin() {
+    return sh(script: "git remote get-url origin", returnStdout: true).trim()
+}
+
 
 def parseTestReports(buildconfigs) {
     // Unstash all test reports produced by all possible agents.
@@ -298,6 +312,24 @@ def testSummaryNotify(jobconfig, buildconfigs, test_info) {
 def publishCondaEnv(jobconfig, test_info) {
 
     if (jobconfig.enable_env_publication) {
+        def ident = gitCurrentOrigin().tokenize("/")[-2] + "/" + gitCurrentBranch()
+        def filter = jobconfig.publish_env_filter.trim()
+        def error_message = ""
+
+        if (env.JSCIU_ENV_PUBLISH_FORCE == null && filter == "") {
+            error_message = "To publish this environment configure your JobConfig:\n" +
+            "    myJobConfig.publish_env_filter = \"${ident}\"\n" +
+            "or override this check by setting the environment variable:\n" +
+            "    JSCIU_ENV_PUBLISH_FORCE=1"
+        } else if (env.JSIU_ENV_PUBLISH_FORCE == null && (filter != "" && filter != ident)) {
+            error_message = "JobConfig.publish_env_filter mismatch: \"${filter}\" != \"${ident}\""
+        }
+
+        if (error_message != "") {
+            println("Environment publication halted:\n${error_message}")
+            return
+        }
+
         // Extract repo from standardized location
         dir('clone') {
             def testconf = readFile("setup.cfg")
