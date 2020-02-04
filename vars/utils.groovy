@@ -313,8 +313,9 @@ def publishCondaEnv(jobconfig, test_info) {
 
     if (jobconfig.enable_env_publication) {
 
+        def ident = ''
         dir("clone") {
-	    def ident = gitCurrentOrigin().tokenize("/")[-2] + "/" + gitCurrentBranch()
+	    ident = gitCurrentOrigin().tokenize("/")[-2] + "/" + gitCurrentBranch()
         }
         def filter = jobconfig.publish_env_filter.trim()
         def error_message = ""
