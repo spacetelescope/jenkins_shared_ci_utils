@@ -183,6 +183,7 @@ def gitCurrentOrigin() {
     return sh(script: "git remote get-url origin", returnStdout: true).trim()
 }
 
+// Part of post-build stage. Runs on 'master' node.
 def parseTestReports(buildconfigs) {
     // Unstash all test reports produced by all possible agents.
     // Iterate over all unique files to compose the testing summary.
@@ -473,8 +474,6 @@ def stageArtifactory(config) {
 def stagePostBuild(jobconfig, buildconfigs) {
     node('master') {
         stage("Post-build") {
-            // Unstash the source tree to allow post-build git operations.
-            unstash "source_tree"
             for (config in buildconfigs) {
                 try {
                     unstash "conda_python_${config.name}"
