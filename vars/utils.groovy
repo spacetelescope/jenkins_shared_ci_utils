@@ -312,7 +312,10 @@ def testSummaryNotify(jobconfig, buildconfigs, test_info) {
 def publishCondaEnv(jobconfig, test_info) {
 
     if (jobconfig.enable_env_publication) {
-        def ident = gitCurrentOrigin().tokenize("/")[-2] + "/" + gitCurrentBranch()
+
+        dir("clone" {
+	    def ident = gitCurrentOrigin().tokenize("/")[-2] + "/" + gitCurrentBranch()
+        }
         def filter = jobconfig.publish_env_filter.trim()
         def error_message = ""
 
@@ -471,6 +474,8 @@ def stageArtifactory(config) {
 def stagePostBuild(jobconfig, buildconfigs) {
     node('master') {
         stage("Post-build") {
+            // Unstash the source tree to allow post-build git operations.
+            unstash "source_tree"
             for (config in buildconfigs) {
                 try {
                     unstash "conda_python_${config.name}"
