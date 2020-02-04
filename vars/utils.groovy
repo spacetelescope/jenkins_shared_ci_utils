@@ -183,7 +183,6 @@ def gitCurrentOrigin() {
     return sh(script: "git remote get-url origin", returnStdout: true).trim()
 }
 
-
 def parseTestReports(buildconfigs) {
     // Unstash all test reports produced by all possible agents.
     // Iterate over all unique files to compose the testing summary.
@@ -313,7 +312,7 @@ def publishCondaEnv(jobconfig, test_info) {
 
     if (jobconfig.enable_env_publication) {
 
-        dir("clone" {
+        dir("clone") {
 	    def ident = gitCurrentOrigin().tokenize("/")[-2] + "/" + gitCurrentBranch()
         }
         def filter = jobconfig.publish_env_filter.trim()
