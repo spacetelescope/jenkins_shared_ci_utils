@@ -172,7 +172,8 @@ def installConda(version, install_dir) {
 //
 // @return string
 def gitCurrentBranch() {
-    return sh(script: "git rev-parse --abbrev-ref HEAD", returnStdout: true).trim()
+    //return sh(script: "git rev-parse --abbrev-ref HEAD", returnStdout: true).trim()
+    return sh(script: "git name-rev --refs=master --name-only HEAD", returnStdout: true).trim()
 }
 
 
