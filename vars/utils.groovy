@@ -172,6 +172,7 @@ def installConda(version, install_dir) {
 //
 // @return string
 def gitCurrentBranch() {
+    sh(script: "printenv|sort")
     def branch = sh(script: "git rev-parse --abbrev-ref HEAD", returnStdout: true).trim()
     if (branch == "HEAD" && env.BRANCH_NAME != null) {
         branch = env.BRANCH_NAME
