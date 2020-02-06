@@ -174,7 +174,7 @@ def installConda(version, install_dir) {
 def gitCurrentBranch() {
     println(scm.branches[0])
     println(scm.branches[0].getClass())
-    def branch = scm.branches[0].tokenize('/')[-1]
+    def branch = scm.branches[0].toString().tokenize('/')[-1]
     return branch
 }
 
