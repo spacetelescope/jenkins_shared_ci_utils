@@ -183,6 +183,9 @@ def gitCurrentBranch() {
     //println("Branches:")
     //println(branches)
     // If master is in list, select is as branch.
+    // Get branch used for build
+    println("SCM BRANCHES")
+    println(scm.branches)
     def branch = sh(script: "git rev-parse --abbrev-ref HEAD", returnStdout: true).trim()
     if (branch == "HEAD" && env.BRANCH_NAME != null) {
         println("branch == 'HEAD' && env.BRANCH_NAME != null")
@@ -491,9 +494,6 @@ def stageArtifactory(config) {
 def stagePostBuild(jobconfig, buildconfigs) {
     node('master') {
         stage("Post-build") {
-            // Get branch used for build
-            println("SCM BRANCHES")
-            println(scm.branches)
             for (config in buildconfigs) {
                 try {
                     unstash "conda_python_${config.name}"
