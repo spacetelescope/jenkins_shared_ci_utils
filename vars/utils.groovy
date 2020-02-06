@@ -172,25 +172,8 @@ def installConda(version, install_dir) {
 //
 // @return string
 def gitCurrentBranch() {
-    ////return sh(script: "git rev-parse --abbrev-ref HEAD", returnStdout: true).trim()
-    ////return sh(script: "git name-rev --refs=master --name-only HEAD", returnStdout: true).trim()
-    //sh(script: "env | sort")
-    //// Get current commit
-    //def commit = sh(script: "git rev-parse HEAD", returnStdout: true).trim()
-    //// Get list of all branches containing commit
-    //def branches = sh(script:
-    //     "git branch --contains ${commit}", returnStdout: true).trim().tokenize('\n')
-    //println("Branches:")
-    //println(branches)
-    // If master is in list, select is as branch.
-    // Get branch used for build
-    println("SCM BRANCHES")
-    println(scm.branches)
-    def branch = sh(script: "git rev-parse --abbrev-ref HEAD", returnStdout: true).trim()
-    if (branch == "HEAD" && env.BRANCH_NAME != null) {
-        println("branch == 'HEAD' && env.BRANCH_NAME != null")
-        branch = env.BRANCH_NAME
-    }
+    def branch = scm.branches[0].tokenize('/')[-1]
+    return branch
 }
 
 
