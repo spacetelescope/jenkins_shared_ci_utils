@@ -172,9 +172,17 @@ def installConda(version, install_dir) {
 //
 // @return string
 def gitCurrentBranch() {
-    //return sh(script: "git rev-parse --abbrev-ref HEAD", returnStdout: true).trim()
-    //return sh(script: "git name-rev --refs=master --name-only HEAD", returnStdout: true).trim()
-    sh(script: "env | sort")
+    ////return sh(script: "git rev-parse --abbrev-ref HEAD", returnStdout: true).trim()
+    ////return sh(script: "git name-rev --refs=master --name-only HEAD", returnStdout: true).trim()
+    //sh(script: "env | sort")
+    //// Get current commit
+    //def commit = sh(script: "git rev-parse HEAD", returnStdout: true).trim()
+    //// Get list of all branches containing commit
+    //def branches = sh(script:
+    //     "git branch --contains ${commit}", returnStdout: true).trim().tokenize('\n')
+    //println("Branches:")
+    //println(branches)
+    // If master is in list, select is as branch.
     def branch = sh(script: "git rev-parse --abbrev-ref HEAD", returnStdout: true).trim()
     if (branch == "HEAD" && env.BRANCH_NAME != null) {
         println("branch == 'HEAD' && env.BRANCH_NAME != null")
@@ -279,6 +287,7 @@ upload_spec = """
 // as an issue on the the project's Github page.
 //
 // @param jobconfig     JobConfig object
+// Runs on master node.
 def testSummaryNotify(jobconfig, buildconfigs, test_info) {
 
     // If there were any test errors or failures, send the summary to github.
@@ -293,6 +302,10 @@ def testSummaryNotify(jobconfig, buildconfigs, test_info) {
         def reponame = scm.userRemoteConfigs[0].url.replaceAll(regpat, '')
         regpat = ~/\.git$/
         reponame = reponame.replaceAll(regpat, '')
+
+        // Get branch used for build
+        println("SCM BRANCHES")
+        println(scm.branches)
 
         println("Test failures and/or errors occurred.\n" +
                 "Posting summary to Github.\n" +
