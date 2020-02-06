@@ -172,7 +172,8 @@ def installConda(version, install_dir) {
 //
 // @return string
 def gitCurrentBranch() {
-    return sh(script: "git rev-parse --abbrev-ref HEAD", returnStdout: true).trim()
+    def branch = scm.branches[0].toString().tokenize('/')[-1]
+    return branch
 }
 
 
@@ -272,6 +273,7 @@ upload_spec = """
 // as an issue on the the project's Github page.
 //
 // @param jobconfig     JobConfig object
+// Runs on master node.
 def testSummaryNotify(jobconfig, buildconfigs, test_info) {
 
     // If there were any test errors or failures, send the summary to github.
