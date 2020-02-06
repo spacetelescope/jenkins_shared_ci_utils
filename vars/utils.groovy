@@ -303,10 +303,6 @@ def testSummaryNotify(jobconfig, buildconfigs, test_info) {
         regpat = ~/\.git$/
         reponame = reponame.replaceAll(regpat, '')
 
-        // Get branch used for build
-        println("SCM BRANCHES")
-        println(scm.branches)
-
         println("Test failures and/or errors occurred.\n" +
                 "Posting summary to Github.\n" +
                 "  ${reponame} Issue subject: ${test_info.subject}")
@@ -495,6 +491,9 @@ def stageArtifactory(config) {
 def stagePostBuild(jobconfig, buildconfigs) {
     node('master') {
         stage("Post-build") {
+            // Get branch used for build
+            println("SCM BRANCHES")
+            println(scm.branches)
             for (config in buildconfigs) {
                 try {
                     unstash "conda_python_${config.name}"
