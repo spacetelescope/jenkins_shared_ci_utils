@@ -893,7 +893,7 @@ def run(configs, concurrent = true) {
                   println('FOUND LIST CRED')
                   println("0: ${cred[0]}")
                   println("1: ${cred[1]}")
-                  withCredentials([string(credentialsId: cred, variable: 'cred_val')]) {
+                  withCredentials([string(credentialsId: cred[0], variable: 'cred_val')]) {
                       config.env_vars.add("${cred[1]}=${cred_val}".toString())
                     }
               }
