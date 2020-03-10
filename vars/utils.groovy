@@ -885,14 +885,16 @@ def run(configs, concurrent = true) {
             jobconfig.credentials.each { cred ->
               if (cred.getClass() == java.lang.String) {
                   println('FOUND STRING CRED')
-                  withCredentials([string(credentialsId: cred, variable: 'cred_id_val')]) {
+                  withCredentials([string(credentialsId: cred, variable: 'cred_val')]) {
                       config.env_vars.add("${cred}=${cred_id_val}".toString())
                     }
               }
               if (cred.getClass() == java.util.ArrayList) {
                   println('FOUND LIST CRED')
-                  withCredentials([string(credentialsId: cred[0], variable: cred[1])]) {
-                      config.env_vars.add("${cred[0]}=${cred[1]}".toString())
+                  println("0: ${cred[0]}")
+                  println("1: ${cred[1]}")
+                  withCredentials([string(credentialsId: cred, variable: 'cred_val')]) {
+                      config.env_vars.add("${cred[0]}=${cred_val}".toString())
                     }
               }
 
