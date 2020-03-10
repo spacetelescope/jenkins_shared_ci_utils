@@ -886,7 +886,7 @@ def run(configs, concurrent = true) {
               if (cred.getClass() == java.lang.String) {
                   println('FOUND STRING CRED')
                   withCredentials([string(credentialsId: cred, variable: 'cred_val')]) {
-                      config.env_vars.add("${cred}=${cred_id_val}".toString())
+                      config.env_vars.add("${cred}=${cred_val}".toString())
                     }
               }
               if (cred.getClass() == java.util.ArrayList) {
