@@ -885,7 +885,7 @@ def run(configs, concurrent = true) {
             jobconfig.credentials.each { cred ->
               if (cred.getClass() == java.lang.String) {
                   withCredentials([string(credentialsId: cred, variable: 'cred_id_val')]) {
-                      config.env_vars.add("${cred_id}=${cred_id_val}".toString())
+                      config.env_vars.add("${cred}=${cred_id_val}".toString())
                     }
               }
               if (cred.getClass() == java.util.ArrayList) {
