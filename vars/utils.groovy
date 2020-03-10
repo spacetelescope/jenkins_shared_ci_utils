@@ -882,12 +882,20 @@ def run(configs, concurrent = true) {
         // Make any requested credentials available to all build configs
         // in this job via environment variables.
         if (jobconfig.credentials != null) {
-            jobconfig.credentials.each { cred_id ->
-              withCredentials([string(credentialsId: cred_id, variable: 'cred_id_val')]) {
-                  config.env_vars.add("${cred_id}=${cred_id_val}".toString())
-                }
-            }
+            jobconfig.credentials.each { cred ->
+              if (cred.getClass() == java.lang.String) {
+                  withCredentials([string(credentialsId: cred, variable: 'cred_id_val')]) {
+                      config.env_vars.add("${cred_id}=${cred_id_val}".toString())
+                    }
+              }
+              if (cred.getClass() == java.util.ArrayList) {
+                  withCredentials([string(credentialsId: cred[0], variable: cred[1])]) {
+                      config.env_vars.add("${cred[0]}=${cred[1]}".toString())
+                    }
+              }
+
         }
+
 
         def BuildConfig myconfig = new BuildConfig() // MUST be inside eachWith loop.
         myconfig = SerializationUtils.clone(config)
