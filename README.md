@@ -29,7 +29,10 @@ jobconfig.post_test_summary = true
 //    To make an environment variable
 //    NOTE: This requires server-side configuration on the Jenkins instance hosting the builds.
 //          Contact a Jenkins administrator to add secrets to the credentials store.
-jobconfig.credentials = ['SECRET_VALUE_AS_ENV_VAR']
+jobconfig.credentials = [
+          'SECRET_VALUE_CREDENTIAL_ID',   // Credential ID as stored in Jenkins, var has same name as ID.
+          ['SECRET_VALUE_CREDENTIAL_ID, CUSTOM_ENV_VAR_NAME']  // Mapping of credental ID to custom env var.
+        ]
 
 
 // Config data to share between builds.
@@ -99,7 +102,7 @@ It has the following properties:
 | `enable_env_publication` | boolean | no | When `true`, and when conda is used during the job (for instance when a `conda_packages` list is provided in a build config), every build configuration (See BuildConfig Class below) that produces an XML test report with no test failures will also publish a list of the environment's packages to an Artifactory repository defined in either a `setup.cfg [tool:pytest]` section _OR_ in a `pytest.ini` file (but not both) using the `results_root` configuration value. i.e. `results_root = <artifactory destination repo>` The environment list file produced is the result of the command `conda list --explicit` from within the active environment and will be named `conda_env_dump_<value of buildconfig.name>.txt`. Note: the Artifactory repository specified must be configured to allow files to be published there. Default value when not specified or no jobconfig object passed to `run()`: `false` |
 | `publish_env_filter` | string | yes | Only publish the environment when the current git origin and branch matches within the pipeline job. The expected format is `user/branch` (e.g. `spacetelescope/master`). Wildcard operators are not supported. To override this behavior set the environment variable `JSCIU_ENV_PUBLISH_FORCE=1`. |
 | `publish_env_on_success_only` | boolean | no | When `enable_env_publication` is set to true, a `false` value for this option will publish a package list of any conda environments that are used in each build configuration, even if the test results contain failures. Default value when not specified or no jobconfig object passed to `run()`: `true` |
-| `credentials` | list of strings | no | If string-type credentials have been added to Jenkins's internal credentials store in a scope available to the job in question, adding the credential ID value(s) here in a comma separated list of strings will cause the value of each credential item to be injected into the runtime environment of each build configuration hosted by the job as an environment variable with the same name as the credential ID. |
+| `credentials` | list of strings or lists | no | If string-type credentials have been added to Jenkins's internal credentials store in a scope available to the job in question, adding the credential ID value(s) here in a comma separated list of strings will cause the value of each credential item to be injected into the runtime environment of each build configuration hosted by the job as an environment variable with the same name as the credential ID. If instead a custom environment variable name is desired onto which the value of a stored credential secret is to be mapped, it may be supplied as the second element of a list. I.e. `['SECRET_VALUE_CREDENTIAL_ID, CUSTOM_ENV_VAR_NAME']` as shown in the example Jenkinsfile above. |
 
 #### Test Summary Issue Posts
 If test summaries are requested using the `post_test_summary` property of the JobConfig class as described above, each Jenkins job that produces one or more test errors or failures will result in a single new Github issue being posted to the project's repository.
