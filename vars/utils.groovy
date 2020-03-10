@@ -894,6 +894,7 @@ def run(configs, concurrent = true) {
                     }
               }
 
+            } //end .each
         }
 
 
