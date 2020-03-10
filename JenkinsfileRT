@@ -38,10 +38,10 @@ bc0.conda_ver = '4.6.4'
 bc0.conda_packages = ['python=3.6',
                      'pytest']
 bc0.build_cmds = ["env",
+                  "./access_env_var.sh",
                   "ls -al ..", // Workspace root.
                   "ls -al",    // Project clone dir.
                   "conda config --show",
-                  "./access_env_var.sh",
                   "which python",
                   "conda install ipython"]
 bc0.test_cmds = ["${PYTEST} tests/test_75pass.py"]
