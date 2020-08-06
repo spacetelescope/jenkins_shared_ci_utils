@@ -629,6 +629,11 @@ def buildAndTest(config) {
             println("About to dump baseline python environment: ${dump_name}")
             sh(script: "${conda_exe} list --explicit > '${dump_name}'")
 
+            // Insert the version of conda used into explicit spec file.
+            def condaver = sh(script: "${conda_exe} --version", returnStdout: true).trim()
+            condaver = condaver.tokenize()[1]
+            sh("sed -i 's/@EXPLICIT/# conda version: ${condaver}\\n@EXPLICIT/' ${dump_name}")
+
             // Stash spec file for use on master node.
             stash includes: '**/conda_python*',
                   name: "conda_python_${config.name}",
