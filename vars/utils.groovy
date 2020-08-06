@@ -629,31 +629,6 @@ def buildAndTest(config) {
             println("About to dump baseline python environment: ${dump_name}")
             sh(script: "${conda_exe} list --explicit > '${dump_name}'")
 
-            // TODO: Replace pip lines for VCS-obtained packages with full git URL lines.
-            ////dump_name = "conda_env_dump_${config.name}.yml"
-            //dump_name = "conda_env_${config.name}.yml.TEST"
-            //println("About to dump environment: ${dump_name}")
-            //sh(script: "${conda_exe} env export > '${dump_name}'")
-            //def remote_out = sh(script: "git remote -v | head -1", returnStdout: true).trim()
-            //def remote_repo = remote_out.tokenize()[1]
-            //commit = sh(script: "git rev-parse HEAD", returnStdout: true).trim()
-            //// Remove 'prefix' line as it isn't needed and complicates the
-            //// addition of the 'pip' section.
-            //sh(script: "sed -i '/prefix/d' '${dump_name}'")
-            //// Remove any blank lines
-            //sh(script: "sed -i '/^ *\$/d' '${dump_name}'")
-            //def pip_section = sh(script: "grep 'pip:' '${dump_name}'", returnStatus: true)
-            //// Add 'pip' section if one is not already present.
-            //if (pip_section != 0) {
-            //    sh "echo '  - pip:' >> '${dump_name}'"
-            //}
-            //// Replace any VCS dependencies with the full git+https specification.
-            //
-            //// Add git+https line in pip section to install the commit
-            //// used for the target project of this job.
-            //def extra_yml_1 = "    - git+${remote_repo}@${commit}"
-            //sh "echo '${extra_yml_1}' >> '${dump_name}'"
-
             // Stash spec file for use on master node.
             stash includes: '**/conda_python*',
                   name: "conda_python_${config.name}",
