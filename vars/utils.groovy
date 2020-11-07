@@ -9,6 +9,77 @@ import java.text.SimpleDateFormat
 
 import org.kohsuke.github.GitHub
 
+
+// Pytest exit codes
+// https://docs.pytest.org/en/stable/reference.html#pytest.ExitCode
+int PYTEST_EXIT_OK              = 0
+int PYTEST_EXIT_TESTS_FAILED    = 1
+int PYTEST_EXIT_INTRRUPTED      = 2
+int PYTEST_EXIT_INTERNAL_ERROR  = 3
+int PYTEST_EXIT_USAGE_ERROR     = 4
+int PYTEST_EXIT_NO_TESTS        = 5
+
+// Minimum version of pytest capable of emitting reliable exit codes
+int PYTEST_EXIT_CAPABLE = [5, 0]
+
+
+// Determine if a program is available on $PATH
+//
+// @param name      String      program name
+// @return          int         Non-zero on failure, zero on success
+int programExists(String name) {
+    // Sanitize input
+    name = name.split('\\ |\\;|\\||\\&\\&?|\\/|\\\')[0]
+    // Find program, return status
+    return sh(script: "which ${name}", label: "Check program exists: ${name}", returnStatus: true)
+}
+
+
+// Test minimum pytest version available
+//
+// @param   needs   List        e.g. [1, 2, 3]
+// @return          Boolean     `needs` >= the system pytest version
+def pytestVersionMin(def needs) {
+    int need_count
+    int part_count
+    int records
+    def parts
+
+    if (programExists("pytest") != 0) {
+        println("pytest is not installed")
+        return false
+    }
+    // Obtain pytest version
+    version = sh(script: "pytest --version 2>&1", returnStdout: true, label: "Get pytest version").trim()
+
+    // Expected pytest version string format:
+    //    "pytest x.y.?\n"
+    parts = version.trim().split(' ')[1].split('\\.')
+    needs_count = needs.size()
+    parts_count = parts.size()
+    records = needs_count
+
+    // Are there more parts to `need`ed version than the actual pytest version?
+    if (needs_count > parts_count) {
+        // Ignore extraneous parts
+        records = parts_count
+    }
+
+    for (int i = 0; i < records; i++) {
+        // We cannot compare anything but Integer types
+        // Convert strings to integers
+        need = needs[i] as Integer
+        part = parts[i] as Integer
+
+        // Compare our needs against the parts we have
+        if (need < part) {
+            return false
+        }
+    }
+
+    return true
+}
+
 @NonCPS
 // Post an issue to a particular Github repository.
 //
@@ -510,6 +581,7 @@ def stagePostBuild(jobconfig, buildconfigs) {
 //
 // @param config      BuildConfig object
 def buildAndTest(config) {
+    def retval = 0
     withEnv(config.runtime) {
     unstash "source_tree"
     dir('clone') {
@@ -530,7 +602,12 @@ def buildAndTest(config) {
                             // This accommodates tools like pytest returning
                             // !0 codes when a test fails which would
                             // abort the job too early.
-                            sh(script: "${cmd} || true")
+                            retval = sh(script: "${cmd}", returnStatus: true)
+                            if (cmd.startsWith("pytest") && pytestVersionMin(PYTHON_EXIT_CAPABLE) && retval >= PYTEST_EXIT_INTERNAL_ERROR) {
+                                currentBuild.result = 'FAILURE'
+                            } else if (retval != 0) {
+                                currentBuild.result = 'UNSTABLE'
+                            }
                         }
                     }
                 }
@@ -565,7 +642,7 @@ def buildAndTest(config) {
             // - Generate pip freeze list.
             // - Replace all VCS dependencies in pip freeze list with the full git+http dependency
             //   specs collected earlier.
-            // 
+            //
             //  TODO:
             // - Generate conda export file.
             // - Replace all VCS dependencies in export file with the full git+http dependency
@@ -729,7 +806,7 @@ def expandEnvVars(config) {
     // Expand environment variable specifications by using the shell
     // to dereference any var references and then render the entire
     // value as a canonical path.
-    
+
     // Override the HOME dir to be the job workspace.
     config.env_vars.add("HOME=${env.WORKSPACE}")
 
