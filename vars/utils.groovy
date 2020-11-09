@@ -603,7 +603,7 @@ def buildAndTest(config) {
                             // !0 codes when a test fails which would
                             // abort the job too early.
                             retval = sh(script: "${cmd}", returnStatus: true)
-                            if (cmd.startsWith("pytest") && pytestVersionMin(PYTHON_EXIT_CAPABLE) && retval >= PYTEST_EXIT_INTERNAL_ERROR) {
+                            if (cmd.startsWith("pytest") && pytestVersionMin(PYTEST_EXIT_CAPABLE) && retval >= PYTEST_EXIT_INTERNAL_ERROR) {
                                 currentBuild.result = 'FAILURE'
                             } else if (retval != 0) {
                                 currentBuild.result = 'UNSTABLE'
