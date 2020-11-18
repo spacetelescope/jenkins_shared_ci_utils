@@ -29,7 +29,7 @@ int PYTEST_EXIT_CAPABLE = [5, 0]
 // @return          int         Non-zero on failure, zero on success
 int programExists(String name) {
     // Sanitize input
-    name = name.split('\\ |\\;|\\||\\&\\&?|\\/|\\\')[0]
+    name = name.split('\\ |\\;|\\||\\&\\&?|\\/|\\\\')[0]
     // Find program, return status
     return sh(script: "which ${name}", label: "Check program exists: ${name}", returnStatus: true)
 }
