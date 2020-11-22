@@ -20,7 +20,7 @@ int PYTEST_EXIT_USAGE_ERROR     = 4
 int PYTEST_EXIT_NO_TESTS        = 5
 
 // Minimum version of pytest capable of emitting reliable exit codes
-int PYTEST_EXIT_CAPABLE = "5.0"
+String PYTEST_EXIT_CAPABLE = "5.0"
 
 
 // Determine if a program is available on $PATH
