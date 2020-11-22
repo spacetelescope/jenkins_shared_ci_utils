@@ -10,18 +10,6 @@ import java.text.SimpleDateFormat
 import org.kohsuke.github.GitHub
 
 
-// Pytest exit codes
-// https://docs.pytest.org/en/stable/reference.html#pytest.ExitCode
-int PYTEST_EXIT_OK              = 0
-int PYTEST_EXIT_TESTS_FAILED    = 1
-int PYTEST_EXIT_INTRRUPTED      = 2
-int PYTEST_EXIT_INTERNAL_ERROR  = 3
-int PYTEST_EXIT_USAGE_ERROR     = 4
-int PYTEST_EXIT_NO_TESTS        = 5
-
-// Minimum version of pytest capable of emitting reliable exit codes
-def PYTEST_EXIT_CAPABLE = "5.0"
-
 // Determine if a program is available on $PATH
 //
 // @param name      String      program name
@@ -34,7 +22,7 @@ int programExists(String name) {
 }
 
 Boolean pytestSupportsExitCodes() {
-    return pytestVersionMin(PYTEST_EXIT_CAPABLE)
+    return pytestVersionMin(pytestVars.EXIT_CAPABLE)
 }
 
 Boolean pytestVersionMin(String target_version) {
@@ -607,7 +595,7 @@ def buildAndTest(config) {
                             // !0 codes when a test fails which would
                             // abort the job too early.
                             retval = sh(script: "${cmd}", returnStatus: true)
-                            if (cmd.startsWith("pytest") && pytestSupportsExitCodes() && retval >= PYTEST_EXIT_INTERNAL_ERROR) {
+                            if (cmd.startsWith("pytest") && pytestSupportsExitCodes() && retval >= pytestVars.EXIT_INTERNAL_ERROR) {
                                 currentBuild.result = 'FAILURE'
                             } else if (retval != 0) {
                                 currentBuild.result = 'UNSTABLE'
