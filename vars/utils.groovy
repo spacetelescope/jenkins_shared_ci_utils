@@ -20,7 +20,7 @@ int PYTEST_EXIT_USAGE_ERROR     = 4
 int PYTEST_EXIT_NO_TESTS        = 5
 
 // Minimum version of pytest capable of emitting reliable exit codes
-int PYTEST_EXIT_CAPABLE = [5, 0]
+int PYTEST_EXIT_CAPABLE = "5.0"
 
 
 // Determine if a program is available on $PATH
@@ -34,51 +34,56 @@ int programExists(String name) {
     return sh(script: "which ${name}", label: "Check program exists: ${name}", returnStatus: true)
 }
 
+Boolean pytestSupportsExitCodes() {
+    return pytestVersionMin(PYTEST_EXIT_CAPABLE)
+}
 
-// Test minimum pytest version available
-//
-// @param   needs   List        e.g. [1, 2, 3]
-// @return          Boolean     `needs` >= the system pytest version
-def pytestVersionMin(def needs) {
-    int need_count
-    int part_count
-    int records
-    def parts
-
+Boolean pytestVersionMin(String target_version) {
     if (programExists("pytest") != 0) {
         println("pytest is not installed")
         return false
     }
-    // Obtain pytest version
-    version = sh(script: "pytest --version 2>&1", returnStdout: true, label: "Get pytest version").trim()
 
-    // Expected pytest version string format:
+    // Extract version from pytest output:
     //    "pytest x.y.?\n"
-    parts = version.trim().split(' ')[1].split('\\.')
-    needs_count = needs.size()
-    parts_count = parts.size()
-    records = needs_count
+    version = sh(script: "pytest --version 2>&1", returnStdout: true, label: "Get pytest version").trim().split(' ')[1]
 
-    // Are there more parts to `need`ed version than the actual pytest version?
-    if (needs_count > parts_count) {
-        // Ignore extraneous parts
-        records = parts_count
+    return versionMin(target_version, version)
+}
+
+
+// Test version is greater than or equal to input
+//
+// @param   target_version  String      e.g. "1.2.3"
+// @param   current_version String      e.g. "1.2.4"
+// @return          Boolean             true=minver satisfied, false=minver not satisfied
+def versionMin(def target_version, def current_version) {
+    def target_version_parts = target_version.trim().split('\\.')
+    def target_version_count = target_version_parts.size()
+    def current_version_parts = current_version.trim().split('\\.')
+    def current_version_count = current_version_parts.size()
+    def records = current_version_count
+
+    // Ignore extranerous current_version data when necessary
+    if (current_version_count > target_version_count) {
+        records = target_version_count
     }
 
     for (int i = 0; i < records; i++) {
         // We cannot compare anything but Integer types
         // Convert strings to integers
-        need = needs[i] as Integer
-        part = parts[i] as Integer
+        target_version_part = target_version_parts[i] as Integer
+        current_version_part = current_version_parts[i] as Integer
 
-        // Compare our needs against the parts we have
-        if (need < part) {
+        // Compare current_version to target_verison
+        if (current_version_part < target_version_part) {
             return false
         }
     }
 
     return true
 }
+
 
 @NonCPS
 // Post an issue to a particular Github repository.
@@ -603,7 +608,7 @@ def buildAndTest(config) {
                             // !0 codes when a test fails which would
                             // abort the job too early.
                             retval = sh(script: "${cmd}", returnStatus: true)
-                            if (cmd.startsWith("pytest") && pytestVersionMin(PYTEST_EXIT_CAPABLE) && retval >= PYTEST_EXIT_INTERNAL_ERROR) {
+                            if (cmd.startsWith("pytest") && pytestSupportsExitCodes() && retval >= PYTEST_EXIT_INTERNAL_ERROR) {
                                 currentBuild.result = 'FAILURE'
                             } else if (retval != 0) {
                                 currentBuild.result = 'UNSTABLE'
