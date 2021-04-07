@@ -21,6 +21,16 @@ int programExists(String name) {
     return sh(script: "which ${name}", label: "Check program exists: ${name}", returnStatus: true)
 }
 
+Boolean versionMin(String minver, String version) {
+    def retval = false
+    def have = version.tokenize('.')[0]
+    def want = minver.tokenize('.')[0]
+    if (have != null && want != null && have >= want) {
+        retval = true
+    }
+    return retval
+}
+
 Boolean pytestSupportsExitCodes() {
     return pytestVersionMin(pytestVars.EXIT_CAPABLE)
 }
@@ -37,40 +47,6 @@ Boolean pytestVersionMin(String target_version) {
 
     return versionMin(target_version, version)
 }
-
-
-// Test version is greater than or equal to input
-//
-// @param   target_version  String      e.g. "1.2.3"
-// @param   current_version String      e.g. "1.2.4"
-// @return          Boolean             true=minver satisfied, false=minver not satisfied
-def versionMin(def target_version, def current_version) {
-    def target_version_parts = target_version.trim().split('\\.')
-    def target_version_count = target_version_parts.size()
-    def current_version_parts = current_version.trim().split('\\.')
-    def current_version_count = current_version_parts.size()
-    def records = current_version_count
-
-    // Ignore extranerous current_version data when necessary
-    if (current_version_count > target_version_count) {
-        records = target_version_count
-    }
-
-    for (int i = 0; i < records; i++) {
-        // We cannot compare anything but Integer types
-        // Convert strings to integers
-        target_version_part = target_version_parts[i] as Integer
-        current_version_part = current_version_parts[i] as Integer
-
-        // Compare current_version to target_verison
-        if (current_version_part < target_version_part) {
-            return false
-        }
-    }
-
-    return true
-}
-
 
 @NonCPS
 // Post an issue to a particular Github repository.
