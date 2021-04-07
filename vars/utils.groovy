@@ -359,7 +359,7 @@ def publishCondaEnv(jobconfig, test_info) {
 
 
 // If a non-JUnit format .xml file exists in the
-// root of the workspace, the XUnitBuilder report
+// root of the workspace, the xunit report
 // ingestion will fail.
 //
 // @param config      BuildConfig object
@@ -383,13 +383,13 @@ def processTestReport(config) {
             sh(script:command)
         }
         sh(script: "sed -i 's/ name=\"/ name=\"[${config.name}] /g' *.xml.modified")
-        step([$class: 'XUnitBuilder',
+        xunit(
             thresholds: [
-            [$class: 'SkippedThreshold', unstableThreshold: "${config.skippedUnstableThresh}"],
-            [$class: 'SkippedThreshold', failureThreshold: "${config.skippedFailureThresh}"],
-            [$class: 'FailedThreshold', unstableThreshold: "${config.failedUnstableThresh}"],
-            [$class: 'FailedThreshold', failureThreshold: "${config.failedFailureThresh}"]],
-            tools: [[$class: 'JUnitType', pattern: '*.xml.modified']]])
+            skipped(unstableThreshold: "${config.skippedUnstableThresh}"),
+            skipped(failureThreshold: "${config.skippedFailureThresh}"),
+            failed(unstableThreshold: "${config.failedUnstableThresh}"),
+            failed(failureThreshold: "${config.failedFailureThresh}")],
+            tools: [JUnitType(pattern: '*.xml.modified')])
     } else {
         println("No .xml files found in workspace. Test report ingestion skipped.")
     }
