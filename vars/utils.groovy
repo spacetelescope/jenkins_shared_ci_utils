@@ -389,7 +389,7 @@ def processTestReport(config) {
             skipped(failureThreshold: "${config.skippedFailureThresh}"),
             failed(unstableThreshold: "${config.failedUnstableThresh}"),
             failed(failureThreshold: "${config.failedFailureThresh}")],
-            tools: [JUnitType(pattern: '*.xml.modified')])
+            tools: [JUnit(pattern: '*.xml.modified')])
     } else {
         println("No .xml files found in workspace. Test report ingestion skipped.")
     }
