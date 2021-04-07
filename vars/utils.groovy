@@ -9,69 +9,6 @@ import java.text.SimpleDateFormat
 
 import org.kohsuke.github.GitHub
 
-
-// Determine if a program is available on $PATH
-//
-// @param name      String      program name
-// @return          int         Non-zero on failure, zero on success
-int programExists(String name) {
-    // Sanitize input
-    name = name.split('\\ |\\;|\\||\\&\\&?|\\/|\\\\')[0]
-    // Find program, return status
-    return sh(script: "which ${name}", label: "Check program exists: ${name}", returnStatus: true)
-}
-
-Boolean pytestSupportsExitCodes() {
-    return pytestVersionMin(pytestVars.EXIT_CAPABLE)
-}
-
-Boolean pytestVersionMin(String target_version) {
-    if (programExists("pytest") != 0) {
-        println("pytest is not installed")
-        return false
-    }
-
-    // Extract version from pytest output:
-    //    "pytest x.y.?\n"
-    version = sh(script: "pytest --version 2>&1", returnStdout: true, label: "Get pytest version").trim().split(' ')[1]
-
-    return versionMin(target_version, version)
-}
-
-
-// Test version is greater than or equal to input
-//
-// @param   target_version  String      e.g. "1.2.3"
-// @param   current_version String      e.g. "1.2.4"
-// @return          Boolean             true=minver satisfied, false=minver not satisfied
-def versionMin(def target_version, def current_version) {
-    def target_version_parts = target_version.trim().split('\\.')
-    def target_version_count = target_version_parts.size()
-    def current_version_parts = current_version.trim().split('\\.')
-    def current_version_count = current_version_parts.size()
-    def records = current_version_count
-
-    // Ignore extranerous current_version data when necessary
-    if (current_version_count > target_version_count) {
-        records = target_version_count
-    }
-
-    for (int i = 0; i < records; i++) {
-        // We cannot compare anything but Integer types
-        // Convert strings to integers
-        target_version_part = target_version_parts[i] as Integer
-        current_version_part = current_version_parts[i] as Integer
-
-        // Compare current_version to target_verison
-        if (current_version_part < target_version_part) {
-            return false
-        }
-    }
-
-    return true
-}
-
-
 @NonCPS
 // Post an issue to a particular Github repository.
 //
@@ -573,7 +510,6 @@ def stagePostBuild(jobconfig, buildconfigs) {
 //
 // @param config      BuildConfig object
 def buildAndTest(config) {
-    def retval = 0
     withEnv(config.runtime) {
     unstash "source_tree"
     dir('clone') {
@@ -594,12 +530,7 @@ def buildAndTest(config) {
                             // This accommodates tools like pytest returning
                             // !0 codes when a test fails which would
                             // abort the job too early.
-                            retval = sh(script: "${cmd}", returnStatus: true)
-                            if (cmd.startsWith("pytest") && pytestSupportsExitCodes() && retval >= pytestVars.EXIT_INTERNAL_ERROR) {
-                                currentBuild.result = 'FAILURE'
-                            } else if (retval != 0) {
-                                currentBuild.result = 'UNSTABLE'
-                            }
+                            sh(script: "${cmd} || true")
                         }
                     }
                 }
@@ -634,7 +565,7 @@ def buildAndTest(config) {
             // - Generate pip freeze list.
             // - Replace all VCS dependencies in pip freeze list with the full git+http dependency
             //   specs collected earlier.
-            //
+            // 
             //  TODO:
             // - Generate conda export file.
             // - Replace all VCS dependencies in export file with the full git+http dependency
@@ -798,7 +729,7 @@ def expandEnvVars(config) {
     // Expand environment variable specifications by using the shell
     // to dereference any var references and then render the entire
     // value as a canonical path.
-
+    
     // Override the HOME dir to be the job workspace.
     config.env_vars.add("HOME=${env.WORKSPACE}")
 
