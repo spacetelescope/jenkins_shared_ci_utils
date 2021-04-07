@@ -9,6 +9,45 @@ import java.text.SimpleDateFormat
 
 import org.kohsuke.github.GitHub
 
+
+// Determine if a program is available on $PATH
+//
+// @param name      String      program name
+// @return          int         Non-zero on failure, zero on success
+int programExists(String name) {
+    // Sanitize input
+    name = name.split('\\ |\\;|\\||\\&\\&?|\\/|\\\\')[0]
+    // Find program, return status
+    return sh(script: "which ${name}", label: "Check program exists: ${name}", returnStatus: true)
+}
+
+Boolean versionMin(String minver, String version) {
+    def retval = false
+    def have = version.tokenize('.')[0]
+    def want = minver.tokenize('.')[0]
+    if (have != null && want != null && have >= want) {
+        retval = true
+    }
+    return retval
+}
+
+Boolean pytestSupportsExitCodes() {
+    return pytestVersionMin(pytestVars.EXIT_CAPABLE)
+}
+
+Boolean pytestVersionMin(String target_version) {
+    if (programExists("pytest") != 0) {
+        println("pytest is not installed")
+        return false
+    }
+
+    // Extract version from pytest output:
+    //    "pytest x.y.?\n"
+    version = sh(script: "pytest --version 2>&1", returnStdout: true, label: "Get pytest version").trim().split(' ')[1]
+
+    return versionMin(target_version, version)
+}
+
 @NonCPS
 // Post an issue to a particular Github repository.
 //
@@ -510,6 +549,7 @@ def stagePostBuild(jobconfig, buildconfigs) {
 //
 // @param config      BuildConfig object
 def buildAndTest(config) {
+    def retval = 0
     withEnv(config.runtime) {
     unstash "source_tree"
     dir('clone') {
@@ -530,7 +570,12 @@ def buildAndTest(config) {
                             // This accommodates tools like pytest returning
                             // !0 codes when a test fails which would
                             // abort the job too early.
-                            sh(script: "${cmd} || true")
+                            retval = sh(script: "${cmd}", returnStatus: true)
+                            if (cmd.startsWith("pytest") && pytestSupportsExitCodes() && retval >= pytestVars.EXIT_INTERNAL_ERROR) {
+                                currentBuild.result = 'FAILURE'
+                            } else if (retval != 0) {
+                                currentBuild.result = 'UNSTABLE'
+                            }
                         }
                     }
                 }
@@ -565,7 +610,7 @@ def buildAndTest(config) {
             // - Generate pip freeze list.
             // - Replace all VCS dependencies in pip freeze list with the full git+http dependency
             //   specs collected earlier.
-            // 
+            //
             //  TODO:
             // - Generate conda export file.
             // - Replace all VCS dependencies in export file with the full git+http dependency
@@ -729,7 +774,7 @@ def expandEnvVars(config) {
     // Expand environment variable specifications by using the shell
     // to dereference any var references and then render the entire
     // value as a canonical path.
-    
+
     // Override the HOME dir to be the job workspace.
     config.env_vars.add("HOME=${env.WORKSPACE}")
 
