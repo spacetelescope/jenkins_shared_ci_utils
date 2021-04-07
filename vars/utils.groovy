@@ -177,7 +177,7 @@ def installConda(version, install_dir) {
         install_dir = default_dir
     }
 
-    def conda_base_url = "https://repo.continuum.io/miniconda"
+    def conda_base_url = "https://ssb.stsci.edu/miniconda"
 
     def OSname = null
     def uname = sh(script: "uname", returnStdout: true).trim()
