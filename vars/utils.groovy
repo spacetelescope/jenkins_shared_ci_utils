@@ -142,13 +142,9 @@ def condaPresent() {
 //                   otherwise
 def installConda(version, install_dir) {
 
-    installer_ver = '4.5.12'
-    default_conda_version = '4.5.12'
+    installer_ver = 'latest'
     default_dir = 'miniconda'
 
-    if (version == null) {
-        version = default_conda_version
-    }
     if (install_dir == null) {
         install_dir = default_dir
     }
@@ -198,10 +194,12 @@ def installConda(version, install_dir) {
     sh "bash ./${conda_installer} -b -p ${install_dir}"
 
     // Override conda version if specified and different from default.
-    def curr_ver = sh(script:"${conda_exe} --version", returnStdout: true)
-    curr_ver = curr_ver.tokenize()[1].trim()
-    if (curr_ver != version) {
-        sh "${conda_exe} install -q conda=${version}"
+    if (version != null) {
+        def curr_ver = sh(script:"${conda_exe} --version", returnStdout: true)
+        curr_ver = curr_ver.tokenize()[1].trim()
+        if (curr_ver != version) {
+            sh "${conda_exe} install -q conda=${version}"
+        }
     }
 
     return true
