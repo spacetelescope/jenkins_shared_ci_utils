@@ -392,7 +392,7 @@ def publishCondaEnv(jobconfig, test_info) {
             }
             else if (env.TEST_BIGDATA) {
                 // Get pub_repo from environment variable
-                def pub_repo = env.TEST_BIGDATA)
+                def pub_repo = env.TEST_BIGDATA
             }
             else {
                 // throw error if value for 'pub_repo' cannot be found.
