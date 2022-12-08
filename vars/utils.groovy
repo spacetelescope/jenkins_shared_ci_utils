@@ -377,11 +377,27 @@ def publishCondaEnv(jobconfig, test_info) {
 
         // Extract repo from standardized location
         dir('clone') {
-            def testconf = readFile("setup.cfg")
-            def Properties prop = new Properties()
-            prop.load(new StringReader(testconf))
-            println("PROP->${prop.getProperty('results_root')}")
-            pub_repo = prop.getProperty('results_root')
+            if (fileExists('setup.cfg')) {
+                // Get pub_repo from value stored in setup.cfg file
+                def testconf = readFile("setup.cfg")
+                def Properties prop = new Properties()
+                prop.load(new StringReader(testconf))
+                println("PROP->${prop.getProperty('results_root')}")
+                pub_repo = prop.getProperty('results_root')
+            }
+            else if (fileExists('pyproject.toml')) {
+                // Get pub_repo from value stored in pyproject.toml file
+                // TODO: figure out how to pull 'results_root' value from pyproject.toml file
+                println("TODO: figure out how to pull 'results_root' value from pyproject.toml file")
+            }
+            else if (env.TEST_BIGDATA) {
+                // Get pub_repo from environment variable
+                def pub_repo = env.TEST_BIGDATA)
+            }
+            else {
+                // throw error if value for 'pub_repo' cannot be found.
+                // TODO: Figure out how to throw error and exit here.
+                println("TODO: Figure out how to throw error and exit here.")
 
             if (jobconfig.publish_env_on_success_only) {
                 if (!test_info.problems) {
@@ -392,6 +408,7 @@ def publishCondaEnv(jobconfig, test_info) {
                 pushToArtifactory("conda_python_*", pub_repo)
                 pushToArtifactory("reqs_*", pub_repo)
             }
+
         } // end dir(...
     }
 }
