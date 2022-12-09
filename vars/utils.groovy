@@ -377,27 +377,34 @@ def publishCondaEnv(jobconfig, test_info) {
 
         // Extract repo from standardized location
         dir('clone') {
-            if (fileExists('setup.cfg')) {
-                // Get pub_repo from value stored in setup.cfg file
+            if (new File('setup.cfg').exists()) {
+                // Populate pub_repo from value stored in setup.cfg file
                 def testconf = readFile("setup.cfg")
                 def Properties prop = new Properties()
                 prop.load(new StringReader(testconf))
                 println("PROP->${prop.getProperty('results_root')}")
-                pub_repo = prop.getProperty('results_root')
+                def pub_repo = prop.getProperty('results_root')
+                println("Variable 'pub_repo' populated by information from file 'setup.cfg'")
             }
-            else if (fileExists('pyproject.toml')) {
-                // Get pub_repo from value stored in pyproject.toml file
-                // TODO: figure out how to pull 'results_root' value from pyproject.toml file
-                println("TODO: figure out how to pull 'results_root' value from pyproject.toml file")
+            else if (new File('pyproject.toml').exists()) {
+                // Populate pub_repo from value stored in pyproject.toml file
+                File file = new File('pyproject.toml')
+                String fileContent = file.text
+                def toml = new TomlSlurper().parseText(fileContent)
+                println("PROP->${toml.tool.pytest.ini_options.results_root}")
+                def pub_repo = toml.tool.pytest.ini_options.results_root
+                println("Variable 'pub_repo' populated by information from file 'pyproject.toml'")
             }
-            else if (env.TEST_BIGDATA) {
-                // Get pub_repo from environment variable
-                def pub_repo = env.TEST_BIGDATA
+            else if (System.env['TEST_BIGDATA']) {
+                // Populate pub_repo from environment variable
+                println("PROP->${System.env['TEST_BIGDATA']}")
+                def pub_repo = System.env['TEST_BIGDATA']
+                println("Variable 'pub_repo' populated by information from environment variable 'TEST_BIGDATA'")
             }
             else {
-                // throw error if value for 'pub_repo' cannot be found.
-                // TODO: Figure out how to throw error and exit here.
-                println("TODO: Figure out how to throw error and exit here.")
+                // throw exception if value for 'pub_repo' could not be found.
+                throw new Exception("Error: Value for 'pub_repo' not found in files 'setup.cfg' of 'pyproject.toml' or in environment variable 'TEST_BIGDATA'")
+            }
 
             if (jobconfig.publish_env_on_success_only) {
                 if (!test_info.problems) {
