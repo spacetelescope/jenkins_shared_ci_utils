@@ -387,13 +387,21 @@ def publishCondaEnv(jobconfig, test_info) {
                 println("Variable 'pub_repo' populated by information from file 'setup.cfg'")
             }
             else if (new File('pyproject.toml').exists()) {
-                // Populate pub_repo from value stored in pyproject.toml file
+                // Get pub_repo from value stored in pyproject.toml file
                 File file = new File('pyproject.toml')
-                String fileContent = file.text
-                def toml = new TomlSlurper().parseText(fileContent)
-                println("PROP->${toml.tool.pytest.ini_options.results_root}")
-                def pub_repo = toml.tool.pytest.ini_options.results_root
-                println("Variable 'pub_repo' populated by information from file 'pyproject.toml'")
+                def lines = file.readLines()
+                def pub_repo = ""
+                file.eachLine { String line ->
+                    if (line.startsWith("results_root")) {
+                        println("PROP->${line.split(" = ")[1]}")
+                        pub_repo = line.split(" = ")[1]
+                        println("Variable 'pub_repo' populated by information from file 'pyproject.toml'")
+                    }
+                }
+                if (pub_repo == "") {
+                    // throw error if value for 'pub_repo' cannot be found.
+                    throw new Exception("Error: Value for 'pub_repo' not found in existing file 'pyproject.toml'")
+                }
             }
             else if (System.env['TEST_BIGDATA']) {
                 // Populate pub_repo from environment variable
