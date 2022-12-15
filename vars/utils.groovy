@@ -377,7 +377,7 @@ def publishCondaEnv(jobconfig, test_info) {
 
         // Extract repo from standardized location
         dir('clone') {
-            if (new File('setup.cfg').exists()) {
+            if (fileExists('setup.cfg')) {
                 // Populate pub_repo from value stored in setup.cfg file
                 def testconf = readFile("setup.cfg")
                 def Properties prop = new Properties()
@@ -386,7 +386,7 @@ def publishCondaEnv(jobconfig, test_info) {
                 def pub_repo = prop.getProperty('results_root')
                 println("Variable 'pub_repo' populated by information from file 'setup.cfg'")
             }
-            else if (new File('pyproject.toml').exists()) {
+            else if (fileExists('pyproject.toml')) {
                 // Get pub_repo from value stored in pyproject.toml file
                 File file = new File('pyproject.toml')
                 def lines = file.readLines()
@@ -397,7 +397,6 @@ def publishCondaEnv(jobconfig, test_info) {
                         pub_repo = line.split(" = ")[1]
                         println("Variable 'pub_repo' populated by information from file 'pyproject.toml'")
                     }
-                }
                 if (pub_repo == "") {
                     // throw error if value for 'pub_repo' cannot be found.
                     throw new Exception("Error: Value for 'pub_repo' not found in existing file 'pyproject.toml'")
