@@ -404,10 +404,10 @@ def publishCondaEnv(jobconfig, test_info) {
                     throw new Exception("Error: Value for 'pub_repo' not found in existing file 'pyproject.toml'")
                 }
             }
-            else if (System.env['TEST_BIGDATA']) {
+            else if (env.TEST_BIGDATA) {
                 // Populate pub_repo from environment variable
-                println("PROP->${System.env['TEST_BIGDATA'].replaceAll("'","")}")
-                pub_repo = System.env['TEST_BIGDATA'].replaceAll("'","")
+                println("PROP->${env.TEST_BIGDATA.replaceAll("'","")}")
+                pub_repo = env.TEST_BIGDATA.replaceAll("'","")
                 println("Variable 'pub_repo' populated by information from environment variable 'TEST_BIGDATA'")
             }
             else {
