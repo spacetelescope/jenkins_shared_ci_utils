@@ -404,15 +404,15 @@ def publishCondaEnv(jobconfig, test_info) {
                     throw new Exception("Error: Value for 'pub_repo' not found in existing file 'pyproject.toml'")
                 }
             }
-            else if (env.TEST_BIGDATA) {
-                // Populate pub_repo from environment variable
-                println("PROP->${env.TEST_BIGDATA.replaceAll("'","")}")
-                pub_repo = env.TEST_BIGDATA.replaceAll("'","")
-                println("Variable 'pub_repo' populated by information from environment variable 'TEST_BIGDATA'")
+            else if (env.TEST_RESULTS_ROOT) {
+                // Populate pub_repo from environment variable 'TEST_RESULTS_ROOT'
+                println("PROP->${env.TEST_RESULTS_ROOT.replaceAll("'","")}")
+                pub_repo = env.TEST_RESULTS_ROOT.replaceAll("'","")
+                println("Variable 'pub_repo' populated by information from environment variable 'TEST_RESULTS_ROOT")
             }
             else {
                 // throw exception if value for 'pub_repo' could not be found.
-                throw new Exception("Error: Value for 'pub_repo' not found in files 'setup.cfg' of 'pyproject.toml' or in environment variable 'TEST_BIGDATA'")
+                throw new Exception("Error: Value for 'pub_repo' not found in files 'setup.cfg' of 'pyproject.toml' or in environment variable 'TEST_RESULTS_ROOT'")
             }
             if (jobconfig.publish_env_on_success_only) {
                 if (!test_info.problems) {
