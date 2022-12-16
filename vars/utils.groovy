@@ -377,12 +377,43 @@ def publishCondaEnv(jobconfig, test_info) {
 
         // Extract repo from standardized location
         dir('clone') {
-            def testconf = readFile("setup.cfg")
-            def Properties prop = new Properties()
-            prop.load(new StringReader(testconf))
-            println("PROP->${prop.getProperty('results_root')}")
-            pub_repo = prop.getProperty('results_root')
-
+            def pub_repo = ""
+            if (fileExists('setup.cfg')) {
+                // Populate pub_repo from value stored in setup.cfg file
+                def testconf = readFile("setup.cfg")
+                def Properties prop = new Properties()
+                prop.load(new StringReader(testconf))
+                println("PROP->${prop.getProperty('results_root')}")
+                pub_repo = prop.getProperty('results_root')
+                println("Variable 'pub_repo' populated by information from file 'setup.cfg'")
+            }
+            else if (fileExists('pyproject.toml')) {
+                // Get pub_repo from value stored in pyproject.toml file
+                def fileContents = readFile('pyproject.toml')
+                def lines =  fileContents.split("\n") // split file into individual lines by parsing newline chars
+                for (line in lines) {
+                    line = line.replaceAll("\\s","") // Remove all whitespaces
+                    if (line.startsWith("results_root")) {
+                        println("PROP->${line.split("=")[1].replaceAll("'","")}")
+                        pub_repo = line.split("=")[1].replaceAll("'","")
+                        println("Variable 'pub_repo' populated by information from file 'pyproject.toml'")
+                    }
+                }
+                if (pub_repo == "") {
+                    // throw error if value for 'pub_repo' cannot be found.
+                    throw new Exception("Error: Value for 'pub_repo' not found in existing file 'pyproject.toml'")
+                }
+            }
+            else if (env.TEST_RESULTS_ROOT) {
+                // Populate pub_repo from environment variable 'TEST_RESULTS_ROOT'
+                println("PROP->${env.TEST_RESULTS_ROOT.replaceAll("'","")}")
+                pub_repo = env.TEST_RESULTS_ROOT.replaceAll("'","")
+                println("Variable 'pub_repo' populated by information from environment variable 'TEST_RESULTS_ROOT")
+            }
+            else {
+                // throw exception if value for 'pub_repo' could not be found.
+                throw new Exception("Error: Value for 'pub_repo' not found in files 'setup.cfg' of 'pyproject.toml' or in environment variable 'TEST_RESULTS_ROOT'")
+            }
             if (jobconfig.publish_env_on_success_only) {
                 if (!test_info.problems) {
                     pushToArtifactory("conda_python_*", pub_repo)
@@ -392,6 +423,7 @@ def publishCondaEnv(jobconfig, test_info) {
                 pushToArtifactory("conda_python_*", pub_repo)
                 pushToArtifactory("reqs_*", pub_repo)
             }
+
         } // end dir(...
     }
 }
