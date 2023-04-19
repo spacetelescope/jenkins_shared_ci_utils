@@ -143,7 +143,7 @@ def condaPresent() {
 def installConda(version, install_dir) {
 
     installer_ver = 'py39_23.1.0-1'
-    default_conda_version = 'py39_23.1.0-1'
+    default_conda_version = '23.1.0'
     default_dir = 'miniconda'
 
     if (version == null) {
