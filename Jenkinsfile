@@ -32,7 +32,7 @@ bc0.nodetype = 'linux'
 bc0.name = 'First buildconfig'
 bc0.env_vars = ['VAR_ONE=1',
                'VAR_TWO=2']
-bc0.conda_ver = '23.1.0-1'
+bc0.conda_ver = 'py39_23.1.0-1'
 bc0.conda_packages = ['python=3.9',
                      'pytest']
 bc0.build_cmds = ["env",
