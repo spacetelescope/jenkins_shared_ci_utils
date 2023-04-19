@@ -142,8 +142,8 @@ def condaPresent() {
 //                   otherwise
 def installConda(version, install_dir) {
 
-    installer_ver = '4.5.12'
-    default_conda_version = '4.5.12'
+    installer_ver = '23.1.0-1'
+    default_conda_version = '23.1.0-1'
     default_dir = 'miniconda'
 
     if (version == null) {
@@ -725,7 +725,7 @@ def buildAndTest(config) {
 // If conda packages were specified, create an environment containing
 // them and then 'activate' it by setting key environment variables that
 // influence conda's behavior. . If a specific python version is
-// desired, it must be specified as a package, i.e. 'python=3.6'
+// desired, it must be specified as a package, i.e. 'python=3.9'
 // in the list config.conda_packages.
 //
 // @param config  BuildConfig object
