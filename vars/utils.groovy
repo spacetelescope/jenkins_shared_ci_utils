@@ -142,9 +142,8 @@ def condaPresent() {
 //                   otherwise
 def installConda(version, install_dir) {
 
-    installer_ver = '23.1.0-1'
-    default_conda_version = '23.1.0-1'
-    pyver = 'py39_'
+    installer_ver = 'py39_23.1.0-1'
+    default_conda_version = '23.1.0'
     default_dir = 'miniconda'
 
     if (version == null) {
@@ -189,7 +188,7 @@ def installConda(version, install_dir) {
 
     def cwd = pwd()
     def conda_exe = "${install_dir}/bin/conda"
-    def conda_installer = "Miniconda3-${pyver}${installer_ver}-${OSname}-x86_64.sh"
+    def conda_installer = "Miniconda3-${installer_ver}-${OSname}-x86_64.sh"
     dl_cmd = dl_cmd + " ${conda_base_url}/${conda_installer}"
     if (!fileExists("./${conda_installer}")) {
         sh dl_cmd
