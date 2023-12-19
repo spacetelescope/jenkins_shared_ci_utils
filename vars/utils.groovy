@@ -394,8 +394,8 @@ def publishCondaEnv(jobconfig, test_info) {
                 for (line in lines) {
                     line = line.replaceAll("\\s","") // Remove all whitespaces
                     if (line.startsWith("results_root")) {
-                        println("PROP->${line.split("=")[1].replaceAll("'","")}")
-                        pub_repo = line.split("=")[1].replaceAll("'","")
+                        println("PROP->${line.split("=")[1].replaceAll("'","").replaceAll("\"", "")}")
+                        pub_repo = line.split("=")[1].replaceAll("'","").replaceAll("\"", "")
                         println("Variable 'pub_repo' populated by information from file 'pyproject.toml'")
                     }
                 }
