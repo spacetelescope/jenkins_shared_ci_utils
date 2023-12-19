@@ -378,6 +378,7 @@ def publishCondaEnv(jobconfig, test_info) {
         // Extract repo from standardized location
         dir('clone') {
             def pub_repo = ""
+            def quotes = ~/['"]/
             if (fileExists('setup.cfg')) {
                 // Populate pub_repo from value stored in setup.cfg file
                 def testconf = readFile("setup.cfg")
@@ -390,12 +391,12 @@ def publishCondaEnv(jobconfig, test_info) {
             else if (fileExists('pyproject.toml')) {
                 // Get pub_repo from value stored in pyproject.toml file
                 def fileContents = readFile('pyproject.toml')
-                def lines =  fileContents.split("\n") // split file into individual lines by parsing newline chars
+                def lines = fileContents.split("\n") // split file into individual lines by parsing newline chars
                 for (line in lines) {
                     line = line.replaceAll("\\s","") // Remove all whitespaces
                     if (line.startsWith("results_root")) {
-                        println("PROP->${line.split("=")[1].replaceAll("'","")}")
-                        pub_repo = line.split("=")[1].replaceAll("'","")
+                        println("PROP->${line.split("=")[1].replaceAll(quotes,"")}")
+                        pub_repo = line.split("=")[1].replaceAll(quotes,"")
                         println("Variable 'pub_repo' populated by information from file 'pyproject.toml'")
                     }
                 }
@@ -407,7 +408,7 @@ def publishCondaEnv(jobconfig, test_info) {
             else if (env.TEST_RESULTS_ROOT) {
                 // Populate pub_repo from environment variable 'TEST_RESULTS_ROOT'
                 println("PROP->${env.TEST_RESULTS_ROOT.replaceAll("'","")}")
-                pub_repo = env.TEST_RESULTS_ROOT.replaceAll("'","")
+                pub_repo = env.TEST_RESULTS_ROOT.replaceAll(quotes,"")
                 println("Variable 'pub_repo' populated by information from environment variable 'TEST_RESULTS_ROOT")
             }
             else {
