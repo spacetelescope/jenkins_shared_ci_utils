@@ -353,7 +353,7 @@ def testSummaryNotify(jobconfig, buildconfigs, test_info) {
 def publishCondaEnv(jobconfig, test_info) {
 
     if (jobconfig.enable_env_publication) {
-
+        println("Environment publication is enabled")
         def ident = ''
         dir("clone") {
 	    ident = gitCurrentOrigin().tokenize("/")[-2] + "/" + gitCurrentBranch()
@@ -415,17 +415,25 @@ def publishCondaEnv(jobconfig, test_info) {
                 // throw exception if value for 'pub_repo' could not be found.
                 throw new Exception("Error: Value for 'pub_repo' not found in files 'setup.cfg' of 'pyproject.toml' or in environment variable 'TEST_RESULTS_ROOT'")
             }
+
             if (jobconfig.publish_env_on_success_only) {
-                if (!test_info.problems) {
+                println("Publishing environment(s) on SUCCESS")
+                if (currentBuild.currentResult == "SUCCESS") {
+                    println("Conditions met. Proceeding...")
                     pushToArtifactory("conda_python_*", pub_repo)
                     pushToArtifactory("reqs_*", pub_repo)
+                } else {
+                    println("Environment publication was prevented due to build status: ${currentBuild.currentResult}")
                 }
             } else {
+                println("Publishing environments(s)")
                 pushToArtifactory("conda_python_*", pub_repo)
                 pushToArtifactory("reqs_*", pub_repo)
             }
 
         } // end dir(...
+    } else {
+        println("Environment publication is disabled")
     }
 }
 
