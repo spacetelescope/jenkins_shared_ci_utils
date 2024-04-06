@@ -1,4 +1,4 @@
-//@Library('utils@dayfix') _
+@Library('utils@unmanaged-blob') _
 
 // [skip ci] and [ci skip] have no effect here.
 if (utils.scm_checkout(['skip_disable':true])) return
@@ -24,6 +24,18 @@ data_config = new DataConfig()
 data_config.server_id = 'bytesalad'
 data_config.root = '${PYTEST_BASETEMP}'
 data_config.match_prefix = '(.*)_result' // .json is appended automatically
+
+data_unmanaged = new DataConfig()
+data_unmanaged.server_id = 'bytesalad'
+data_unmanaged.managed = false
+data_unmanaged.insert("pytest_result",
+    ["files":
+        [[
+            "pattern": "results*.xml",
+            "target": "datb-generic/shared_utils/"
+        ]]
+    ]
+)
 
 
 bc0 = new BuildConfig()
@@ -63,4 +75,9 @@ bc2.test_cmds = ["ls -al ..", // Workspace root.
 bc2.test_configs = []
 
 
-utils.run([bc0, bc1, bc2, jobconfig])
+bc3 = utils.copy(bc0)
+bc3.name = "Fourth build config"
+bc3.test_configs = [data_unmanaged]
+
+
+utils.run([bc0, bc1, bc2, bc3, jobconfig])

@@ -490,33 +490,35 @@ def stageArtifactory(config) {
         for (artifact in config.test_configs) {
             server = Artifactory.server artifact.server_id
 
-            // Construct absolute path to data
-            def path = FilenameUtils.getFullPath(
-                        "${env.WORKSPACE}/${artifact.root}"
-            )
+            if (artifact.managed) {
+                // Construct absolute path to data
+                def path = FilenameUtils.getFullPath(
+                            "${env.WORKSPACE}/${artifact.root}"
+                )
 
-            // Record listing of all files starting at ${path}
-            // (Native Java and Groovy approaches will not
-            // work here)
-            sh(script: "find ${path} -type f",
-               returnStdout: true).trim().tokenize('\n').each {
+                // Record listing of all files starting at ${path}
+                // (Native Java and Groovy approaches will not
+                // work here)
+                sh(script: "find ${path} -type f",
+                   returnStdout: true).trim().tokenize('\n').each {
 
-                // Semi-wildcard matching of JSON input files
-                // ex:
-                //      it = "test_1234_result.json"
-                //      artifact.match_prefix = "(.*)_result"
-                //
-                //      pattern becomes: (.*)_result(.*)\\.json
-                if (it.matches(
-                        artifact.match_prefix + '(.*)\\.json')) {
-                    def basename = FilenameUtils.getBaseName(it)
-                    def data = readFile(it)
+                    // Semi-wildcard matching of JSON input files
+                    // ex:
+                    //      it = "test_1234_result.json"
+                    //      artifact.match_prefix = "(.*)_result"
+                    //
+                    //      pattern becomes: (.*)_result(.*)\\.json
+                    if (it.matches(
+                            artifact.match_prefix + '(.*)\\.json')) {
+                        def basename = FilenameUtils.getBaseName(it)
+                        def data = readFile(it)
 
-                    // Store JSON in a logical map
-                    // i.e. ["basename": [data]]
-                    artifact.insert(basename, data)
-                }
-            } // end find.each
+                        // Store JSON in a logical map
+                        // i.e. ["basename": [data]]
+                        artifact.insert(basename, data)
+                    }
+                } // end find.each
+            }
 
             // Submit each request to the Artifactory server
             artifact.data.each { blob ->
