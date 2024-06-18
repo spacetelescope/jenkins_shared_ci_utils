@@ -817,7 +817,7 @@ def expandEnvVars(config) {
             if (!var || !var.contains("=")) {
                 throw new Exception("Invalid environment variable declaration (missing delimiter '='): '${var}'")
             }
-            def data = var.split("=", limit=2)
+            def data = var.split("=", 2)
             def varName = data[0].trim()
             def varValue = data[1].trim()
             // examine var value, if it contains var refs, expand them.
