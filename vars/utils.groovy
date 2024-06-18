@@ -814,8 +814,12 @@ def expandEnvVars(config) {
     for (var in config.env_vars) {
         // Process each var in an environment defined by all the prior vars.
         withEnv(config.runtime) {
-            def varName = var.tokenize("=")[0].trim()
-            def varValue = var.tokenize("=")[1].trim()
+            if (!var || !var.contains("=")) {
+                throw new Exception("Invalid environment variable declaration (missing delimiter '='): '${var}'")
+            }
+            def data = var.split("=", limit=2)
+            def varName = data[0].trim()
+            def varValue = data[1].trim()
             // examine var value, if it contains var refs, expand them.
             def expansion = varValue
             if (varValue.contains("\$")) {
