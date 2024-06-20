@@ -129,7 +129,7 @@ def condaPresent() {
 }
 
 
-// Install a particular version of conda by downloading and running the miniconda
+// Install a particular version of conda by downloading and running the miniforge
 // installer and then installing conda at the specified version.
 //
 // @param version      string holding version of conda to install
@@ -142,9 +142,9 @@ def condaPresent() {
 //                   otherwise
 def installConda(version, install_dir) {
 
-    installer_ver = 'py39_23.1.0-1'
-    default_conda_version = '23.1.0'
-    default_dir = 'miniconda'
+    installer_ver = '24.3.0-0'
+    default_conda_version = '24.5.0'
+    default_dir = 'miniforge3'
 
     if (version == null) {
         version = default_conda_version
@@ -153,7 +153,7 @@ def installConda(version, install_dir) {
         install_dir = default_dir
     }
 
-    def conda_base_url = "https://ssb.stsci.edu/miniconda"
+    def conda_base_url = "https://ssb.stsci.edu/miniforge"
 
     def OSname = null
     def uname = sh(script: "uname", returnStdout: true).trim()
@@ -188,13 +188,13 @@ def installConda(version, install_dir) {
 
     def cwd = pwd()
     def conda_exe = "${install_dir}/bin/conda"
-    def conda_installer = "Miniconda3-${installer_ver}-${OSname}-x86_64.sh"
+    def conda_installer = "Miniforge3-${installer_ver}-${OSname}-x86_64.sh"
     dl_cmd = dl_cmd + " ${conda_base_url}/${conda_installer}"
     if (!fileExists("./${conda_installer}")) {
         sh dl_cmd
     }
 
-    // Install miniconda
+    // Install miniforge
     sh "bash ./${conda_installer} -b -p ${install_dir}"
 
     // Override conda version if specified and different from default.
@@ -628,7 +628,7 @@ def buildAndTest(config) {
 
         // If conda is present, dump the conda environment definition to a file.
         def conda_exe = ''
-        def local_conda = "${env.WORKSPACE}/miniconda/bin/conda"
+        def local_conda = "${env.WORKSPACE}/miniforge/bin/conda"
 
         system_conda_present = sh(script:"which conda", returnStatus:true)
         if (system_conda_present == 0) {
@@ -742,7 +742,7 @@ def processCondaPkgs(config, index) {
         // a prefix unique to this build configuration.
         if (!condaPresent()) {
             println('Conda not found. Installing.')
-            conda_inst_dir = "${env.WORKSPACE}/miniconda"
+            conda_inst_dir = "${env.WORKSPACE}/miniforge"
             println("conda_inst_dir = ${conda_inst_dir}")
             installConda(config.conda_ver, conda_inst_dir)
             conda_exe = "${conda_inst_dir}/bin/conda"

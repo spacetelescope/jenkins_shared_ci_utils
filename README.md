@@ -160,7 +160,7 @@ This is a brief description of the job execution sequence to aid in understandin
  <WORKSPACE_ROOT>
      +-  clone (project source tree)
            +- <project_source_root>
-     +-  miniconda (if conda was requested)
+     +-  miniforge (if conda was requested)
 ```
 
 4. Source check out
